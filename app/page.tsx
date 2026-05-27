@@ -5,9 +5,9 @@ export default function Home() {
     <main className="w-full min-h-screen bg-white">
       <div className="relative w-full">
         {/* Section 1 */}
-        <section 
-          className="h-[80vh] w-full flex flex-col items-center justify-center bg-white text-zinc-900 sticky z-10"
-          style={{ top: "calc(5rem - 80vh)" }}
+        <section
+          className="h-[90vh] w-full flex flex-col items-center justify-center bg-white text-zinc-900 sticky z-10"
+          style={{ top: "calc(5rem - 90vh)" }}
         >
           <h1 className="text-6xl font-extrabold tracking-tight mb-6">Welcome</h1>
           <p className="text-2xl opacity-60 max-w-2xl text-center">
@@ -25,7 +25,7 @@ export default function Home() {
       </div>
 
       {/* Section 5 */}
-      <section className="h-screen w-full flex flex-col items-center justify-center bg-stone-900 text-white relative z-10">
+      <section className="h-screen w-full flex flex-col items-center justify-center bg-zinc-100 text-white relative z-30">
         <h2 className="text-5xl font-bold mb-6 text-amber-500">Section 5</h2>
         <p className="text-xl opacity-80 max-w-xl text-center">
           You have reached the final section. This section scrolls in normally over the stacked sections.
