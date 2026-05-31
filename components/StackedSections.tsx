@@ -26,6 +26,8 @@ export default function StackedSections() {
 				scrollYProgress={scrollYProgress}
 				parallaxOffset={-40}
 				scrollOffset={-80}
+				fadeRange={[0, 0.5]}
+				fadeAmount={1.2}
 			>
 				<AboutSection />
 			</FolderSection>
@@ -39,6 +41,8 @@ export default function StackedSections() {
 				scrollYProgress={scrollYProgress}
 				parallaxOffset={-60}
 				scrollOffset={-120}
+				fadeRange={[0.5, 1]}
+				fadeAmount={1.05}
 			>
 				<ExperienceSection />
 			</FolderSection>

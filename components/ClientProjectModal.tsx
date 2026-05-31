@@ -23,7 +23,10 @@ function ProjectModalContent() {
     if (!slug) {
       // Start exit animation
       setIsAnimating(false);
-      const timer = setTimeout(() => setIsOpen(false), 350);
+      if (lenis) lenis.start();
+      document.body.style.overflow = "";
+
+      const timer = setTimeout(() => setIsOpen(false), 400);
       return () => clearTimeout(timer);
     }
 
@@ -44,28 +47,28 @@ function ProjectModalContent() {
         requestAnimationFrame(() => setIsAnimating(true));
       });
     }
-  }, [slug]);
+  }, [slug, lenis]);
 
-  // Lock/unlock body scroll
+  // Lock/unlock body scroll (when modal is actively open and animating)
   useEffect(() => {
     if (isAnimating) {
       if (lenis) lenis.stop();
       document.body.style.overflow = "hidden";
-    } else if (!slug) {
-      if (lenis) lenis.start();
-      document.body.style.overflow = "";
     }
-  }, [isAnimating, lenis, slug]);
+  }, [isAnimating, lenis]);
 
   const close = useCallback(() => {
     window.history.pushState(null, "", window.location.pathname);
     // Manually trigger state update since pushState doesn't fire popstate
     setIsAnimating(false);
+
+    // Unlock immediately
+    if (lenis) lenis.start();
+    document.body.style.overflow = "";
+
     setTimeout(() => {
       setIsOpen(false);
-      if (lenis) lenis.start();
-      document.body.style.overflow = "";
-    }, 350);
+    }, 400);
   }, [lenis]);
 
   // Handle escape key
@@ -84,11 +87,12 @@ function ProjectModalContent() {
       const newSlug = params.get("project");
       if (!newSlug) {
         setIsAnimating(false);
+        if (lenis) lenis.start();
+        document.body.style.overflow = "";
+
         setTimeout(() => {
           setIsOpen(false);
-          if (lenis) lenis.start();
-          document.body.style.overflow = "";
-        }, 350);
+        }, 400);
       } else {
         // Opening a project
         const proj = getAllProjects().find((p) => p.slug === newSlug);
@@ -115,19 +119,27 @@ function ProjectModalContent() {
   if (!isOpen || !project || !Post) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:px-6">
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center sm:px-6"
+      style={{ pointerEvents: isAnimating ? "auto" : "none" }}
+    >
       {/* Backdrop */}
       <div
         onClick={close}
-        className="absolute inset-0 bg-black/60 transition-opacity duration-300"
-        style={{ opacity: isAnimating ? 1 : 0 }}
+        className="absolute inset-0 bg-black/80 transition-opacity"
+        style={{
+          opacity: isAnimating ? 1 : 0,
+          transitionDuration: isAnimating ? "600ms" : "400ms",
+          transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
       />
 
       {/* Modal Container — Pure CSS animation */}
       <div
-        className="relative w-full h-[92dvh] max-w-6xl bg-zinc-950 rounded-t-3xl border border-b-0 border-zinc-800 flex flex-col overflow-hidden transition-transform"
+        className="relative w-full h-[92dvh] max-w-6xl bg-zinc-950 rounded-t-3xl border border-b-0 border-zinc-800 flex flex-col overflow-hidden transition-all"
         style={{
-          transform: isAnimating ? "translateY(0)" : "translateY(100%)",
+          transform: isAnimating ? "translateY(0)" : "translateY(120px)",
+          opacity: isAnimating ? 1 : 0,
           transitionDuration: isAnimating ? "600ms" : "400ms",
           transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
         }}
@@ -159,7 +171,7 @@ function ProjectModalContent() {
                     <span className="text-[11px] font-mono text-zinc-400">{project.year}</span>
                   </div>
 
-                  <h1 
+                  <h1
                     className="text-3xl sm:text-5xl font-bold mb-4 tracking-tight"
                     style={{ color: project.accent }}
                   >
@@ -198,7 +210,7 @@ function ProjectModalContent() {
             </header>
 
             {/* Article body */}
-            <div 
+            <div
               className="flex-1 w-full px-6 py-10 sm:py-12 pb-32 prose prose-invert prose-zinc max-w-5xl mx-auto prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 hover:prose-a:opacity-80 transition-all"
               style={{ "--tw-prose-links": project.accent } as React.CSSProperties}
             >

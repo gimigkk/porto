@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, MotionValue, useTransform, useMotionValue } from "framer-motion";
+import { motion, MotionValue, useTransform, useMotionValue, useMotionTemplate } from "framer-motion";
 import { ReactNode } from "react";
 import { useLenis } from "@studio-freight/react-lenis";
 
@@ -14,6 +14,8 @@ interface FolderSectionProps {
   scrollYProgress?: MotionValue<number>;
   parallaxOffset?: number;
   scrollOffset?: number;
+  fadeRange?: [number, number];
+  fadeAmount?: number;
 }
 
 export default function FolderSection({
@@ -26,6 +28,8 @@ export default function FolderSection({
   scrollYProgress,
   parallaxOffset = 0,
   scrollOffset = 0,
+  fadeRange,
+  fadeAmount = 1,
 }: FolderSectionProps) {
   const fallbackProgress = useMotionValue(0);
   // If scrollYProgress is provided, map 0->1 to 0->parallaxOffset
@@ -34,6 +38,16 @@ export default function FolderSection({
     [0, 1],
     [0, parallaxOffset]
   );
+  
+  // Progressive fade effect: adjust brightness based on the specified amount
+  const brightnessVal = useTransform(
+    scrollYProgress || fallbackProgress,
+    fadeRange || [0, 0],
+    [1, fadeAmount]
+  );
+  
+  const filter = useMotionTemplate`brightness(${brightnessVal})`;
+
   // All folders just have rounded-t-2xl at the far edges, the tabs seamlessly merge into them.
   const bodyRadius = "rounded-t-2xl";
 
@@ -68,7 +82,10 @@ export default function FolderSection({
   return (
     <>
       <div id={sectionId} className="w-full h-0 invisible" aria-hidden="true" />
-      <motion.div className={`${stickyClass} w-full`} style={{ y }}>
+      <motion.div 
+        className={`${stickyClass} w-full`} 
+        style={{ y, filter: fadeRange ? filter : undefined }}
+      >
       <div className="w-full h-full flex flex-col">
         {/* Tab Row */}
         <div className="flex w-full h-10 md:px-12 relative z-10 translate-y-[1px]">

@@ -65,6 +65,28 @@ const projects: ProjectMeta[] = [
     accent: "#ef4444",
     thumbnail: "/projects/porto/thumbnail.png",
   },
+  {
+    title: "NexusAI",
+    slug: "nexusai",
+    description:
+      "An AI-powered generative design tool that helps creators brainstorm visual concepts effortlessly with machine learning.",
+    stack: ["react", "python", "docker"],
+    year: "2024",
+    category: "Machine Learning",
+    accent: "#ec4899",
+    thumbnail: "/projects/porto/thumbnail.png",
+  },
+  {
+    title: "OrbitDesign",
+    slug: "orbitdesign",
+    description:
+      "A collaborative prototyping canvas for remote teams to sketch, wireframe, and align on ideas asynchronously.",
+    stack: ["react", "nodejs", "figma"],
+    year: "2023",
+    category: "Productivity Tools",
+    accent: "#3b82f6",
+    thumbnail: "/projects/porto/thumbnail.png",
+  },
 ];
 
 /**
