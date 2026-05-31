@@ -25,11 +25,11 @@ export default function Home() {
       </div>
 
       {/* Section 5 */}
-      <section className="h-screen w-full flex flex-col items-center justify-center bg-zinc-100 text-white relative z-30">
+      <section className="h-screen w-full flex flex-col items-center justify-center bg-zinc-900 text-white relative z-30">
         <h2 className="text-5xl font-bold mb-6 text-amber-500">Section 5</h2>
-        <p className="text-xl opacity-80 max-w-xl text-center">
+        <div className="text-xl opacity-80 max-w-xl text-center">
           You have reached the final section. This section scrolls in normally over the stacked sections.
-        </p>
+        </div>
       </section>
     </main>
   );

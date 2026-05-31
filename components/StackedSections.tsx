@@ -25,6 +25,7 @@ export default function StackedSections() {
 				stickyClass="h-[calc(100vh-5rem)] sticky top-20"
 				scrollYProgress={scrollYProgress}
 				parallaxOffset={-40}
+				scrollOffset={-80}
 			>
 				<AboutSection />
 			</FolderSection>
@@ -37,6 +38,7 @@ export default function StackedSections() {
 				stickyClass="h-[calc(100vh-120px)] sticky top-[120px]"
 				scrollYProgress={scrollYProgress}
 				parallaxOffset={-60}
+				scrollOffset={-120}
 			>
 				<ExperienceSection />
 			</FolderSection>
@@ -46,9 +48,10 @@ export default function StackedSections() {
 				tabPosition="right"
 				bgClass="bg-zinc-900"
 				fillClass="fill-zinc-900"
-				stickyClass="h-[calc(100vh-160px)] sticky top-[160px]"
+				stickyClass="min-h-[calc(100vh-160px)] z-30 relative"
 				scrollYProgress={scrollYProgress}
 				parallaxOffset={-80}
+				scrollOffset={-160}
 			>
 				<ProjectsSection />
 			</FolderSection>

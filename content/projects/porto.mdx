@@ -1,0 +1,26 @@
+export const metadata = {
+  title: "Porto",
+  slug: "porto",
+  description:
+    "A premium developer portfolio with scroll-driven folder animations and buttery micro-interactions — you're looking at it.",
+  stack: ["nextjs", "tailwind", "css"],
+  year: "2026",
+  category: "Creative & Design",
+  accent: "#a78bfa",
+  thumbnail: "/projects/porto/thumbnail.png",
+};
+
+## Overview
+
+Porto is a portfolio site designed to feel like a physical filing cabinet. As you scroll, folder-style sections stack on top of each other with parallax drift, creating a tactile browsing experience.
+
+## Design Philosophy
+
+The design draws from real-world metaphors — each section is a "folder" with a clickable tab. The scroll-driven animations use Framer Motion and Lenis for buttery smooth physics.
+
+## Technical Highlights
+
+- **Stacked sticky sections** — each folder uses CSS `position: sticky` with calculated offsets
+- **Parallax drift** — Framer Motion's `useTransform` maps scroll progress to subtle Y-axis movement
+- **Lenis smooth scroll** — overrides native scrolling for a premium, controlled feel
+- **MDX-powered content** — project articles are authored in MDX with full React component support

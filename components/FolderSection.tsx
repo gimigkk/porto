@@ -2,6 +2,7 @@
 
 import { motion, MotionValue, useTransform, useMotionValue } from "framer-motion";
 import { ReactNode } from "react";
+import { useLenis } from "@studio-freight/react-lenis";
 
 interface FolderSectionProps {
   tabPosition: "left" | "center" | "right";
@@ -12,6 +13,7 @@ interface FolderSectionProps {
   children: ReactNode;
   scrollYProgress?: MotionValue<number>;
   parallaxOffset?: number;
+  scrollOffset?: number;
 }
 
 export default function FolderSection({
@@ -23,6 +25,7 @@ export default function FolderSection({
   children,
   scrollYProgress,
   parallaxOffset = 0,
+  scrollOffset = 0,
 }: FolderSectionProps) {
   const fallbackProgress = useMotionValue(0);
   // If scrollYProgress is provided, map 0->1 to 0->parallaxOffset
@@ -34,8 +37,20 @@ export default function FolderSection({
   // All folders just have rounded-t-2xl at the far edges, the tabs seamlessly merge into them.
   const bodyRadius = "rounded-t-2xl";
 
+  const sectionId = `section-${tabTitle.toLowerCase().replace(/\s+/g, "-")}`;
+  const lenis = useLenis();
+
+  const handleTabClick = () => {
+    if (lenis) {
+      lenis.scrollTo(`#${sectionId}`, { offset: scrollOffset });
+    }
+  };
+
   const TabContent = () => (
-    <div className="relative w-[320px] h-[64px] -mt-[24px] flex items-center justify-center z-10">
+    <button
+      onClick={handleTabClick}
+      className="relative w-[320px] h-[64px] -mt-[24px] flex items-center justify-center z-10 focus:outline-none cursor-pointer"
+    >
       <svg
         width="320"
         height="64"
@@ -47,11 +62,13 @@ export default function FolderSection({
       <span className="text-white/80 font-semibold tracking-wide text-lg relative z-10 pb-1">
         {tabTitle}
       </span>
-    </div>
+    </button>
   );
 
   return (
-    <motion.div className={`${stickyClass} w-full`} style={{ y }}>
+    <>
+      <div id={sectionId} className="w-full h-0 invisible" aria-hidden="true" />
+      <motion.div className={`${stickyClass} w-full`} style={{ y }}>
       <div className="w-full h-full flex flex-col">
         {/* Tab Row */}
         <div className="flex w-full h-10 md:px-12 relative z-10 translate-y-[1px]">
@@ -81,5 +98,6 @@ export default function FolderSection({
         </div>
       </div>
     </motion.div>
+    </>
   );
 }
