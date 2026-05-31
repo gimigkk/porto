@@ -20,8 +20,8 @@ export default function StackedSections() {
 			<FolderSection
 				tabTitle="About"
 				tabPosition="left"
-				bgClass="bg-zinc-900"
-				fillClass="fill-zinc-900"
+				bgClass="bg-[#141416]"
+				fillClass="fill-[#141416]"
 				stickyClass="h-[calc(100vh-5rem)] sticky top-20"
 				scrollYProgress={scrollYProgress}
 				parallaxOffset={-40}
@@ -33,8 +33,8 @@ export default function StackedSections() {
 			<FolderSection
 				tabTitle="Experience"
 				tabPosition="center"
-				bgClass="bg-zinc-100"
-				fillClass="fill-zinc-100"
+				bgClass="bg-[#0e0e10]"
+				fillClass="fill-[#0e0e10]"
 				stickyClass="h-[calc(100vh-120px)] sticky top-[120px]"
 				scrollYProgress={scrollYProgress}
 				parallaxOffset={-60}
@@ -46,8 +46,8 @@ export default function StackedSections() {
 			<FolderSection
 				tabTitle="Projects"
 				tabPosition="right"
-				bgClass="bg-zinc-900"
-				fillClass="fill-zinc-900"
+				bgClass="bg-zinc-950"
+				fillClass="fill-zinc-950"
 				stickyClass="min-h-[calc(100vh-160px)] z-30 relative"
 				scrollYProgress={scrollYProgress}
 				parallaxOffset={-80}
