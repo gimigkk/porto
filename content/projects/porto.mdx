@@ -10,17 +10,71 @@ export const metadata = {
   thumbnail: "/projects/porto/thumbnail.png",
 };
 
-## Overview
+## The Problem
 
-Porto is a portfolio site designed to feel like a physical filing cabinet. As you scroll, folder-style sections stack on top of each other with parallax drift, creating a tactile browsing experience.
+Most developer portfolios follow the same formula — a hero section, a grid of cards, maybe a timeline. They work, but they don't _feel_ like anything. I wanted something that actually had a point of view. Something that made you want to scroll.
 
-## Design Philosophy
+The goal was to build a portfolio site that felt like a physical object. Not skeuomorphic in a cheesy way, but grounded in a real metaphor: **a filing cabinet**.
 
-The design draws from real-world metaphors — each section is a "folder" with a clickable tab. The scroll-driven animations use Framer Motion and Lenis for buttery smooth physics.
+## Approach
 
-## Technical Highlights
+I started by prototyping the scroll mechanics in isolation. The core idea was that each major section (About, Experience, Projects) would behave like a manila folder — stacking on top of each other as you scroll down, with visible tabs peeking out from underneath.
 
-- **Stacked sticky sections** — each folder uses CSS `position: sticky` with calculated offsets
-- **Parallax drift** — Framer Motion's `useTransform` maps scroll progress to subtle Y-axis movement
-- **Lenis smooth scroll** — overrides native scrolling for a premium, controlled feel
-- **MDX-powered content** — project articles are authored in MDX with full React component support
+This required solving three interconnected problems:
+
+1. **Stacking order** — Each folder needed to slide _under_ the one above it using `position: sticky` with carefully calculated top offsets.
+2. **Parallax drift** — To sell the "physical weight" illusion, each folder drifts at a slightly different rate using Framer Motion's `useTransform`.
+3. **Scroll hijacking** — Native browser scroll is too jerky for this kind of animation, so I integrated [Lenis](https://github.com/darkroomengineering/lenis) for smooth, inertia-based scrolling.
+
+### The Sticky Stack
+
+The trick is deceptively simple. Each folder section is wrapped in a `position: sticky` container with an increasing `top` value. As the user scrolls, CSS handles the stacking automatically — no JavaScript layout calculations needed.
+
+```css
+/* Each folder gets a progressively larger top offset */
+.folder-1 { position: sticky; top: 80px; }
+.folder-2 { position: sticky; top: 120px; }
+.folder-3 { position: sticky; top: 160px; }
+```
+
+The tab at the top of each folder is a simple `border-radius` trick with a pseudo-element that creates the notch effect. It took about 15 iterations to get the geometry right.
+
+### Motion & Feel
+
+Framer Motion drives all the micro-interactions. The parallax effect maps `scrollYProgress` to a subtle Y-axis translation on each folder:
+
+```tsx
+const y = useTransform(scrollYProgress, [0, 1], [0, -40]);
+```
+
+This creates a gentle "breathing" motion as you scroll — each folder shifts independently, reinforcing the layered metaphor.
+
+For the project cards, I went with staggered reveal animations with a spring-based ease curve. Each card enters with a slight upward drift and opacity fade, delayed by `i * 0.15s` based on its grid index.
+
+## The Modal System
+
+Clicking a project card doesn't navigate to a new page. Instead, it appends a `?project=slug` search parameter to the URL and renders a full-screen bottom sheet over the current page.
+
+This was a deliberate architectural choice:
+
+- **Scroll position is preserved** — closing the modal drops you right back where you were.
+- **URLs are shareable** — the search parameter means every project has a linkable address.
+- **It's modular** — the same `?project=` pattern can be dropped onto any future page (like a project library) without duplicating routing logic.
+
+The modal itself is a CSS `translateY` animation. I intentionally avoided opacity fades and scale transforms on the modal container — they cause compositing layer explosions on lower-end GPUs and tank frame rates. Pure translation is the cheapest animation the browser can do.
+
+## Typography & Color
+
+The site uses a dark-first palette built on Zinc tones. The three folder sections follow a subtle gradient from `#141416` (About) to `#0e0e10` (Experience) down to `zinc-950` (Projects), giving a sense of depth without any actual shadows.
+
+Each project has an `accent` color that's used for the title, badges, and hover states. These are stored in the project registry and passed as inline styles — no dynamic Tailwind classes needed.
+
+## What I'd Do Differently
+
+If I rebuilt this today, I'd probably skip Framer Motion for the scroll-driven animations entirely and use the native CSS `animation-timeline: scroll()` API. Browser support is finally there, and it would eliminate all the JavaScript overhead for the parallax effects.
+
+I'd also invest more time in the mobile experience. The stacked folder metaphor works beautifully on desktop where you have vertical real estate, but on a phone screen the tabs get cramped. A swipe-based card stack might work better at that breakpoint.
+
+---
+
+*Built with Next.js 16, Tailwind CSS, Framer Motion, and Lenis. Source available on [GitHub](https://github.com).*

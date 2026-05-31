@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import type { ProjectMeta } from "@/lib/projects";
 
 /* ── Human-readable label for each skill icon ID ─────────────── */
@@ -20,20 +19,6 @@ const techLabel: Record<string, string> = {
   git: "Git",
 };
 
-/* ── Card animation variants ─────────────────────────────────── */
-const cardVariants = {
-  hidden: { opacity: 0, y: 28 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.15,
-      duration: 0.55,
-      ease: [0.25, 0.46, 0.45, 0.94] as const,
-    },
-  }),
-};
-
 /* ── Max cards shown in the folder highlight ──────────────────── */
 const MAX_FEATURED = 6;
 
@@ -50,17 +35,17 @@ export default function ProjectCards({
       {/* ── Cards Grid (3-column) ──────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-6xl">
         {featured.map((project, i) => (
-          <motion.a
+          <div
             key={project.slug}
-            href={`/projects/${project.slug}`}
-            custom={i}
-            variants={cardVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            whileHover={{ y: -6, transition: { duration: 0.25 } }}
-            className="group relative flex flex-col rounded-xl border border-zinc-700/60 bg-zinc-800/50 backdrop-blur-sm overflow-hidden no-underline"
-            style={{ transition: "border-color 0.3s, box-shadow 0.3s" }}
+            onClick={() => {
+              window.history.pushState(null, "", `?project=${project.slug}`);
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }}
+            className="group relative flex flex-col rounded-xl border border-zinc-700/60 bg-zinc-800 overflow-hidden no-underline cursor-pointer hover:-translate-y-1.5"
+            style={{ 
+              transition: "border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+              willChange: "transform"
+            }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = "rgba(161,161,170,0.45)";
               e.currentTarget.style.boxShadow = `0 0 28px 0 ${project.accent}18`;
@@ -165,18 +150,14 @@ export default function ProjectCards({
                 ))}
               </div>
             </div>
-          </motion.a>
+          </div>
         ))}
       </div>
 
       {/* ── View All link ──────────────────────────────────────── */}
       {hasMore && (
-        <motion.a
+        <a
           href="/projects"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4, duration: 0.5 }}
           className="mt-6 inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
         >
           View all {projects.length} projects
@@ -193,7 +174,7 @@ export default function ProjectCards({
               d="M17 8l4 4m0 0l-4 4m4-4H3"
             />
           </svg>
-        </motion.a>
+        </a>
       )}
     </>
   );

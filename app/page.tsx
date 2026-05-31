@@ -1,4 +1,5 @@
 import StackedSections from "@/components/StackedSections";
+import ClientProjectModal from "@/components/ClientProjectModal";
 
 export default function Home() {
   return (
@@ -31,6 +32,8 @@ export default function Home() {
           You have reached the final section. This section scrolls in normally over the stacked sections.
         </div>
       </section>
+
+      <ClientProjectModal />
     </main>
   );
 }
