@@ -1,0 +1,56 @@
+.back-to-top-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background-color: rgb(9, 9, 11); /* zinc-950 */
+  border: 1px solid rgb(39, 39, 42); /* zinc-800 */
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 0px 0px 3px rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: width 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+              border-radius 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+              background-color 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.back-to-top-btn .btt-icon {
+  width: 14px;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.back-to-top-btn .btt-icon path {
+  fill: rgb(161, 161, 170); /* zinc-400 */
+}
+
+.back-to-top-btn:hover {
+  width: 140px;
+  border-radius: 50px;
+  background-color: rgb(39, 39, 42); /* zinc-800 */
+}
+
+.back-to-top-btn:hover .btt-icon {
+  transform: translateY(-200%);
+}
+
+.back-to-top-btn::before {
+  position: absolute;
+  bottom: -20px;
+  content: "Back to Top";
+  color: rgb(228, 228, 231); /* zinc-200 */
+  font-size: 0px;
+  white-space: nowrap;
+  font-family: inherit;
+  font-weight: 500;
+  transition: font-size 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+              bottom 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.back-to-top-btn:hover::before {
+  font-size: 13px;
+  bottom: unset;
+}

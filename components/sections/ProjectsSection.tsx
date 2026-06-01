@@ -1,5 +1,6 @@
 import { getAllProjects } from "@/lib/projects";
-import ProjectCards from "./ProjectCards";
+import ProjectCards from "@/components/projects/ProjectCards";
+import AnimatedButton from "@/components/ui/AnimatedButton";
 
 export default function ProjectsSection() {
   const projects = getAllProjects();
@@ -7,13 +8,18 @@ export default function ProjectsSection() {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center pt-4 pb-8">
       {/* ── Header ─────────────────────────────────────────────── */}
-      <div className="text-center mb-10">
-        <h2 className="text-4xl md:text-5xl font-bold text-white mb-3">
-          Projects
-        </h2>
-        <p className="text-zinc-400 text-base max-w-md mx-auto">
-          A selection of things I&apos;ve built — from platforms to pixels.
-        </p>
+      <div className="w-full max-w-6xl flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8 px-2 md:px-0">
+        <div className="text-left">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
+            Projects
+          </h2>
+          <p className="text-zinc-400 text-sm max-w-md">
+            A selection of things I&apos;ve built — from platforms to pixels.
+          </p>
+        </div>
+        <AnimatedButton href="/projects" className="shrink-0 scale-75 origin-right">
+          View Archive
+        </AnimatedButton>
       </div>
 
       {/* ── Cards (client component for animations) ────────────── */}

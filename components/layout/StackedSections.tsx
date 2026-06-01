@@ -2,10 +2,10 @@
 
 import { useRef } from "react";
 import { useScroll } from "framer-motion";
-import FolderSection from "./FolderSection";
-import AboutSection from "./sections/AboutSection";
-import ExperienceSection from "./sections/ExperienceSection";
-import ProjectsSection from "./sections/ProjectsSection";
+import FolderSection from "@/components/ui/FolderSection";
+import AboutSection from "@/components/sections/AboutSection";
+import ExperienceSection from "@/components/sections/ExperienceSection";
+import ProjectsSection from "@/components/sections/ProjectsSection";
 
 export default function StackedSections() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -42,7 +42,7 @@ export default function StackedSections() {
 				parallaxOffset={-60}
 				scrollOffset={-120}
 				fadeRange={[0.5, 1]}
-				fadeAmount={1.05}
+				fadeAmount={1.2}
 			>
 				<ExperienceSection />
 			</FolderSection>

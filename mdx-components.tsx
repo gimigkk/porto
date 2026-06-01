@@ -1,6 +1,6 @@
 import type { MDXComponents } from "mdx/types";
 import React from "react";
-import MermaidDiagram from "./components/MermaidDiagram";
+import MermaidDiagram from "./components/ui/MermaidDiagram";
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {

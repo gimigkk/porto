@@ -1,5 +1,5 @@
-import StackedSections from "@/components/StackedSections";
-import ClientProjectModal from "@/components/ClientProjectModal";
+import StackedSections from "@/components/layout/StackedSections";
+import ClientProjectModal from "@/components/projects/ClientProjectModal";
 
 export default function Home() {
   return (

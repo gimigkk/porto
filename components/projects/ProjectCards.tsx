@@ -41,7 +41,7 @@ export default function ProjectCards({
               window.history.pushState(null, "", `?project=${project.slug}`);
               window.dispatchEvent(new PopStateEvent("popstate"));
             }}
-            className="group relative flex flex-col rounded-xl border border-zinc-700/60 bg-zinc-800 overflow-hidden no-underline cursor-pointer hover:-translate-y-1.5"
+            className="group relative flex flex-col rounded-xl border border-zinc-700/60 bg-zinc-900 overflow-hidden no-underline cursor-pointer hover:-translate-y-1.5"
             style={{ 
               transition: "border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
               willChange: "transform"
