@@ -10,7 +10,7 @@ export default async function ProjectOverlay({ slug }: { slug: string }) {
 
   return (
     <ProjectModal>
-      <article className="min-h-full bg-zinc-950 text-zinc-200 flex flex-col">
+      <article className="min-h-full bg-zinc-900 text-zinc-200 flex flex-col">
         {/* Header: Text Left, Video Right */}
         <header className="w-full max-w-5xl mx-auto px-6 pt-12 sm:pt-16 pb-10 border-b border-zinc-800/50">
           <div className="flex flex-col md:flex-row md:items-start gap-8">
@@ -34,7 +34,7 @@ export default async function ProjectOverlay({ slug }: { slug: string }) {
                 <h3 className="text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-3">Technologies</h3>
                 <div className="flex flex-wrap gap-2">
                   {project.stack.map(tech => (
-                     <span key={tech} className="text-[12px] font-medium px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800/80 text-zinc-300 flex items-center gap-1.5 transition-colors hover:bg-zinc-800">
+                     <span key={tech} className="text-[12px] font-medium px-2.5 py-1 rounded-md bg-zinc-800 border border-zinc-700/80 text-zinc-300 flex items-center gap-1.5 transition-colors hover:bg-zinc-700">
                        {/* eslint-disable-next-line @next/next/no-img-element */}
                        <img src={`https://skillicons.dev/icons?i=${tech}&theme=dark`} alt={tech} className="w-3.5 h-3.5 rounded-[2px]" />
                        {tech}
@@ -46,8 +46,8 @@ export default async function ProjectOverlay({ slug }: { slug: string }) {
 
             {/* Right: Video */}
             <div className="w-full md:w-80 lg:w-96 shrink-0">
-              <div className="w-full aspect-video bg-zinc-900 rounded-xl border border-zinc-800 flex items-center justify-center overflow-hidden relative group">
-                <div className="w-12 h-12 rounded-full bg-zinc-800/80 border border-zinc-700 flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:scale-110 transition-all cursor-pointer">
+              <div className="w-full aspect-video bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center overflow-hidden relative group">
+                <div className="w-12 h-12 rounded-full bg-zinc-700/80 border border-zinc-600 flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:scale-110 transition-all cursor-pointer">
                    <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                      <path d="M8 5v14l11-7z" />
                    </svg>

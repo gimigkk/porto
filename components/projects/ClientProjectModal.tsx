@@ -180,7 +180,7 @@ function ProjectModalContent() {
         <div className="flex w-full items-end justify-between h-[40px] pointer-events-auto shrink-0 relative z-10 translate-y-[1px]">
           {/* Left Tab: Pagination */}
           <div className="relative w-[180px] h-full flex items-center justify-center">
-            <svg width="288" height="64" viewBox="0 0 288 64" className="absolute inset-0 w-full h-full fill-zinc-950">
+            <svg width="288" height="64" viewBox="0 0 288 64" className="absolute inset-0 w-full h-full fill-zinc-900">
               <path d="M 0 64 L 0 24 Q 0 0, 24 0 L 204 0 Q 224 0, 232 16 L 248 48 Q 256 64, 276 64 L 288 64 Z" />
             </svg>
             <div className="relative z-10 flex items-center justify-center gap-3 pb-1 pr-8 w-full">
@@ -203,7 +203,7 @@ function ProjectModalContent() {
           {/* Right Tab: Close Button */}
           <div className="relative w-[80px] h-full flex items-center justify-center">
             {/* Custom narrowed SVG to fit X button with sloped left, flat right */}
-            <svg width="128" height="64" viewBox="0 0 128 64" className="absolute inset-0 w-full h-full fill-zinc-950">
+            <svg width="128" height="64" viewBox="0 0 128 64" className="absolute inset-0 w-full h-full fill-zinc-900">
               <path d="M 0 64 L 12 64 Q 32 64, 40 48 L 56 16 Q 64 0, 84 0 L 104 0 Q 128 0, 128 24 L 128 64 Z" />
             </svg>
             <div className="relative z-10 flex items-center justify-center pb-1 pl-8 w-full">
@@ -217,13 +217,13 @@ function ProjectModalContent() {
         </div>
 
         {/* Content Wrapper (Gradient + Scrollable Body) */}
-        <div className="flex-1 w-full bg-zinc-950 overflow-hidden pointer-events-auto relative z-20 flex flex-col">
+        <div className="flex-1 w-full bg-zinc-900 overflow-hidden pointer-events-auto relative z-20 flex flex-col">
           {/* Top Fade Gradient */}
-          <div className="absolute top-0 left-0 w-full h-12 sm:h-16 bg-gradient-to-b from-zinc-950 to-transparent z-30 pointer-events-none" />
+          <div className="absolute top-0 left-0 w-full h-12 sm:h-16 bg-gradient-to-b from-zinc-900 to-transparent z-30 pointer-events-none" />
 
           {/* Scrollable Content Body */}
           <div ref={scrollBodyRef} className="flex-1 w-full overflow-y-auto no-scrollbar" data-lenis-prevent="true">
-            <article className="min-h-full bg-zinc-950 text-zinc-200 flex flex-col">
+            <article className="min-h-full bg-zinc-900 text-zinc-200 flex flex-col">
               {/* Header: Text Left, Video Right */}
               <header className="w-full max-w-5xl mx-auto px-6 pt-12 sm:pt-16 pb-10 border-b border-zinc-800/50">
                 <div className="flex flex-col md:flex-row md:items-start gap-8">
@@ -250,7 +250,7 @@ function ProjectModalContent() {
                       <h3 className="text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-3">Technologies</h3>
                       <div className="flex flex-wrap gap-2">
                         {project.stack.map(tech => (
-                          <span key={tech} className="text-[12px] font-medium px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800/80 text-zinc-300 flex items-center gap-1.5 transition-colors hover:bg-zinc-800">
+                          <span key={tech} className="text-[12px] font-medium px-2.5 py-1 rounded-md bg-zinc-800 border border-zinc-700/80 text-zinc-300 flex items-center gap-1.5 transition-colors hover:bg-zinc-700">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={`https://skillicons.dev/icons?i=${tech}&theme=dark`} alt={tech} className="w-3.5 h-3.5 rounded-[2px]" />
                             {tech}
@@ -262,8 +262,8 @@ function ProjectModalContent() {
 
                   {/* Right: Video */}
                   <div className="w-full md:w-80 lg:w-96 shrink-0">
-                    <div className="w-full aspect-video bg-zinc-900 rounded-xl border border-zinc-800 flex items-center justify-center overflow-hidden relative group">
-                      <div className="w-12 h-12 rounded-full bg-zinc-800/80 border border-zinc-700 flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:scale-110 transition-all cursor-pointer">
+                    <div className="w-full aspect-video bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center overflow-hidden relative group">
+                      <div className="w-12 h-12 rounded-full bg-zinc-700/80 border border-zinc-600 flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:scale-110 transition-all cursor-pointer">
                         <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M8 5v14l11-7z" />
                         </svg>
