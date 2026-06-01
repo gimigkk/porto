@@ -1,0 +1,85 @@
+export const metadata = {
+  title: "Rupiyeah",
+  slug: "rupiyeah",
+  description:
+    "A fully offline personal budgeting app built with Flutter — track expenses, manage budgets, and visualize spending without ever touching the internet.",
+  stack: ["flutter", "dart"],
+  year: "2025",
+  category: "Mobile Application",
+  accent: "#a78bfa",
+  thumbnail: "/projects/rupiyeah/thumbnail.png",
+  github: "https://github.com/gimigkk/Rupiyeah",
+};
+
+Yes — another developer made another budgeting app. But every good dev eventually solves a real problem, and nine times out of ten, that problem is their own lack of money. Rupiyeah is that app.
+
+## Overview
+
+Rupiyeah is a fully offline personal budgeting app built with Flutter. All your financial data lives entirely on your device — no accounts, no cloud sync, no internet required. It targets the growing need for private, fast, and reliable money management across every major platform.
+
+## The Problem
+
+Most budgeting apps require accounts, network connections, and trust in a third-party with your financial data. Rupiyeah takes the opposite stance: **your data is yours, period**. Every transaction, every tag, every report stays locally on your device via Hive, a blazing-fast NoSQL database built for Flutter.
+
+## Key Features
+
+- **Smart Daily Budgeting** — set a monthly budget and let Rupiyeah automatically calculate your safe daily spend limit, or override it manually
+- **Transaction Management** — add, edit, and categorize transactions with fully custom tags
+- **Document Attachments** — attach receipts or photos directly to transactions
+- **Multiple Payment Methods** — track cash wallet and bank accounts separately
+- **Export Reports** — generate PDF reports with embedded charts, or export raw CSV for spreadsheet analysis
+- **Home Screen Widgets** — glanceable daily budget and quick-add transaction shortcut without opening the app
+- **6 Themes** — Purple, Ocean, Sunset, Forest, Rose, and Midnight — all with dark mode support
+
+## Architecture
+
+```
+lib/
+├── main.dart                    # App entry point
+├── models/                      # Hive-annotated data models
+│   ├── month_data.dart
+│   ├── tag.dart
+│   └── transaction.dart
+├── pages/                       # Screen-level widgets
+│   ├── add_transaction_page.dart
+│   ├── history_page.dart
+│   ├── home_page.dart
+│   └── settings_page.dart
+├── providers/                   # State management
+│   └── theme_provider.dart
+├── services/                    # Business logic
+│   ├── export_service.dart      # PDF/CSV export
+│   └── widget_service.dart      # Home widget updates
+├── storage/                     # Data persistence
+│   ├── database_helper.dart
+│   └── file_helper.dart
+├── utils/
+│   ├── currency_input_formatter.dart
+│   └── format_currency.dart
+└── widgets/                     # Reusable UI components
+    ├── animated_number.dart
+    ├── balance_card.dart
+    ├── daily_expense_chart.dart
+    ├── month_selector.dart
+    ├── tag_dialog.dart
+    ├── transaction_form_card.dart
+    ├── transaction_form_widgets.dart
+    └── transaction_tile.dart
+```
+
+## Tech Stack
+
+- **Flutter** — cross-platform UI framework targeting Android, iOS, Web, Windows, macOS, and Linux from a single codebase
+- **Hive** — lightweight, fast key-value store with no native dependencies
+- **fl_chart** — beautiful, animated charts for spending visualization
+- **Syncfusion PDF** — rich PDF generation with charts embedded inline
+- **home_widget** — native home screen widget bridge for Android and iOS
+
+## Privacy Model
+
+Rupiyeah has a zero-trust external model by design:
+
+- No internet permission required
+- No analytics or telemetry
+- No third-party SDKs that phone home
+- All data lives in the app's sandboxed local storage

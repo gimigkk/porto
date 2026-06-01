@@ -44,15 +44,15 @@ const projects: ProjectMeta[] = [
     thumbnail: "/projects/porto/thumbnail.png",
   },
   {
-    title: "BudgetFlow",
-    slug: "budgetflow",
+    title: "Rupiyeah",
+    slug: "rupiyeah",
     description:
-      "Personal finance companion with visual spend analytics, smart alerts, and goal tracking — making budgeting feel effortless.",
-    stack: ["react", "nodejs", "firebase"],
+      "A fully offline personal budgeting app built with Flutter — track expenses, manage budgets, and visualize spending without ever touching the internet.",
+    stack: ["flutter", "dart"],
     year: "2025",
-    category: "Web Application",
-    accent: "#34d399",
-    thumbnail: "/projects/budgetflow/thumbnail.png",
+    category: "Mobile Application",
+    accent: "#a78bfa",
+    thumbnail: "/projects/rupiyeah/thumbnail.png",
   },
   {
     title: "Dummy Project",
