@@ -1,6 +1,7 @@
 "use client";
 
 import type { ProjectMeta } from "@/lib/projects";
+import { FileText, ChevronRight } from "lucide-react";
 
 /* ── Human-readable label for each skill icon ID ─────────────── */
 const techLabel: Record<string, string> = {
@@ -33,121 +34,132 @@ export default function ProjectCards({
   return (
     <>
       {/* ── Cards Grid (3-column) ──────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-6xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-6xl group/grid">
         {featured.map((project, i) => (
           <div
             key={project.slug}
-            onClick={() => {
-              window.history.pushState(null, "", `?project=${project.slug}`);
-              window.dispatchEvent(new PopStateEvent("popstate"));
-            }}
-            className="group relative flex flex-col rounded-xl border border-zinc-700/60 bg-zinc-900 overflow-hidden no-underline cursor-pointer hover:-translate-y-1.5"
-            style={{ 
-              transition: "border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-              willChange: "transform"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "rgba(161,161,170,0.45)";
-              e.currentTarget.style.boxShadow = `0 0 28px 0 ${project.accent}18`;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "";
-              e.currentTarget.style.boxShadow = "";
-            }}
+            className="group relative w-full h-full transition-opacity duration-300 ease-out md:hover:z-50 md:group-hover/grid:opacity-60 md:hover:!opacity-100"
+            style={{ perspective: "1000px" }}
           >
-            {/* ── Thumbnail ────────────────────────────────────── */}
-            <div className="relative w-full aspect-[2.6/1] bg-zinc-900 overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={project.thumbnail}
-                alt={`${project.title} preview`}
-                className="w-full h-full object-cover"
-              />
+            {/* Background Documents (Pop-up effect) — hidden on mobile */}
+            <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
+              {/* File 1 (Back, goes highest) */}
+              <div 
+                className="absolute top-10 left-[12%] right-[12%] bottom-16 rounded-xl border border-zinc-700/50 bg-zinc-800 shadow-xl transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-24 group-hover:-rotate-3 origin-bottom"
+              >
+                <div className="p-5 flex flex-col gap-3">
+                  <div className="h-1.5 w-1/3 bg-zinc-600 rounded-full"></div>
+                  <div className="h-1.5 w-full bg-zinc-600 rounded-full"></div>
+                  <div className="h-1.5 w-2/3 bg-zinc-600 rounded-full"></div>
+                  <div className="h-1.5 w-4/5 bg-zinc-600 rounded-full"></div>
+                </div>
+              </div>
+              {/* File 2 (Middle) */}
+              <div 
+                className="absolute top-8 left-[8%] right-[8%] bottom-12 rounded-xl border border-black/20 shadow-xl transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-12 group-hover:rotate-3 origin-bottom delay-75"
+                style={{ backgroundColor: project.accent }}
+              >
+                <div className="p-5 flex flex-col gap-3 mix-blend-overlay opacity-80">
+                  <div className="h-1.5 w-1/4 bg-white rounded-full"></div>
+                  <div className="h-1.5 w-4/5 bg-white rounded-full"></div>
+                  <div className="h-1.5 w-1/2 bg-white rounded-full"></div>
+                  <div className="h-1.5 w-full bg-white rounded-full"></div>
+                </div>
+              </div>
             </div>
 
-            {/* ── Card body ───────────────────────────────────────── */}
-            <div className="flex flex-col flex-1 p-3">
-              {/* Category + Year row */}
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
-                  {project.category}
-                </span>
-                <span
-                  className="text-[11px] font-mono px-2 py-0.5 rounded-full border"
-                  style={{
-                    color: project.accent,
-                    borderColor: `${project.accent}33`,
-                    backgroundColor: `${project.accent}11`,
-                  }}
-                >
-                  {project.year}
-                </span>
+            {/* Main Card Front */}
+            <div
+              onClick={() => {
+                window.history.pushState(null, "", `?project=${project.slug}`);
+                window.dispatchEvent(new PopStateEvent("popstate"));
+              }}
+              className="relative z-10 flex flex-col h-full rounded-xl border border-zinc-700/60 bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-300 ease-out origin-bottom md:group-hover:[transform:translateY(16px)_rotateX(-6deg)]"
+              style={{
+                willChange: "transform"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgba(161,161,170,0.45)";
+                e.currentTarget.style.boxShadow = `0 0 28px 0 ${project.accent}18`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "";
+                e.currentTarget.style.boxShadow = "";
+              }}
+            >
+              {/* ── Thumbnail ────────────────────────────────────── */}
+              <div className="relative w-full aspect-[2.6/1] bg-zinc-900 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={project.thumbnail}
+                  alt={`${project.title} preview`}
+                  className="w-full h-full object-cover"
+                />
               </div>
 
-              {/* Title + arrow */}
-              <div className="flex items-center gap-2 mb-2">
-                <svg
-                  className="w-4 h-4 shrink-0 text-zinc-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                  />
-                </svg>
-                <h3
-                  className="text-base font-bold group-hover:brightness-125"
-                  style={{
-                    color: project.accent,
-                    transition: "filter 0.3s",
-                  }}
-                >
-                  {project.title}
-                </h3>
-                <svg
-                  className="w-4 h-4 ml-auto shrink-0 text-zinc-600 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0"
-                  style={{ transition: "opacity 0.3s, transform 0.3s" }}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
-
-              {/* Description */}
-              <p className="text-xs text-zinc-400 leading-snug mb-2 flex-1 line-clamp-2">
-                {project.description}
-              </p>
-
-              {/* Tech stack — skillicons.dev (GitHub README style) */}
-              <div className="flex flex-wrap items-center gap-1.5 mt-auto pt-2 border-t border-zinc-700/40">
-                {project.stack.map((tech) => (
-                  <div
-                    key={tech}
-                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-zinc-700/30"
-                    title={techLabel[tech] ?? tech}
+              {/* ── Card body ───────────────────────────────────────── */}
+              <div className="flex flex-col flex-1 p-3">
+                {/* Category + Year row */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
+                    {project.category}
+                  </span>
+                  <span
+                    className="text-[11px] font-mono px-2 py-0.5 rounded-full border"
+                    style={{
+                      color: project.accent,
+                      borderColor: `${project.accent}33`,
+                      backgroundColor: `${project.accent}11`,
+                    }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`https://skillicons.dev/icons?i=${tech}&theme=dark`}
-                      alt={techLabel[tech] ?? tech}
-                      className="w-4 h-4 rounded-sm"
-                    />
-                    <span className="text-[10px] text-zinc-400 font-medium">
-                      {techLabel[tech] ?? tech}
-                    </span>
-                  </div>
-                ))}
+                    {project.year}
+                  </span>
+                </div>
+
+                {/* Title + arrow */}
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="w-4 h-4 shrink-0 text-zinc-500" strokeWidth={1.5} />
+                  <h3
+                    className="text-base font-bold md:group-hover:brightness-125"
+                    style={{
+                      color: project.accent,
+                      transition: "filter 0.3s",
+                    }}
+                  >
+                    {project.title}
+                  </h3>
+                  <ChevronRight 
+                    className="w-4 h-4 ml-auto shrink-0 text-zinc-600 md:opacity-0 md:-translate-x-1 md:group-hover:opacity-100 md:group-hover:translate-x-0"
+                    style={{ transition: "opacity 0.3s, transform 0.3s" }}
+                    strokeWidth={2}
+                  />
+                </div>
+
+                {/* Description */}
+                <p className="text-xs text-zinc-400 leading-snug mb-2 flex-1 line-clamp-2">
+                  {project.description}
+                </p>
+
+                {/* Tech stack — skillicons.dev (GitHub README style) */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-auto pt-2 border-t border-zinc-700/40">
+                  {project.stack.map((tech) => (
+                    <div
+                      key={tech}
+                      className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-zinc-700/30"
+                      title={techLabel[tech] ?? tech}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`https://skillicons.dev/icons?i=${tech}&theme=dark`}
+                        alt={techLabel[tech] ?? tech}
+                        className="w-4 h-4 rounded-sm"
+                      />
+                      <span className="text-[10px] text-zinc-400 font-medium">
+                        {techLabel[tech] ?? tech}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

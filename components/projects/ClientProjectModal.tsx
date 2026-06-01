@@ -31,7 +31,11 @@ function ProjectModalContent() {
       document.body.style.overflow = "";
 
       if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = setTimeout(() => setIsOpen(false), 400);
+      closeTimeoutRef.current = setTimeout(() => {
+        setIsOpen(false);
+        setPost(null);
+        setProject(null);
+      }, 400);
       return;
     }
 
@@ -66,18 +70,8 @@ function ProjectModalContent() {
 
   const close = useCallback(() => {
     window.history.pushState(null, "", window.location.pathname);
-    // Manually trigger state update since pushState doesn't fire popstate
-    setIsAnimating(false);
-
-    // Unlock immediately
-    if (lenis) lenis.start();
-    document.body.style.overflow = "";
-
-    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
-    closeTimeoutRef.current = setTimeout(() => {
-      setIsOpen(false);
-    }, 400);
-  }, [lenis]);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }, []);
 
   // Handle escape key
   useEffect(() => {
@@ -87,6 +81,11 @@ function ProjectModalContent() {
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [close]);
+  // Track isOpen to prevent flickering on pagination
+  const isOpenRef = useRef(isOpen);
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
 
   // Handle browser back button AND pushState from card clicks
   useEffect(() => {
@@ -101,24 +100,31 @@ function ProjectModalContent() {
         if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
         closeTimeoutRef.current = setTimeout(() => {
           setIsOpen(false);
+          setPost(null);
+          setProject(null);
         }, 400);
       } else {
-        // Opening a project
+        // Opening a project or paginating
         const allProjs = getAllProjects();
         const proj = allProjs.find((p) => p.slug === newSlug);
         if (!proj) return;
         setAllProjects(allProjs);
         setProject(proj);
-        setIsOpen(true);
+        
+        const wasOpen = isOpenRef.current;
+        if (!wasOpen) {
+          setIsOpen(true);
+          setIsAnimating(false);
+        }
 
         if (mdxModules[newSlug]) {
           setPost(() => mdxModules[newSlug]);
-          setTimeout(() => setIsAnimating(true), 50);
+          if (!wasOpen) setTimeout(() => setIsAnimating(true), 50);
         } else {
           import(`@/content/projects/${newSlug}.mdx`).then((mod) => {
             mdxModules[newSlug] = mod.default;
             setPost(() => mod.default);
-            setTimeout(() => setIsAnimating(true), 50);
+            if (!wasOpen) setTimeout(() => setIsAnimating(true), 50);
           });
         }
       }
@@ -126,6 +132,15 @@ function ProjectModalContent() {
     window.addEventListener("popstate", handlePop);
     return () => window.removeEventListener("popstate", handlePop);
   }, [lenis]);
+
+  // Handle ESC key (moved down here)
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [close]);
 
   if (!isOpen || !project || !Post || allProjects.length === 0) return null;
 
@@ -155,14 +170,23 @@ function ProjectModalContent() {
       className="fixed inset-0 z-[100] flex items-end justify-center sm:px-6"
       style={{ pointerEvents: isAnimating ? "auto" : "none" }}
     >
+      <style>{`
+        @keyframes slideUpFade {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up-fade {
+          animation: slideUpFade 0.4s ease-out forwards;
+        }
+      `}</style>
       {/* Backdrop */}
       <div
         onClick={close}
         className="absolute inset-0 bg-black/80 transition-opacity"
         style={{
           opacity: isAnimating ? 1 : 0,
-          transitionDuration: isAnimating ? "600ms" : "400ms",
-          transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+          transitionDuration: isAnimating ? "300ms" : "200ms",
+          transitionTimingFunction: isAnimating ? "ease-out" : "ease-in",
         }}
       />
 
@@ -172,8 +196,8 @@ function ProjectModalContent() {
         style={{
           transform: isAnimating ? "translateY(0)" : "translateY(120px)",
           opacity: isAnimating ? 1 : 0,
-          transitionDuration: isAnimating ? "600ms" : "400ms",
-          transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+          transitionDuration: isAnimating ? "300ms" : "200ms",
+          transitionTimingFunction: isAnimating ? "ease-out" : "ease-in",
         }}
       >
         {/* TOP BAR (Folder Tabs Style) */}
@@ -223,9 +247,12 @@ function ProjectModalContent() {
 
           {/* Scrollable Content Body */}
           <div ref={scrollBodyRef} className="flex-1 w-full overflow-y-auto no-scrollbar" data-lenis-prevent="true">
-            <article className="min-h-full bg-zinc-900 text-zinc-200 flex flex-col">
+            <article key={project.slug} className="min-h-full bg-zinc-900 text-zinc-200 flex flex-col">
               {/* Header: Text Left, Video Right */}
-              <header className="w-full max-w-5xl mx-auto px-6 pt-12 sm:pt-16 pb-10 border-b border-zinc-800/50">
+              <header 
+                className="w-full max-w-5xl mx-auto px-6 pt-12 sm:pt-16 pb-10 border-b border-zinc-800/50 animate-slide-up-fade"
+                style={{ opacity: 0, animationDelay: "100ms" }}
+              >
                 <div className="flex flex-col md:flex-row md:items-start gap-8">
                   {/* Left: Meta */}
                   <div className="flex-1 min-w-0">
@@ -275,8 +302,13 @@ function ProjectModalContent() {
 
               {/* Article body */}
               <div
-                className="flex-1 w-full px-6 py-10 sm:py-12 prose prose-invert prose-zinc max-w-5xl mx-auto prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 hover:prose-a:opacity-80 transition-all"
-                style={{ "--tw-prose-links": project.accent, paddingBottom: "calc(2rem + 46px + 1rem)" } as React.CSSProperties}
+                className="flex-1 w-full px-6 py-10 sm:py-12 prose prose-invert prose-zinc max-w-5xl mx-auto prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 hover:prose-a:opacity-80 animate-slide-up-fade"
+                style={{ 
+                  "--tw-prose-links": project.accent, 
+                  paddingBottom: "calc(2rem + 46px + 1rem)",
+                  opacity: 0,
+                  animationDelay: "200ms",
+                } as React.CSSProperties}
               >
                 <Post />
               </div>
