@@ -1,0 +1,533 @@
+"use client";
+
+import { useState, useRef, useCallback, useLayoutEffect, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Download, ChevronDown, Menu, X } from "lucide-react";
+import { useLenis } from "@studio-freight/react-lenis";
+
+interface SubLink {
+  label: string;
+  target: string;
+  href?: string;
+  external?: boolean;
+}
+
+interface NavItem {
+  label: string;
+  target: string;
+  sublinks: SubLink[];
+  isLogo?: boolean;
+}
+
+/** Maps nav target keys to actual DOM section IDs */
+const TARGET_ID_MAP: Record<string, string> = {
+  home: "home",
+  about: "section-about",
+  experience: "section-experience",
+  "picked-projects": "section-projects",
+  projects: "section-projects",
+  "all-projects": "section-projects",
+  "case-studies": "section-projects",
+  "side-projects": "section-projects",
+};
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    label: "@gimigkk",
+    target: "logo",
+    isLogo: true,
+    sublinks: [
+      { label: "GitHub", target: "github", href: "https://github.com/gimigkk", external: true },
+      { label: "Instagram", target: "instagram", href: "https://instagram.com/gimigkk", external: true },
+    ],
+  },
+  {
+    label: "Home",
+    target: "home",
+    sublinks: [
+      { label: "About", target: "about" },
+      { label: "Experience", target: "experience" },
+      { label: "Picked Projects", target: "picked-projects" },
+    ],
+  },
+  {
+    label: "Project Archive",
+    target: "projects",
+    sublinks: [
+      { label: "All Projects", target: "all-projects" },
+      { label: "Case Studies", target: "case-studies" },
+      { label: "Side Projects", target: "side-projects" },
+    ],
+  },
+];
+
+const easeOut = [0.22, 1, 0.36, 1] as [number, number, number, number];
+
+const parentVariants = {
+  hidden: {
+    transition: {
+      staggerChildren: 0.05,
+      staggerDirection: -1,
+    },
+  },
+  visible: {
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.02,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 8, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.3, ease: easeOut },
+  },
+};
+
+export default function Navbar() {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [hoveredOffset, setHoveredOffset] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [gimigkkPanelOpen, setGimigkkPanelOpen] = useState(false);
+  const [activeAccordion, setActiveAccordion] = useState<number | null>(null);
+  const lenis = useLenis();
+  const innerNavRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  // Derive which accordion index matches current route: 1=Home, 2=Project Archive
+  const currentPageAccordion = pathname === "/projects" ? 2 : 1;
+
+  // Lock body scroll when any panel is open
+  const anyPanelOpen = mobileMenuOpen || gimigkkPanelOpen;
+  useEffect(() => {
+    document.body.style.overflow = anyPanelOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [anyPanelOpen]);
+
+  const closeAll = useCallback(() => {
+    setHoveredIndex(null);
+    setMobileMenuOpen(false);
+    setGimigkkPanelOpen(false);
+    setActiveAccordion(null);
+  }, []);
+
+  const handleNavMouseLeave = useCallback(() => {
+    setHoveredIndex(null);
+  }, []);
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false);
+    setActiveAccordion(null);
+  }, []);
+
+  const closeGimigkkPanel = useCallback(() => {
+    setGimigkkPanelOpen(false);
+    setActiveAccordion(null);
+  }, []);
+
+  const toggleGimigkkPanel = useCallback(() => {
+    setGimigkkPanelOpen((prev) => !prev);
+    setActiveAccordion(0);
+    setMobileMenuOpen(false);
+  }, []);
+
+  const toggleMobileMenu = useCallback(() => {
+    setMobileMenuOpen((prev) => {
+      if (!prev) {
+        setActiveAccordion(currentPageAccordion);
+        setGimigkkPanelOpen(false);
+        return true;
+      } else {
+        setActiveAccordion(null);
+        setGimigkkPanelOpen(false);
+        return false;
+      }
+    });
+  }, [currentPageAccordion]);
+
+  const scrollTo = useCallback(
+    (target: string) => {
+      const sectionId = TARGET_ID_MAP[target] || target;
+      if (lenis) {
+        lenis.scrollTo(`#${sectionId}`, { offset: -48 });
+      } else {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }
+      closeAll();
+    },
+    [lenis, closeAll]
+  );
+
+  const handleSublinkClick = useCallback(
+    (sublink: SubLink) => {
+      if (sublink.external && sublink.href) {
+        window.open(sublink.href, "_blank", "noopener noreferrer");
+      } else {
+        scrollTo(sublink.target);
+      }
+      closeAll();
+    },
+    [scrollTo, closeAll]
+  );
+
+  const handleNavEnter = useCallback(
+    (i: number, e: React.MouseEvent<HTMLButtonElement>) => {
+      setHoveredIndex(i);
+      if (innerNavRef.current) {
+        const btnRect = e.currentTarget.getBoundingClientRect();
+        const innerRect = innerNavRef.current.getBoundingClientRect();
+        setHoveredOffset(btnRect.left - innerRect.left);
+      }
+    },
+    []
+  );
+
+  // Measure content height synchronously after hoveredIndex changes so
+  // the dropdown height animation smoothly lerps between different sublink counts
+  useLayoutEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    setContentHeight(el.scrollHeight || 0);
+  }, [hoveredIndex]);
+
+  const activeSublinks =
+    hoveredIndex !== null ? NAV_ITEMS[hoveredIndex]?.sublinks ?? null : null;
+  const isExpanded = hoveredIndex !== null;
+
+  return (
+    <>
+      {/* Desktop page dimming backdrop */}
+      <motion.div
+        animate={{ opacity: isExpanded ? 1 : 0 }}
+        transition={{ opacity: { duration: isExpanded ? 0.25 : 0, ease: easeOut } }}
+        className="fixed inset-0 z-30 bg-black/10 hidden md:block"
+        style={{ pointerEvents: isExpanded ? "auto" : "none" }}
+        onClick={closeAll}
+      />
+
+      <nav
+        className="fixed top-0 inset-x-0 z-50"
+        onMouseLeave={handleNavMouseLeave}
+      >
+        {/* Thin bar */}
+        <div className="w-full bg-white">
+          <div
+            ref={innerNavRef}
+            className="h-12 flex items-center justify-between max-w-[1400px] mx-auto px-4 md:px-12"
+          >
+            {/* Left: @gimigkk always visible + desktop-only nav items */}
+            <div className="flex items-center gap-8">
+              {/* @gimigkk - mobile + desktop */}
+              <button
+                type="button"
+                onClick={toggleGimigkkPanel}
+                onMouseEnter={(e) => handleNavEnter(0, e)}
+                className="flex items-center gap-1.5 text-sm font-semibold text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none md:px-3 md:py-1.5"
+              >
+                <span>@gimigkk</span>
+              </button>
+
+              {/* Other nav items - desktop only */}
+              <div className="hidden md:flex items-center gap-8">
+                {NAV_ITEMS.slice(1).map((item, idx) => {
+                  const i = idx + 1;
+                  const isHovered = hoveredIndex === i;
+                  return (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => scrollTo(item.target)}
+                      onMouseEnter={(e) => handleNavEnter(i, e)}
+                      className="group/navlink flex items-center gap-1.5 text-sm font-medium text-zinc-700 transition-colors duration-200 tracking-tight px-3 py-1.5 rounded-full hover:bg-zinc-100 cursor-pointer focus:outline-none"
+                    >
+                      <span className={isHovered ? "text-zinc-950" : ""}>
+                        {item.label}
+                      </span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-300 ease-out ${
+                          isHovered ? "rotate-180" : "rotate-0"
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right: hamburger (mobile only) */}
+            <button
+              type="button"
+              onClick={toggleMobileMenu}
+              className="md:hidden flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {mobileMenuOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
+            </button>
+
+            {/* Right: CV button (desktop only) */}
+            <a
+              href="/cv.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors duration-200"
+            >
+              <Download className="w-4 h-4" />
+              <span>Curriculum Vitae</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Desktop dropdown */}
+        <div className="hidden md:block">
+          <motion.div
+            animate={{
+              height: isExpanded ? contentHeight : 0,
+            }}
+            transition={{
+              height: {
+                duration: isExpanded ? 0.4 : 0,
+                ease: easeOut,
+              },
+            }}
+            className="overflow-hidden bg-white rounded-b-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-x border-b border-transparent"
+          >
+            <div
+              ref={contentRef}
+              className="max-w-[1400px] mx-auto px-4 md:px-12 py-6"
+              style={{ paddingLeft: `${hoveredOffset + 16}px`, paddingRight: "1rem" }}
+            >
+              {activeSublinks && (
+                <motion.div
+                  key={hoveredIndex}
+                  variants={parentVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ opacity: 0, transition: { duration: 0 } }}
+                  className="flex flex-col gap-4"
+                >
+                  {activeSublinks.map((sublink) => (
+                    <motion.button
+                      key={sublink.label}
+                      type="button"
+                      variants={itemVariants}
+                      exit={{ opacity: 0, transition: { duration: 0 } }}
+                      onClick={() => handleSublinkClick(sublink)}
+                      className="text-left text-base font-medium text-zinc-600 hover:text-zinc-950 transition-colors duration-200 tracking-tight w-fit cursor-pointer focus:outline-none"
+                    >
+                      {sublink.label}
+                    </motion.button>
+                  ))}
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </nav>
+
+      {/* @gimigkk mobile panel */}
+      <AnimatePresence>
+        {gimigkkPanelOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0 } }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden fixed inset-0 z-40 bg-black/10"
+              onClick={closeGimigkkPanel}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, transition: { duration: 0 } }}
+              transition={{ duration: 0.25, ease: easeOut }}
+              className="md:hidden fixed top-12 inset-x-0 z-45 max-h-[calc(100dvh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl"
+            >
+              <div className="px-4 py-4 flex flex-col gap-1">
+                {/* @gimigkk accordion */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setActiveAccordion(activeAccordion === 0 ? null : 0)
+                    }
+                    className="flex items-center justify-between w-full py-3 text-sm font-medium text-zinc-800 hover:text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none"
+                  >
+                    <span>@gimigkk</span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ease-out ${
+                        activeAccordion === 0 ? "rotate-180" : "rotate-0"
+                      }`}
+                    />
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {activeAccordion === 0 && (
+                      <motion.div
+                        key={`accordion-container-0-${activeAccordion}`}
+                        variants={parentVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        className="overflow-hidden pb-3 pl-2 flex flex-col gap-2"
+                        transition={{ duration: 0.3, ease: easeOut }}
+                      >
+                        <motion.div
+                          key={`accordion-content-0-${activeAccordion}`}
+                          variants={parentVariants}
+                          initial="hidden"
+                          animate="visible"
+                          className="flex flex-col gap-2"
+                        >
+                          {NAV_ITEMS[0].sublinks.map((sublink) => (
+                            <motion.button
+                              key={sublink.label}
+                              variants={itemVariants}
+                              type="button"
+                              onClick={() => {
+                                handleSublinkClick(sublink);
+                                closeGimigkkPanel();
+                              }}
+                              className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
+                            >
+                              {sublink.label}
+                            </motion.button>
+                          ))}
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Hamburger mobile panel */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0 } }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden fixed inset-0 z-40 bg-black/10"
+              onClick={closeMobileMenu}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8, transition: { duration: 0 } }}
+              transition={{ duration: 0.25, ease: easeOut }}
+              className="md:hidden fixed top-12 inset-x-0 z-45 max-h-[calc(100dvh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1"
+            >
+                  {/* Home accordion + Project Archive accordion */}
+                  {NAV_ITEMS.slice(1).map((item, idx) => {
+                    const i = idx + 1;
+                    const isOpen = activeAccordion === i;
+
+                    return (
+                      <motion.div
+                        key={item.label}
+                        variants={itemVariants}
+                        className="flex flex-col gap-1"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Navigate to route + expand this accordion
+                            if (item.target === "projects") {
+                              router.push("/projects");
+                            } else {
+                              router.push("/");
+                            }
+                            setActiveAccordion(i);
+                          }}
+                          className="flex items-center justify-between w-full py-3 text-sm font-medium text-zinc-800 hover:text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none"
+                        >
+                          <span>{item.label}</span>
+                          <ChevronDown
+                            className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ease-out ${
+                              isOpen ? "rotate-180" : "rotate-0"
+                            }`}
+                          />
+                        </button>
+
+                        <AnimatePresence>
+                          {isOpen && (
+                            <motion.div
+                              key={`accordion-container-${i}-${activeAccordion}`}
+                              variants={parentVariants}
+                              initial="hidden"
+                              animate="visible"
+                              exit="hidden"
+                              className="overflow-hidden pb-3 pl-2 flex flex-col gap-2"
+                              transition={{ duration: 0.3, ease: easeOut }}
+                            >
+                              <motion.div
+                                key={`accordion-content-${i}-${activeAccordion}`}
+                                variants={parentVariants}
+                                initial="hidden"
+                                animate="visible"
+                                className="flex flex-col gap-2"
+                              >
+                                {item.sublinks.map((sublink) => (
+                                  <motion.button
+                                    key={sublink.label}
+                                    variants={itemVariants}
+                                    type="button"
+                                    onClick={() => {
+                                      handleSublinkClick(sublink);
+                                      closeMobileMenu();
+                                    }}
+                                    className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
+                                  >
+                                    {sublink.label}
+                                  </motion.button>
+                                ))}
+                              </motion.div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    );
+                  })}
+
+                  {/* CV button for mobile */}
+                  <div
+                    className="mt-3 pt-3 border-t border-zinc-100"
+                  >
+                    <a
+                      href="/cv.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={closeMobileMenu}
+                      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors duration-200"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Curriculum Vitae</span>
+                    </a>
+                  </div>
+                </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}

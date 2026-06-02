@@ -29,7 +29,8 @@ export default function ProjectCards({
             className="group relative w-full h-full transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:hover:z-50"
             style={{
               perspective: "1000px",
-              opacity: hoveredSlug === null || hoveredSlug === project.slug ? 1 : 0.35,
+              opacity: hoveredSlug === null || hoveredSlug === project.slug ? 1 : 0.8,
+              filter: hoveredSlug === null || hoveredSlug === project.slug ? "none" : "saturate(0.8h)",
             }}
             onMouseEnter={() => setHoveredSlug(project.slug)}
             onMouseLeave={() => setHoveredSlug(null)}

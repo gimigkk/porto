@@ -10,6 +10,7 @@ export default function Home() {
       <div className="relative w-full">
         {/* Section 1 */}
         <section
+          id="home"
           className="h-[90vh] w-full flex flex-col items-center justify-center bg-white text-zinc-900 sticky z-10"
           style={{ top: "calc(5rem - 90vh)" }}
         >
