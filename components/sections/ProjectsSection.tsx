@@ -1,9 +1,8 @@
-import { getAllProjects } from "@/lib/projects";
+import type { ProjectMeta } from "@/lib/projects";
 import ProjectCards from "@/components/projects/ProjectCards";
 import AnimatedButton from "@/components/ui/AnimatedButton";
 
-export default function ProjectsSection() {
-  const projects = getAllProjects();
+export default function ProjectsSection({ projects }: { projects: ProjectMeta[] }) {
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center pt-4 pb-8">

@@ -2,12 +2,13 @@
 
 import { useRef } from "react";
 import { useScroll } from "framer-motion";
+import type { ProjectMeta } from "@/lib/projects";
 import FolderSection from "@/components/ui/FolderSection";
 import AboutSection from "@/components/sections/AboutSection";
 import ExperienceSection from "@/components/sections/ExperienceSection";
 import ProjectsSection from "@/components/sections/ProjectsSection";
 
-export default function StackedSections() {
+export default function StackedSections({ projects }: { projects: ProjectMeta[] }) {
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	const { scrollYProgress } = useScroll({
@@ -57,7 +58,7 @@ export default function StackedSections() {
 				parallaxOffset={-80}
 				scrollOffset={-160}
 			>
-				<ProjectsSection />
+				<ProjectsSection projects={projects} />
 			</FolderSection>
 		</div>
 	);

@@ -3,20 +3,19 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useCallback, useState, Suspense, useRef } from "react";
 import { useLenis } from "@studio-freight/react-lenis";
-import { getAllProjects, type ProjectMeta } from "@/lib/projects";
+import type { ProjectMeta } from "@/lib/projects";
 import BackToTop from "@/components/ui/BackToTop";
 
 /* ── Preload all MDX components at module level ────────────── */
 const mdxModules: Record<string, React.ComponentType> = {};
 
-function ProjectModalContent() {
+function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
   const searchParams = useSearchParams();
   const slug = searchParams.get("project");
   const lenis = useLenis();
 
   const [Post, setPost] = useState<React.ComponentType | null>(null);
   const [project, setProject] = useState<ProjectMeta | null>(null);
-  const [allProjects, setAllProjects] = useState<ProjectMeta[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -39,11 +38,9 @@ function ProjectModalContent() {
       return;
     }
 
-    const allProjs = getAllProjects();
-    const proj = allProjs.find((p) => p.slug === slug);
+    const proj = allProjects.find((p) => p.slug === slug);
     if (!proj) return;
 
-    setAllProjects(allProjs);
     setProject(proj);
     setIsOpen(true);
 
@@ -58,7 +55,7 @@ function ProjectModalContent() {
         setTimeout(() => setIsAnimating(true), 50);
       });
     }
-  }, [slug, lenis]);
+  }, [slug, lenis, allProjects]);
 
   // Lock/unlock body scroll (when modal is actively open and animating)
   useEffect(() => {
@@ -105,10 +102,8 @@ function ProjectModalContent() {
         }, 400);
       } else {
         // Opening a project or paginating
-        const allProjs = getAllProjects();
-        const proj = allProjs.find((p) => p.slug === newSlug);
+        const proj = allProjects.find((p) => p.slug === newSlug);
         if (!proj) return;
-        setAllProjects(allProjs);
         setProject(proj);
         
         const wasOpen = isOpenRef.current;
@@ -131,16 +126,7 @@ function ProjectModalContent() {
     };
     window.addEventListener("popstate", handlePop);
     return () => window.removeEventListener("popstate", handlePop);
-  }, [lenis]);
-
-  // Handle ESC key (moved down here)
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [close]);
+  }, [lenis, allProjects]);
 
   if (!isOpen || !project || !Post || allProjects.length === 0) return null;
 
@@ -176,7 +162,33 @@ function ProjectModalContent() {
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-slide-up-fade {
-          animation: slideUpFade 0.4s ease-out forwards;
+          animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        figure[data-rehype-pretty-code-figure] {
+          margin: 1.5rem 0;
+          border-radius: 0.75rem;
+          border: 1px solid rgba(255,255,255,0.08);
+          overflow: hidden;
+          background: #0d1117;
+        }
+        figure[data-rehype-pretty-code-figure] pre {
+          padding: 1.25rem 1.5rem !important;
+          margin: 0 !important;
+          overflow-x: auto;
+          background: transparent !important;
+          line-height: 1.7;
+          font-size: 0.85rem;
+        }
+        figure[data-rehype-pretty-code-figure] pre::-webkit-scrollbar {
+          display: none;
+        }
+        figure[data-rehype-pretty-code-figure] code {
+          background: transparent !important;
+          padding: 0 !important;
+          font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+        }
+        figure[data-rehype-pretty-code-figure] code > span {
+          display: block;
         }
       `}</style>
       {/* Backdrop */}
@@ -186,7 +198,7 @@ function ProjectModalContent() {
         style={{
           opacity: isAnimating ? 1 : 0,
           transitionDuration: isAnimating ? "300ms" : "200ms",
-          transitionTimingFunction: isAnimating ? "ease-out" : "ease-in",
+          transitionTimingFunction: isAnimating ? "cubic-bezier(0.16, 1, 0.3, 1)" : "ease-in",
         }}
       />
 
@@ -197,11 +209,11 @@ function ProjectModalContent() {
           transform: isAnimating ? "translateY(0)" : "translateY(120px)",
           opacity: isAnimating ? 1 : 0,
           transitionDuration: isAnimating ? "300ms" : "200ms",
-          transitionTimingFunction: isAnimating ? "ease-out" : "ease-in",
+          transitionTimingFunction: isAnimating ? "cubic-bezier(0.16, 1, 0.3, 1)" : "ease-in",
         }}
       >
         {/* TOP BAR (Folder Tabs Style) */}
-        <div className="flex w-full items-end justify-between h-[40px] pointer-events-auto shrink-0 relative z-10 translate-y-[1px]">
+        <div className={`flex w-full items-end justify-between h-[40px] shrink-0 relative z-10 translate-y-[1px] ${isAnimating ? "pointer-events-auto" : "pointer-events-none"}`}>
           {/* Left Tab: Pagination */}
           <div className="relative w-[180px] h-full flex items-center justify-center">
             <svg width="288" height="64" viewBox="0 0 288 64" className="absolute inset-0 w-full h-full fill-zinc-900">
@@ -241,7 +253,7 @@ function ProjectModalContent() {
         </div>
 
         {/* Content Wrapper (Gradient + Scrollable Body) */}
-        <div className="flex-1 w-full bg-zinc-900 overflow-hidden pointer-events-auto relative z-20 flex flex-col">
+        <div className={`flex-1 w-full bg-zinc-900 overflow-hidden relative z-20 flex flex-col ${isAnimating ? "pointer-events-auto" : "pointer-events-none"}`}>
           {/* Top Fade Gradient */}
           <div className="absolute top-0 left-0 w-full h-12 sm:h-16 bg-gradient-to-b from-zinc-900 to-transparent z-30 pointer-events-none" />
 
@@ -302,8 +314,9 @@ function ProjectModalContent() {
 
               {/* Article body */}
               <div
-                className="flex-1 w-full px-6 py-10 sm:py-12 prose prose-invert prose-zinc max-w-5xl mx-auto prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 hover:prose-a:opacity-80 animate-slide-up-fade"
+                className="flex-1 w-full px-6 py-10 sm:py-12 prose prose-invert prose-zinc max-w-5xl mx-auto prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:bg-transparent hover:prose-a:opacity-80 animate-slide-up-fade"
                 style={{ 
+                  "--theme-color": project.accent,
                   "--tw-prose-links": project.accent, 
                   paddingBottom: "calc(2rem + 46px + 1rem)",
                   opacity: 0,
@@ -325,10 +338,10 @@ function ProjectModalContent() {
   );
 }
 
-export default function ClientProjectModal() {
+export default function ClientProjectModal({ projects }: { projects: ProjectMeta[] }) {
   return (
     <Suspense fallback={null}>
-      <ProjectModalContent />
+      <ProjectModalContent allProjects={projects} />
     </Suspense>
   );
 }

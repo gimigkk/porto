@@ -1,12 +1,9 @@
+import fs from "fs";
+import path from "path";
+
 /**
- * Project metadata registry — the single source of truth for project cards.
- * Each entry here corresponds to a matching MDX file at content/projects/[slug].mdx
- * that provides the full article content.
- *
- * When adding a new project:
- * 1. Add an entry here
- * 2. Create the matching .mdx file in content/projects/
- * 3. Add a thumbnail image in public/projects/[slug]/
+ * Project metadata registry — now dynamically reads from content/projects/*.mdx
+ * Each entry here corresponds to a matching MDX file that provides the full article content.
  */
 
 export interface ProjectMeta {
@@ -20,80 +17,54 @@ export interface ProjectMeta {
   thumbnail: string;
 }
 
-const projects: ProjectMeta[] = [
-  {
-    title: "KRSwitch",
-    slug: "krswitch",
-    description:
-      "A smart scheduling platform that auto-matches university students looking to swap class sections — real-time, hassle-free.",
-    stack: ["nextjs", "ts", "prisma", "postgres"],
-    year: "2026",
-    category: "Full-Stack Platform",
-    accent: "#f59e0b",
-    thumbnail: "/projects/krswitch/thumbnail.png",
-  },
-  {
-    title: "Porto",
-    slug: "porto",
-    description:
-      "A premium developer portfolio with scroll-driven folder animations and buttery micro-interactions — you're looking at it.",
-    stack: ["nextjs", "tailwind", "css"],
-    year: "2026",
-    category: "Creative & Design",
-    accent: "#a78bfa",
-    thumbnail: "/projects/porto/thumbnail.png",
-  },
-  {
-    title: "Rupiyeah",
-    slug: "rupiyeah",
-    description:
-      "A fully offline personal budgeting app built with Flutter — track expenses, manage budgets, and visualize spending without ever touching the internet.",
-    stack: ["flutter", "dart"],
-    year: "2025",
-    category: "Mobile Application",
-    accent: "#a78bfa",
-    thumbnail: "/projects/rupiyeah/thumbnail.png",
-  },
-  {
-    title: "Dummy Project",
-    slug: "dummy",
-    description:
-      "A temporary dummy project to test the 3x2 grid layout and ensure it fits nicely without cropping vertically.",
-    stack: ["nextjs", "tailwind", "ts"],
-    year: "2024",
-    category: "Test Case",
-    accent: "#ef4444",
-    thumbnail: "/projects/porto/thumbnail.png",
-  },
-  {
-    title: "NexusAI",
-    slug: "nexusai",
-    description:
-      "An AI-powered generative design tool that helps creators brainstorm visual concepts effortlessly with machine learning.",
-    stack: ["react", "python", "docker"],
-    year: "2024",
-    category: "Machine Learning",
-    accent: "#ec4899",
-    thumbnail: "/projects/porto/thumbnail.png",
-  },
-  {
-    title: "OrbitDesign",
-    slug: "orbitdesign",
-    description:
-      "A collaborative prototyping canvas for remote teams to sketch, wireframe, and align on ideas asynchronously.",
-    stack: ["react", "nodejs", "figma"],
-    year: "2023",
-    category: "Productivity Tools",
-    accent: "#3b82f6",
-    thumbnail: "/projects/porto/thumbnail.png",
-  },
-];
-
 /**
- * Get all projects, sorted by year descending then alphabetically.
+ * Get all projects by reading the .mdx files in content/projects,
+ * sorted by year descending then alphabetically.
+ * 
+ * Note: This function uses `fs` and must only be called in Server Components.
  */
 export function getAllProjects(): ProjectMeta[] {
-  return [...projects].sort((a, b) => {
+  const projectsDir = path.join(process.cwd(), "content", "projects");
+  
+  let filenames: string[] = [];
+  try {
+    filenames = fs.readdirSync(projectsDir);
+  } catch (err) {
+    console.error("Failed to read projects directory", err);
+    return [];
+  }
+
+  const projects: ProjectMeta[] = [];
+
+  for (const filename of filenames) {
+    if (!filename.endsWith(".mdx")) continue;
+
+    const filePath = path.join(projectsDir, filename);
+    const fileContents = fs.readFileSync(filePath, "utf8");
+
+    // Extract the export const metadata = { ... } block
+    const match = fileContents.match(/export\s+const\s+metadata\s*=\s*({[\s\S]*?});/);
+    if (match) {
+      try {
+        // Safely evaluate the JS object literal using a Function
+        // We use new Function here because it's a build-time script running in Node,
+        // parsing our own trusted code, and it effortlessly handles single/double quotes, 
+        // trailing commas, and unquoted keys.
+        const metadata = new Function(`return ${match[1]}`)() as ProjectMeta;
+        
+        // Use the filename as fallback slug if not provided
+        if (!metadata.slug) {
+          metadata.slug = filename.replace(/\.mdx$/, "");
+        }
+        
+        projects.push(metadata);
+      } catch (e) {
+        console.error(`Failed to parse metadata in ${filename}`, e);
+      }
+    }
+  }
+
+  return projects.sort((a, b) => {
     if (a.year !== b.year) return b.year.localeCompare(a.year);
     return a.title.localeCompare(b.title);
   });
@@ -103,5 +74,5 @@ export function getAllProjects(): ProjectMeta[] {
  * Get all project slugs (for generateStaticParams).
  */
 export function getProjectSlugs(): string[] {
-  return projects.map((p) => p.slug);
+  return getAllProjects().map((p) => p.slug);
 }

@@ -1,5 +1,7 @@
 import createMDX from "@next/mdx";
 
+const mermaidPluginPath = new URL('./lib/rehype-mermaid.mjs', import.meta.url).pathname;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
@@ -10,7 +12,10 @@ const withMDX = createMDX({
     remarkPlugins: [
       ["remark-gfm"]
     ],
-    rehypePlugins: [],
+    rehypePlugins: [
+      [mermaidPluginPath],
+      ["rehype-pretty-code", { theme: "github-dark", keepBackground: true }]
+    ],
   },
 });
 

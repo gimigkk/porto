@@ -1,7 +1,10 @@
+import { getAllProjects } from "@/lib/projects";
 import StackedSections from "@/components/layout/StackedSections";
 import ClientProjectModal from "@/components/projects/ClientProjectModal";
 
 export default function Home() {
+  const projects = getAllProjects();
+
   return (
     <main className="w-full min-h-screen bg-white">
       <div className="relative w-full">
@@ -22,7 +25,7 @@ export default function Home() {
         </section>
 
         {/* Sections 2, 3, 4 (Stacked Folders) */}
-        <StackedSections />
+        <StackedSections projects={projects} />
       </div>
 
       {/* Section 5 */}
@@ -33,7 +36,7 @@ export default function Home() {
         </div>
       </section>
 
-      <ClientProjectModal />
+      <ClientProjectModal projects={projects} />
     </main>
   );
 }

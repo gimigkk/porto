@@ -38,14 +38,14 @@ export default function ProjectCards({
         {featured.map((project, i) => (
           <div
             key={project.slug}
-            className="group relative w-full h-full transition-opacity duration-300 ease-out md:hover:z-50 md:group-hover/grid:opacity-60 md:hover:!opacity-100"
+            className="group relative w-full h-full transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:hover:z-50 md:group-hover/grid:opacity-60 md:hover:!opacity-100"
             style={{ perspective: "1000px" }}
           >
             {/* Background Documents (Pop-up effect) — hidden on mobile */}
             <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
               {/* File 1 (Back, goes highest) */}
               <div 
-                className="absolute top-10 left-[12%] right-[12%] bottom-16 rounded-xl border border-zinc-700/50 bg-zinc-800 shadow-xl transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-24 group-hover:-rotate-3 origin-bottom"
+                className="absolute top-10 left-[12%] right-[12%] bottom-16 rounded-xl border border-zinc-700/50 bg-zinc-800 shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-24 group-hover:-rotate-3 origin-bottom"
               >
                 <div className="p-5 flex flex-col gap-3">
                   <div className="h-1.5 w-1/3 bg-zinc-600 rounded-full"></div>
@@ -56,7 +56,7 @@ export default function ProjectCards({
               </div>
               {/* File 2 (Middle) */}
               <div 
-                className="absolute top-8 left-[8%] right-[8%] bottom-12 rounded-xl border border-black/20 shadow-xl transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-12 group-hover:rotate-3 origin-bottom delay-75"
+                className="absolute top-8 left-[8%] right-[8%] bottom-12 rounded-xl border border-black/20 shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-12 group-hover:rotate-3 origin-bottom delay-75"
                 style={{ backgroundColor: project.accent }}
               >
                 <div className="p-5 flex flex-col gap-3 mix-blend-overlay opacity-80">
@@ -74,7 +74,7 @@ export default function ProjectCards({
                 window.history.pushState(null, "", `?project=${project.slug}`);
                 window.dispatchEvent(new PopStateEvent("popstate"));
               }}
-              className="relative z-10 flex flex-col h-full rounded-xl border border-zinc-700/60 bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-300 ease-out origin-bottom md:group-hover:[transform:translateY(16px)_rotateX(-6deg)]"
+              className="relative z-10 flex flex-col h-full rounded-xl border border-zinc-700/60 bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-bottom md:group-hover:[transform:translateY(16px)_rotateX(-6deg)]"
               style={{
                 willChange: "transform"
               }}
