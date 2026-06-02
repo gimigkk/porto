@@ -5,16 +5,10 @@ import { useEffect, useCallback, useState, Suspense, useRef } from "react";
 import { useLenis } from "@studio-freight/react-lenis";
 import type { ProjectMeta } from "@/lib/projects";
 import BackToTop from "@/components/ui/BackToTop";
+import TechIcon from "@/components/ui/TechIcon";
 
 /* ── Preload all MDX components at module level ────────────── */
 const mdxModules: Record<string, React.ComponentType> = {};
-
-/* ── Custom simple-icons for unsupported skillicons ───────────── */
-const customIcons: Record<string, string> = {
-  whatsapp: "https://cdn.simpleicons.org/whatsapp/25D366",
-  gemini: "https://cdn.simpleicons.org/googlegemini/8E75B2",
-  groq: "https://cdn.simpleicons.org/groq/F55036",
-};
 
 function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
   const searchParams = useSearchParams();
@@ -297,8 +291,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
                       <div className="flex flex-wrap gap-2">
                         {project.stack.map(tech => (
                           <span key={tech} className="text-[12px] font-medium px-2.5 py-1 rounded-md bg-zinc-800 border border-zinc-700/80 text-zinc-300 flex items-center gap-1.5 transition-colors hover:bg-zinc-700">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={customIcons[tech] ?? `https://skillicons.dev/icons?i=${tech}&theme=dark`} alt={tech} className="w-3.5 h-3.5 rounded-[2px]" />
+                            <TechIcon tech={tech} size={14} className="text-zinc-400" />
                             {tech}
                           </span>
                         ))}

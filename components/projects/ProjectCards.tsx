@@ -1,34 +1,9 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import type { ProjectMeta } from "@/lib/projects";
 import { FileText, ChevronRight } from "lucide-react";
-
-/* ── Human-readable label for each skill icon ID ─────────────── */
-const techLabel: Record<string, string> = {
-  nextjs: "Next.js",
-  ts: "TypeScript",
-  react: "React",
-  prisma: "Prisma",
-  postgres: "PostgreSQL",
-  tailwind: "Tailwind CSS",
-  css: "CSS",
-  nodejs: "Node.js",
-  firebase: "Firebase",
-  python: "Python",
-  figma: "Figma",
-  docker: "Docker",
-  git: "Git",
-  whatsapp: "WhatsApp",
-  gemini: "Gemini",
-  groq: "Groq",
-};
-
-/* ── Custom simple-icons for unsupported skillicons ───────────── */
-const customIcons: Record<string, string> = {
-  whatsapp: "https://cdn.simpleicons.org/whatsapp/25D366",
-  gemini: "https://cdn.simpleicons.org/googlegemini/8E75B2",
-  groq: "https://cdn.simpleicons.org/groq/F55036",
-};
+import TechIcon from "@/components/ui/TechIcon";
 
 /* ── Max cards shown in the folder highlight ──────────────────── */
 const MAX_FEATURED = 6;
@@ -41,15 +16,23 @@ export default function ProjectCards({
   const featured = projects.slice(0, MAX_FEATURED);
   const hasMore = projects.length > MAX_FEATURED;
 
+  /* ── Track which card is hovered (null = none) ────────────── */
+  const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
+
   return (
     <>
       {/* ── Cards Grid (3-column) ──────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-[1400px] mx-auto px-4 md:px-12 group/grid">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-[1400px] mx-auto px-4 md:px-12">
         {featured.map((project, i) => (
           <div
             key={project.slug}
-            className="group relative w-full h-full transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:hover:z-50 md:group-hover/grid:opacity-60 md:hover:!opacity-100"
-            style={{ perspective: "1000px" }}
+            className="group relative w-full h-full transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:hover:z-50"
+            style={{
+              perspective: "1000px",
+              opacity: hoveredSlug === null || hoveredSlug === project.slug ? 1 : 0.35,
+            }}
+            onMouseEnter={() => setHoveredSlug(project.slug)}
+            onMouseLeave={() => setHoveredSlug(null)}
           >
             {/* Background Documents (Pop-up effect) — hidden on mobile */}
             <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
@@ -150,25 +133,30 @@ export default function ProjectCards({
                   {project.description}
                 </p>
 
-                {/* Tech stack — skillicons.dev (GitHub README style) */}
-                <div className="flex flex-wrap items-center gap-1.5 mt-auto pt-2 border-t border-zinc-700/40">
-                  {project.stack.map((tech) => (
-                    <div
-                      key={tech}
-                      className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-zinc-700/30"
-                      title={techLabel[tech] ?? tech}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={customIcons[tech] ?? `https://skillicons.dev/icons?i=${tech}&theme=dark`}
-                        alt={techLabel[tech] ?? tech}
-                        className="w-4 h-4 rounded-sm"
+                {/* Tech stack & Links */}
+                <div className="flex items-center gap-2 mt-auto pt-2 border-t border-zinc-700/40">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {project.stack.map((tech) => (
+                      <TechIcon
+                        key={tech}
+                        tech={tech}
+                        size={16}
+                        className="text-zinc-400 hover:text-white transition-colors"
                       />
-                      <span className="text-[10px] text-zinc-400 font-medium">
-                        {techLabel[tech] ?? tech}
-                      </span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+
+                  {/* GitHub Button */}
+                  <a
+                    href={project.github ?? `https://github.com/gimigkk/${project.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="ml-auto flex items-center justify-center w-[22px] h-[22px] rounded-[5px] border border-zinc-600 text-zinc-400 hover:text-white hover:border-zinc-400 transition-colors z-20 shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                    title="View Source"
+                  >
+                    <TechIcon tech="github" size={13} className="text-inherit" />
+                  </a>
                 </div>
               </div>
             </div>

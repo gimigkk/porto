@@ -15,6 +15,7 @@ export interface ProjectMeta {
   category: string;
   accent: string;
   thumbnail: string;
+  github?: string;
 }
 
 /**
