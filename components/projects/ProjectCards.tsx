@@ -18,6 +18,16 @@ const techLabel: Record<string, string> = {
   figma: "Figma",
   docker: "Docker",
   git: "Git",
+  whatsapp: "WhatsApp",
+  gemini: "Gemini",
+  groq: "Groq",
+};
+
+/* ── Custom simple-icons for unsupported skillicons ───────────── */
+const customIcons: Record<string, string> = {
+  whatsapp: "https://cdn.simpleicons.org/whatsapp/25D366",
+  gemini: "https://cdn.simpleicons.org/googlegemini/8E75B2",
+  groq: "https://cdn.simpleicons.org/groq/F55036",
 };
 
 /* ── Max cards shown in the folder highlight ──────────────────── */
@@ -34,7 +44,7 @@ export default function ProjectCards({
   return (
     <>
       {/* ── Cards Grid (3-column) ──────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-6xl group/grid">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-[1400px] mx-auto px-4 md:px-12 group/grid">
         {featured.map((project, i) => (
           <div
             key={project.slug}
@@ -150,7 +160,7 @@ export default function ProjectCards({
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={`https://skillicons.dev/icons?i=${tech}&theme=dark`}
+                        src={customIcons[tech] ?? `https://skillicons.dev/icons?i=${tech}&theme=dark`}
                         alt={techLabel[tech] ?? tech}
                         className="w-4 h-4 rounded-sm"
                       />

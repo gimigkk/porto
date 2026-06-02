@@ -9,6 +9,13 @@ import BackToTop from "@/components/ui/BackToTop";
 /* ── Preload all MDX components at module level ────────────── */
 const mdxModules: Record<string, React.ComponentType> = {};
 
+/* ── Custom simple-icons for unsupported skillicons ───────────── */
+const customIcons: Record<string, string> = {
+  whatsapp: "https://cdn.simpleicons.org/whatsapp/25D366",
+  gemini: "https://cdn.simpleicons.org/googlegemini/8E75B2",
+  groq: "https://cdn.simpleicons.org/groq/F55036",
+};
+
 function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
   const searchParams = useSearchParams();
   const slug = searchParams.get("project");
@@ -291,7 +298,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
                         {project.stack.map(tech => (
                           <span key={tech} className="text-[12px] font-medium px-2.5 py-1 rounded-md bg-zinc-800 border border-zinc-700/80 text-zinc-300 flex items-center gap-1.5 transition-colors hover:bg-zinc-700">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={`https://skillicons.dev/icons?i=${tech}&theme=dark`} alt={tech} className="w-3.5 h-3.5 rounded-[2px]" />
+                            <img src={customIcons[tech] ?? `https://skillicons.dev/icons?i=${tech}&theme=dark`} alt={tech} className="w-3.5 h-3.5 rounded-[2px]" />
                             {tech}
                           </span>
                         ))}
