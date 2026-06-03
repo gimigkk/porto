@@ -14,31 +14,15 @@ body {
   font-family: var(--font-sans);
 }
 
-/* --- SCROLLBAR LAYOUT SHIFT FIX --- */
-/* This reserves the scrollbar space permanently so layout NEVER shifts when overflow is hidden */
-html {
-  scrollbar-gutter: stable;
-}
-
-/* Global sleek scrollbars that don't disrupt layout */
+/* --- SCROLLBAR FULLY HIDDEN (0 space, never visible) --- */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(161, 161, 170, 0.15); /* Very faint */
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(161, 161, 170, 0.3);
+  width: 0px;
+  height: 0px;
 }
 
 * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(161, 161, 170, 0.15) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 /* Complete hide utility */

@@ -42,6 +42,36 @@
       "sourceType": "github",
       "skillPath": "skills/caveman-stats/SKILL.md",
       "computedHash": "47ce2de3d6cb39a75047b5c962e4eb3da15594e7397c94103e9a104d42626553"
+    },
+    "cavekit-spec": {
+      "source": "juliusbrussee/cavekit",
+      "sourceType": "github",
+      "skillPath": "skills/spec/SKILL.md",
+      "computedHash": "manual"
+    },
+    "cavekit-build": {
+      "source": "juliusbrussee/cavekit",
+      "sourceType": "github",
+      "skillPath": "skills/build/SKILL.md",
+      "computedHash": "manual"
+    },
+    "cavekit-check": {
+      "source": "juliusbrussee/cavekit",
+      "sourceType": "github",
+      "skillPath": "skills/check/SKILL.md",
+      "computedHash": "manual"
+    },
+    "cavekit-backprop": {
+      "source": "juliusbrussee/cavekit",
+      "sourceType": "github",
+      "skillPath": "skills/backprop/SKILL.md",
+      "computedHash": "manual"
+    },
+    "think-first": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/think-first/SKILL.md",
+      "computedHash": "manual"
     }
   }
 }

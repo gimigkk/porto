@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef } from "react";
-import { useScroll } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { useScroll, useMotionValue } from "framer-motion";
+import type { MotionValue } from "framer-motion";
+import { useLenis } from "@studio-freight/react-lenis";
 import type { ProjectMeta } from "@/lib/projects";
 import FolderSection from "@/components/ui/FolderSection";
 import AboutSection from "@/components/sections/AboutSection";
@@ -10,11 +12,54 @@ import ProjectsSection from "@/components/sections/ProjectsSection";
 
 export default function StackedSections({ projects }: { projects: ProjectMeta[] }) {
 	const containerRef = useRef<HTMLDivElement>(null);
+	const [isMobile, setIsMobile] = useState(false);
+	const mobileProgress = useMotionValue(0);
 
+	// Detect mobile viewport — never touch desktop path
+	useEffect(() => {
+		const mq = window.matchMedia("(max-width: 768px)");
+		setIsMobile(mq.matches);
+		const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+		mq.addEventListener("change", handler);
+		return () => mq.removeEventListener("change", handler);
+	}, []);
+
+	// Desktop: framer-motion useScroll — unmodified
 	const { scrollYProgress } = useScroll({
 		target: containerRef,
 		offset: ["start start", "end end"],
 	});
+
+	// Mobile: Lenis-driven scroll progress (useScroll goes stale with sticky + Lenis)
+	const lenis = useLenis();
+
+	useEffect(() => {
+		if (!lenis || !isMobile) return;
+
+		const onScroll = () => {
+			const el = containerRef.current;
+			if (!el) return;
+			const rect = el.getBoundingClientRect();
+			const elHeight = rect.height;
+			const vh = window.innerHeight;
+			const distance = elHeight - vh;
+			if (distance <= 0) {
+				mobileProgress.set(0);
+				return;
+			}
+			mobileProgress.set(Math.max(0, Math.min(1, -rect.top / distance)));
+		};
+
+		lenis.on("scroll", onScroll);
+		onScroll(); // set initial value
+
+		return () => {
+			lenis.off("scroll", onScroll);
+		};
+	}, [lenis, isMobile, mobileProgress]);
+
+	// Pick right source — mobile gets Lenis-based, desktop gets framer-motion
+	const effectiveProgress: MotionValue<number> = isMobile ? mobileProgress : scrollYProgress;
 
 	return (
 		<div ref={containerRef} className="relative z-20 w-full -mb-[80px]">
@@ -24,7 +69,7 @@ export default function StackedSections({ projects }: { projects: ProjectMeta[] 
 				bgClass="bg-[#141416]"
 				fillClass="fill-[#141416]"
 				stickyClass="h-[calc(100vh-5rem)] sticky top-20"
-				scrollYProgress={scrollYProgress}
+				scrollYProgress={effectiveProgress}
 				parallaxOffset={-40}
 				scrollOffset={-80}
 				fadeRange={[0, 0.5]}
@@ -39,7 +84,7 @@ export default function StackedSections({ projects }: { projects: ProjectMeta[] 
 				bgClass="bg-[#0e0e10]"
 				fillClass="fill-[#0e0e10]"
 				stickyClass="h-[calc(100vh-120px)] sticky top-[120px]"
-				scrollYProgress={scrollYProgress}
+				scrollYProgress={effectiveProgress}
 				parallaxOffset={-60}
 				scrollOffset={-120}
 				fadeRange={[0.5, 1]}
@@ -54,7 +99,7 @@ export default function StackedSections({ projects }: { projects: ProjectMeta[] 
 				bgClass="bg-zinc-950"
 				fillClass="fill-zinc-950"
 				stickyClass="min-h-[calc(100vh-160px)] z-30 relative"
-				scrollYProgress={scrollYProgress}
+				scrollYProgress={effectiveProgress}
 				parallaxOffset={-80}
 				scrollOffset={-160}
 			>

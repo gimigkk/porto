@@ -49,7 +49,7 @@ export default function FolderSection({
   const filter = useMotionTemplate`brightness(${brightnessVal})`;
 
   // All folders just have rounded-t-2xl at the far edges, the tabs seamlessly merge into them.
-  const bodyRadius = "rounded-t-2xl";
+  const bodyRadius = "rounded-t-lg sm:rounded-t-xl md:rounded-t-2xl";
 
   const sectionId = `section-${tabTitle.toLowerCase().replace(/\s+/g, "-")}`;
   const lenis = useLenis();
