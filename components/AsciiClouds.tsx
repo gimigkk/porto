@@ -9,7 +9,7 @@ const CONFIG = {
   // Like Photoshop Levels input black point (0–1).
   // Pixels below this brightness are treated as sky and hidden.
   // 0 = show everything, 0.2 = clip dark edges, 0.5 = only bright cores
-  threshold: 0.5,
+  threshold: 0,
 
   // Like Photoshop Levels input white point (0–1), must be > threshold.
   // Pixels at or above this are fully opaque. Between threshold and ceiling
@@ -109,31 +109,31 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           const bPhase = NOISE[ni];
           const bSpeed = NOISE[ni + 1];
 
-          // No displacement here — sample brightness from exact cell
+          // Sample alpha (opacity) from original image — cloud density,
+          // not brightness. White clouds on transparent bg all have high
+          // brightness regardless of edge softness.
           const idx = (row * cols + col) * 4;
-          const r = px[idx], g = px[idx + 1], b = px[idx + 2];
-          const brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+          const alpha = px[idx + 3] / 255;
 
-          // Hard threshold — like Photoshop black point input
-          if (brightness < threshold) continue;
+          // Hard threshold on opacity
+          if (alpha < threshold) continue;
 
-          // Brightness wave — ripples char density
+          // Opacity wave — ripples char density
           const wave =
             Math.sin(t * s * bSpeed * 1.3 + bPhase) * wAmp +
             Math.sin(t * s * bSpeed * 0.6 + bPhase * 1.9) * wAmp * 0.4;
 
           // Remap threshold→ceiling to 0→1, apply wave
-          const base = (brightness - threshold) / (ceiling - threshold);
+          const base = (alpha - threshold) / (ceiling - threshold);
           const modulated = Math.min(1, Math.max(0.05, base + wave));
 
-          // Map to char — brighter = denser char
+          // Map to char — more opaque = denser char
           const charIdx = Math.floor(modulated * (CHARS.length - 1));
           const ch = CHARS[charIdx];
           if (ch === " ") continue;
 
-          // Opacity from threshold feather — pixels just above threshold are
-          // semi-transparent for soft cloud edges
-          const edgeAlpha = Math.min(1, (brightness - threshold) / (threshold * 0.5 + 0.05));
+          // Visual opacity from alpha feather — soft cloud edges
+          const edgeAlpha = Math.min(1, (alpha - threshold) / (threshold * 0.5 + 0.05));
 
           offAsciiCtx.fillStyle = `rgba(255,255,255,${edgeAlpha.toFixed(2)})`;
           offAsciiCtx.fillText(ch, col * cs, row * cs);
