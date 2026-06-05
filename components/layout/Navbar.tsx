@@ -111,6 +111,45 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [anyPanelOpen]);
 
+  // Hide-on-scroll: hide navbar when scrolling down, show when scrolling up or at top.
+  // Keep visible when panels (mobile/menu) or desktop dropdown is open to avoid jank.
+  const [navVisible, setNavVisible] = useState(true);
+  const lastScrollYRef = useRef<number>(0);
+
+  useEffect(() => {
+    const THRESHOLD = 10; // minimal delta to consider
+    const TOP_THRESHOLD = 50; // always show when near top
+
+    function onScroll() {
+      const current = window.scrollY || window.pageYOffset || 0;
+      const last = lastScrollYRef.current;
+
+      // small movements ignored
+      if (Math.abs(current - last) < THRESHOLD) return;
+
+      const isExpandedLocal = hoveredIndex !== null;
+
+      // always show at top
+      if (current <= TOP_THRESHOLD) {
+        setNavVisible(true);
+      } else if (mobileMenuOpen || gimigkkPanelOpen || isExpandedLocal) {
+        // keep visible when menus/panels/dropdown open
+        setNavVisible(true);
+      } else if (current > last) {
+        // scrolling down -> hide
+        setNavVisible(false);
+      } else {
+        // scrolling up -> show
+        setNavVisible(true);
+      }
+
+      lastScrollYRef.current = current;
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [mobileMenuOpen, gimigkkPanelOpen, hoveredIndex]);
+
   const closeAll = useCallback(() => {
     setHoveredIndex(null);
     setMobileMenuOpen(false);
@@ -216,6 +255,11 @@ export default function Navbar() {
       <nav
         className="fixed top-0 inset-x-0 z-50"
         onMouseLeave={handleNavMouseLeave}
+        style={{
+          transform: navVisible ? "translateY(0)" : "translateY(-100%)",
+          transition: "transform 300ms cubic-bezier(0.22,1,0.36,1)",
+          willChange: "transform",
+        }}
       >
         {/* Thin bar */}
         <div className="w-full bg-white">

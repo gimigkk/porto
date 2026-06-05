@@ -5,6 +5,9 @@ const mermaidPluginPath = new URL('./lib/rehype-mermaid.mjs', import.meta.url).p
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  images: {
+    qualities: [75, 95],
+  },
 };
 
 const withMDX = createMDX({

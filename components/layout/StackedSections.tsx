@@ -62,7 +62,7 @@ export default function StackedSections({ projects }: { projects: ProjectMeta[] 
 	const effectiveProgress: MotionValue<number> = isMobile ? mobileProgress : scrollYProgress;
 
 	return (
-		<div ref={containerRef} className="relative z-20 w-full -mb-[80px]">
+		<div ref={containerRef} className="relative z-20 w-full -mt-[10vh] -mb-[80px]">
 			<FolderSection
 				tabTitle="About"
 				tabPosition="left"
