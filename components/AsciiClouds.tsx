@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const CONFIG = {
-  cellSize: 10,
+  cellSize: 8,
 
   // Like Photoshop Levels input black point (0–1).
   // Pixels below this brightness are treated as sky and hidden.
@@ -27,7 +27,7 @@ const CONFIG = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Dense ASCII ramp — chars that actually fill horizontal space
-const CHARS = " .:+({[#@";
+const CHARS = ".:+#@G";
 
 function mulberry32(seed: number) {
   return function () {
