@@ -22,7 +22,7 @@ const CONFIG = {
   waveDepth: 0.3,
 
   // How much cells physically drift (0–1)
-  displacement: 0.25,
+  displacement: 0.6,
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -108,15 +108,9 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           const ni = ((row % NOISE_H) * NOISE_W + (col % NOISE_W)) * 5;
           const bPhase = NOISE[ni];
           const bSpeed = NOISE[ni + 1];
-          const dPhase = NOISE[ni + 2];
-          const dDir   = NOISE[ni + 3];
-          const dSpeed = NOISE[ni + 4];
 
-          // Displacement — organic drift per cell
-          const disp = Math.sin(t * s * dSpeed + dPhase) * dAmp * dDir;
-          const srcRow = Math.min(rows - 1, Math.max(0, Math.round(row + disp)));
-
-          const idx = (srcRow * cols + col) * 4;
+          // No displacement here — sample brightness from exact cell
+          const idx = (row * cols + col) * 4;
           const r = px[idx], g = px[idx + 1], b = px[idx + 2];
           const brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
 
@@ -146,15 +140,42 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         }
       }
 
-      // ── 3. Composite: use cloud image as luminosity mask ──────────────────
-      // Draw cloud image with "multiply"-like masking:
-      // We use destination-in with the cloud image drawn at reduced opacity
-      // so only cloud-bright areas reveal the ASCII layer beneath.
+      // ── 3. Build displaced cloud mask at cell resolution ──────────────────
+      // Displacement applied to cloud image (mask), not ASCII cells.
+      // This makes the ASCII grid appear to warp with the wave.
+      const maskCell = document.createElement("canvas");
+      maskCell.width = cols;
+      maskCell.height = rows;
+      const maskCellCtx = maskCell.getContext("2d")!;
+      const maskImageData = maskCellCtx.createImageData(cols, rows);
+      const maskPx = maskImageData.data;
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const ni = ((row % NOISE_H) * NOISE_W + (col % NOISE_W)) * 5;
+          const dPhase = NOISE[ni + 2];
+          const dDir   = NOISE[ni + 3];
+          const dSpeed = NOISE[ni + 4];
+
+          const disp = Math.sin(t * s * dSpeed + dPhase) * dAmp * dDir;
+          const srcRow = Math.min(rows - 1, Math.max(0, Math.round(row + disp)));
+
+          const srcIdx = (srcRow * cols + col) * 4;
+          const dstIdx = (row * cols + col) * 4;
+          maskPx[dstIdx]     = px[srcIdx];
+          maskPx[dstIdx + 1] = px[srcIdx + 1];
+          maskPx[dstIdx + 2] = px[srcIdx + 2];
+          maskPx[dstIdx + 3] = px[srcIdx + 3];
+        }
+      }
+      maskCellCtx.putImageData(maskImageData, 0, 0);
+
+      // ── 4. Composite: displaced cloud mask as destination-in ──────────────
       offAsciiCtx.globalCompositeOperation = "destination-in";
-      offAsciiCtx.drawImage(img, 0, 0, W, H);
+      offAsciiCtx.drawImage(maskCell, 0, 0, W, H);
       offAsciiCtx.globalCompositeOperation = "source-over"; // reset
 
-      // ── 4. Paint final result onto main canvas ────────────────────────────
+      // ── 5. Paint final result onto main canvas ────────────────────────────
       canvas!.width = W;
       canvas!.height = H;
       const ctx = canvas!.getContext("2d")!;
