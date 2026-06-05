@@ -1,7 +1,7 @@
 import { getAllProjects } from "@/lib/projects";
 import StackedSections from "@/components/layout/StackedSections";
 import ClientProjectModal from "@/components/projects/ClientProjectModal";
-import Image from "next/image";
+import AsciiClouds from "@/components/AsciiClouds";
 
 export default function Home() {
   const projects = getAllProjects();
@@ -18,16 +18,9 @@ export default function Home() {
           {/* Sky blue gradient bg */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#99DFFF] to-[#CBE5FF]" />
 
-          {/* Clouds overlay */}
-          <div className="absolute inset-0">
-            <Image
-              src="/assets/clouds.png"
-              alt=""
-              fill
-              priority
-              className="object-bottom object-cover pointer-events-none select-none"
-              sizes="100vw"
-            />
+          {/* ASCII Clouds — tune CONFIG inside AsciiClouds.tsx */}
+          <div className="absolute inset-0 pointer-events-none select-none">
+            <AsciiClouds className="w-full h-full" />
           </div>
 
           {/* Content */}
