@@ -48,7 +48,7 @@ export default function Home() {
       <section className="h-screen w-full flex flex-col items-center justify-center bg-zinc-950 text-white relative z-30">
         <h2 className="text-5xl font-bold mb-6 text-amber-500">Section 5</h2>
         <div className="text-xl opacity-80 max-w-xl text-center">
-          You have reached the final section. This section scrolls in normally over the stacked sections.
+          CTA Kerja Sama
         </div>
       </section>
 

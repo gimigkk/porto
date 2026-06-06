@@ -7,7 +7,7 @@ import type { ProjectMeta } from "@/lib/projects";
 import BackToTop from "@/components/ui/BackToTop";
 import TechIcon from "@/components/ui/TechIcon";
 
-/* ── Preload all MDX components at module level ────────────── */
+/* -- Preload all MDX components at module level -------------- */
 const mdxModules: Record<string, React.ComponentType> = {};
 
 function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {

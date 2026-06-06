@@ -5,7 +5,7 @@ import type { ProjectMeta } from "@/lib/projects";
 import { FileText, ChevronRight } from "lucide-react";
 import TechIcon from "@/components/ui/TechIcon";
 
-/* ── Max cards shown in the folder highlight ──────────────────── */
+/* -- Max cards shown in the folder highlight -------------------- */
 const MAX_FEATURED = 6;
 
 export default function ProjectCards({
@@ -16,12 +16,12 @@ export default function ProjectCards({
   const featured = projects.slice(0, MAX_FEATURED);
   const hasMore = projects.length > MAX_FEATURED;
 
-  /* ── Track which card is hovered (null = none) ────────────── */
+  /* -- Track which card is hovered (null = none) -------------- */
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
 
   return (
     <>
-      {/* ── Cards Grid (3-column) ──────────────── */}
+      {/* -- Cards Grid (3-column) ---------------- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-[1400px] mx-auto px-4 md:px-12">
         {featured.map((project, i) => (
           <div
@@ -81,7 +81,7 @@ export default function ProjectCards({
                 e.currentTarget.style.boxShadow = "";
               }}
             >
-              {/* ── Thumbnail ────────────────────────────────────── */}
+              {/* -- Thumbnail -------------------------------------- */}
               <div className="relative w-full aspect-[2.6/1] bg-zinc-900 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -91,7 +91,7 @@ export default function ProjectCards({
                 />
               </div>
 
-              {/* ── Card body ───────────────────────────────────────── */}
+              {/* -- Card body ----------------------------------------- */}
               <div className="flex flex-col flex-1 p-3">
                 {/* Category + Year row */}
                 <div className="flex items-center justify-between mb-2">
@@ -165,7 +165,7 @@ export default function ProjectCards({
         ))}
       </div>
 
-      {/* ── View All link ──────────────────────────────────────── */}
+      {/* -- View All link ---------------------------------------- */}
       {hasMore && (
         <a
           href="/projects"

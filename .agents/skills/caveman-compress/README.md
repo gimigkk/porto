@@ -147,12 +147,12 @@ Caveman compress natural language. It never touch:
 Caveman cut that by ~46% on average. Same instructions. Same accuracy. Less waste.
 
 ```
-┌────────────────────────────────────────────┐
+┌--------------------------------------------┐
 │  TOKEN SAVINGS PER FILE    █████       46% │
 │  SESSIONS THAT BENEFIT     ██████████ 100% │
 │  INFORMATION PRESERVED     ██████████ 100% │
 │  SETUP TIME                █            1x │
-└────────────────────────────────────────────┘
+└--------------------------------------------┘
 ```
 
 ## Part of Caveman

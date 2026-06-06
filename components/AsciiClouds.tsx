@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// --- CONFIG -------------------------------------------------------------------
 const CONFIG = {
   cellSize: 8,
   threshold: 0,
@@ -11,7 +11,8 @@ const CONFIG = {
   waveDepth: 0.3,
   displacement: 0.6,
   fps: 10,
-  // ── Wind gusts ─────────────────────────────────────────────────────────────
+  
+  // -- Wind gusts --
   maxGusts: 4,          // maximum concurrent gusts
   spawnInterval: 2.5,   // seconds between spawn attempts
   windWobble: 0.22,     // vertical sine wobble on the gust edge (fraction of rows)
@@ -20,7 +21,7 @@ const CONFIG = {
   gustMinWidth: 0.09,   // half-width as fraction of cols
   gustMaxWidth: 0.12,   // half-width as fraction of cols
 };
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 const CHARS = ".:/#@G";
 
@@ -46,7 +47,7 @@ for (let i = 0; i < NOISE_W * NOISE_H; i++) {
   NOISE[i * 5 + 4] = 0.4 + rng() * 0.6;
 }
 
-// ─── Glyph atlas ─────────────────────────────────────────────────────────────
+// --- Glyph atlas -------------------------------------------------------------
 const ALPHA_STEPS = 16;
 function buildGlyphAtlas(cs: number, dpr: number): HTMLCanvasElement[][] {
   const tileSize = Math.ceil(cs * dpr);
@@ -66,7 +67,7 @@ function buildGlyphAtlas(cs: number, dpr: number): HTMLCanvasElement[][] {
   });
 }
 
-// ─── Gust type ────────────────────────────────────────────────────────────────
+// --- Gust type ----------------------------------------------------------------
 interface Gust {
   id: number;
   // Current center position in col-space
@@ -200,7 +201,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     const startTime = performance.now();
     let frame = 0;
 
-    // ── Gust state ────────────────────────────────────────────────────────────
+    // -- Gust state ------------------------------------------------------------
     const gusts: Gust[] = [];
     let lastSpawnTime = -CONFIG.spawnInterval; // spawn immediately on first frame
 
@@ -242,7 +243,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         // Current center
         const center = g.center + g.speed * age;
 
-        // ── Organic edge wobble ───────────────────────────────────────────
+        // -- Organic edge wobble -------------------------------------------
         // Three sine octaves (different frequencies & drift speeds) give a
         // turbulent, non-repeating look. The per-column edgeNoise value
         // seeds each column's phase so adjacent columns evolve differently.
@@ -292,13 +293,13 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       // Update gust pool
       updateGusts(t, cols);
 
-      // ── 1. Sample cloud image at grid resolution ──────────────────────────
+      // -- 1. Sample cloud image at grid resolution --------------------------
       offSample.width  = cols;
       offSample.height = rows;
       offSampleCtx.drawImage(img, 0, 0, cols, rows);
       const px = offSampleCtx.getImageData(0, 0, cols, rows).data;
 
-      // ── 2. Draw ASCII glyph layer ─────────────────────────────────────────
+      // -- 2. Draw ASCII glyph layer -----------------------------------------
       offAscii.width  = PW;
       offAscii.height = PH;
 
@@ -336,7 +337,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         }
       }
 
-      // ── 3. Build displaced cloud mask ─────────────────────────────────────
+      // -- 3. Build displaced cloud mask -------------------------------------
       if (cols !== maskCols || rows !== maskRows) {
         maskCell.width  = cols;
         maskCell.height = rows;
@@ -366,12 +367,12 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       }
       maskCellCtx.putImageData(maskImageData!, 0, 0);
 
-      // ── 4. Composite: displaced mask as destination-in ────────────────────
+      // -- 4. Composite: displaced mask as destination-in --------------------
       offAsciiCtx.globalCompositeOperation = "destination-in";
       offAsciiCtx.drawImage(maskCell, 0, 0, PW, PH);
       offAsciiCtx.globalCompositeOperation = "source-over";
 
-      // ── 5. Paint onto main canvas ─────────────────────────────────────────
+      // -- 5. Paint onto main canvas -----------------------------------------
       if (PW !== lastPW || PH !== lastPH || dpr !== lastDpr) {
         canvas!.width  = PW;
         canvas!.height = PH;
@@ -386,7 +387,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       frame++;
     }
 
-    // ── FPS cap via setTimeout → rAF ─────────────────────────────────────────
+    // -- FPS cap via setTimeout → rAF -----------------------------------------
     const interval = 1000 / CONFIG.fps;
 
     function scheduleNext() {
