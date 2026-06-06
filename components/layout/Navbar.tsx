@@ -77,14 +77,25 @@ const parentVariants = {
       delayChildren: 0.02,
     },
   },
+  exit: {
+    transition: {
+      staggerChildren: 0.05,
+      staggerDirection: -1,
+    },
+  },
 };
 
 const itemVariants = {
-  hidden: { y: 8, opacity: 0 },
+  hidden: { y: 8, opacity: 0, transition: { duration: 0.2, ease: easeOut } },
   visible: {
     y: 0,
     opacity: 1,
     transition: { duration: 0.3, ease: easeOut },
+  },
+  exit: {
+    y: -8,
+    opacity: 0,
+    transition: { duration: 0.2, ease: easeOut },
   },
 };
 
@@ -246,7 +257,7 @@ export default function Navbar() {
       {/* Desktop page dimming backdrop */}
       <motion.div
         animate={{ opacity: isExpanded ? 1 : 0 }}
-        transition={{ opacity: { duration: isExpanded ? 0.25 : 0, ease: easeOut } }}
+        transition={{ opacity: { duration: 0.25, ease: easeOut } }}
         className="fixed inset-0 z-30 bg-black/10 hidden md:block"
         style={{ pointerEvents: isExpanded ? "auto" : "none" }}
         onClick={closeAll}
@@ -341,7 +352,7 @@ export default function Navbar() {
             }}
             transition={{
               height: {
-                duration: isExpanded ? 0.4 : 0,
+                duration: 0.4,
                 ease: easeOut,
               },
             }}
@@ -352,29 +363,31 @@ export default function Navbar() {
               className="max-w-[1400px] mx-auto px-4 md:px-12 py-6"
               style={{ paddingLeft: `${hoveredOffset + 16}px`, paddingRight: "1rem" }}
             >
-              {activeSublinks && (
-                <motion.div
-                  key={hoveredIndex}
-                  variants={parentVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit={{ opacity: 0, transition: { duration: 0 } }}
-                  className="flex flex-col gap-4"
-                >
-                  {activeSublinks.map((sublink) => (
-                    <motion.button
-                      key={sublink.label}
-                      type="button"
-                      variants={itemVariants}
-                      exit={{ opacity: 0, transition: { duration: 0 } }}
-                      onClick={() => handleSublinkClick(sublink)}
-                      className="text-left text-base font-medium text-zinc-600 hover:text-zinc-950 transition-colors duration-200 tracking-tight w-fit cursor-pointer focus:outline-none"
-                    >
-                      {sublink.label}
-                    </motion.button>
-                  ))}
-                </motion.div>
-              )}
+              {/* Added AnimatePresence & popLayout so layout doesnt jump during crossfades */}
+              <AnimatePresence mode="popLayout">
+                {activeSublinks && (
+                  <motion.div
+                    key={hoveredIndex}
+                    variants={parentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="flex flex-col gap-4"
+                  >
+                    {activeSublinks.map((sublink) => (
+                      <motion.button
+                        key={sublink.label}
+                        type="button"
+                        variants={itemVariants}
+                        onClick={() => handleSublinkClick(sublink)}
+                        className="text-left text-base font-medium text-zinc-600 hover:text-zinc-950 transition-colors duration-200 tracking-tight w-fit cursor-pointer focus:outline-none"
+                      >
+                        {sublink.label}
+                      </motion.button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         </div>
@@ -387,7 +400,7 @@ export default function Navbar() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0 } }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="md:hidden fixed inset-0 z-40 bg-black/10"
               onClick={closeGimigkkPanel}
@@ -396,7 +409,7 @@ export default function Navbar() {
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, transition: { duration: 0 } }}
+              exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: easeOut }}
               className="md:hidden fixed top-12 inset-x-0 z-45 max-h-[calc(100dvh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl"
             >
@@ -421,20 +434,19 @@ export default function Navbar() {
                   <AnimatePresence initial={false}>
                     {activeAccordion === 0 && (
                       <motion.div
-                        key={`accordion-container-0-${activeAccordion}`}
-                        variants={parentVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="hidden"
-                        className="overflow-hidden pb-3 pl-2 flex flex-col gap-2"
+                        key={`accordion-container-0`}
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: easeOut }}
+                        className="overflow-hidden"
                       >
                         <motion.div
-                          key={`accordion-content-0-${activeAccordion}`}
                           variants={parentVariants}
                           initial="hidden"
                           animate="visible"
-                          className="flex flex-col gap-2"
+                          exit="exit"
+                          className="pb-3 pl-2 flex flex-col gap-2"
                         >
                           {NAV_ITEMS[0].sublinks.map((sublink) => (
                             <motion.button
@@ -468,7 +480,7 @@ export default function Navbar() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0 } }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="md:hidden fixed inset-0 z-40 bg-black/10"
               onClick={closeMobileMenu}
@@ -477,98 +489,95 @@ export default function Navbar() {
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8, transition: { duration: 0 } }}
+              exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: easeOut }}
               className="md:hidden fixed top-12 inset-x-0 z-45 max-h-[calc(100dvh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1"
             >
-                  {/* Home accordion + Project Archive accordion */}
-                  {NAV_ITEMS.slice(1).map((item, idx) => {
-                    const i = idx + 1;
-                    const isOpen = activeAccordion === i;
+              {/* Home accordion + Project Archive accordion */}
+              {NAV_ITEMS.slice(1).map((item, idx) => {
+                const i = idx + 1;
+                const isOpen = activeAccordion === i;
 
-                    return (
-                      <motion.div
-                        key={item.label}
-                        variants={itemVariants}
-                        className="flex flex-col gap-1"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => {
-                            // Navigate to route + expand this accordion
-                            if (item.target === "projects") {
-                              router.push("/projects");
-                            } else {
-                              router.push("/");
-                            }
-                            setActiveAccordion(i);
-                          }}
-                          className="flex items-center justify-between w-full py-3 text-sm font-medium text-zinc-800 hover:text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none"
-                        >
-                          <span>{item.label}</span>
-                          <ChevronDown
-                            className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ease-out ${
-                              isOpen ? "rotate-180" : "rotate-0"
-                            }`}
-                          />
-                        </button>
-
-                        <AnimatePresence>
-                          {isOpen && (
-                            <motion.div
-                              key={`accordion-container-${i}-${activeAccordion}`}
-                              variants={parentVariants}
-                              initial="hidden"
-                              animate="visible"
-                              exit="hidden"
-                              className="overflow-hidden pb-3 pl-2 flex flex-col gap-2"
-                              transition={{ duration: 0.3, ease: easeOut }}
-                            >
-                              <motion.div
-                                key={`accordion-content-${i}-${activeAccordion}`}
-                                variants={parentVariants}
-                                initial="hidden"
-                                animate="visible"
-                                className="flex flex-col gap-2"
-                              >
-                                {item.sublinks.map((sublink) => (
-                                  <motion.button
-                                    key={sublink.label}
-                                    variants={itemVariants}
-                                    type="button"
-                                    onClick={() => {
-                                      handleSublinkClick(sublink);
-                                      closeMobileMenu();
-                                    }}
-                                    className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
-                                  >
-                                    {sublink.label}
-                                  </motion.button>
-                                ))}
-                              </motion.div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-                    );
-                  })}
-
-                  {/* CV button for mobile */}
-                  <div
-                    className="mt-3 pt-3 border-t border-zinc-100"
+                return (
+                  <motion.div
+                    key={item.label}
+                    variants={itemVariants}
+                    className="flex flex-col gap-1"
                   >
-                    <a
-                      href="/cv.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={closeMobileMenu}
-                      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors duration-200"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Navigate to route + expand this accordion
+                        if (item.target === "projects") {
+                          router.push("/projects");
+                        } else {
+                          router.push("/");
+                        }
+                        setActiveAccordion(i);
+                      }}
+                      className="flex items-center justify-between w-full py-3 text-sm font-medium text-zinc-800 hover:text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none"
                     >
-                      <Download className="w-4 h-4" />
-                      <span>Curriculum Vitae</span>
-                    </a>
-                  </div>
-                </motion.div>
+                      <span>{item.label}</span>
+                      <ChevronDown
+                        className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ease-out ${
+                          isOpen ? "rotate-180" : "rotate-0"
+                        }`}
+                      />
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          key={`accordion-container-${i}`}
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: easeOut }}
+                          className="overflow-hidden"
+                        >
+                          <motion.div
+                            variants={parentVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className="pb-3 pl-2 flex flex-col gap-2"
+                          >
+                            {item.sublinks.map((sublink) => (
+                              <motion.button
+                                key={sublink.label}
+                                variants={itemVariants}
+                                type="button"
+                                onClick={() => {
+                                  handleSublinkClick(sublink);
+                                  closeMobileMenu();
+                                }}
+                                className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
+                              >
+                                {sublink.label}
+                              </motion.button>
+                            ))}
+                          </motion.div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })}
+
+              {/* CV button for mobile */}
+              <div className="mt-3 pt-3 border-t border-zinc-100">
+                <a
+                  href="/cv.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={closeMobileMenu}
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors duration-200"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Curriculum Vitae</span>
+                </a>
+              </div>
+            </motion.div>
           </>
         )}
       </AnimatePresence>
