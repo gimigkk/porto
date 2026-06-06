@@ -45,11 +45,11 @@ const CONFIG = {
     enabled: true,
     minSpeedToSpawn: 40,        // Minimum pointer speed (px/sec) to generate wind trails
     maxSpeedReference: 2500,    // Speed at which the effect hits maximum intensity
-    maxIntensity: 0.05,         // Maximum darkening/carving depth (0 to 1)
+    maxIntensity: 0.45,         // Maximum displacement depth (-1.0 to 1.0 pressure range)
     particleLife: 1.2,          // Lifespan of trail particles (seconds)
     minRadius: 3.0,             // Minimum trail radius (in grid cells) for slow speeds
     maxRadius: 10.0,            // Maximum trail radius (in grid cells) for fast speeds
-    expansionFactor: 2.5,       // Scale multiplier for dispersion as particles age (1.0 = no expansion)
+    expansionFactor: 3.5,       // Scale multiplier for dispersion as particles age (1.0 = no expansion)
     trailFling: 0.28,           // Speed multiplier transferred to trail drift
     pushRadius: 180,            // Physical push radius for smoke blobs (in image pixels)
     pushStrength: 0.65,         // Scaling factor for force applied to the particles
@@ -679,7 +679,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         }
       }
 
-      // -- 3. Pointer Disruption Grid ----------------------------------------
+      // -- 3. Pointer Disruption Grid (Bipolar Pressure Wave) -----------------
       let disruptionGrid: Float32Array | null = null;
       if (disruptions.length > 0) {
         const reqSize = rows * cols;
@@ -687,7 +687,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           disruptionGridCache = new Float32Array(reqSize);
         }
         disruptionGrid = disruptionGridCache;
-        disruptionGrid.fill(0);
+        disruptionGrid.fill(0); // 0 means neutral air pressure
 
         for (const d of disruptions) {
           const pct = d.life / d.maxLife; // 1.0 (spawn) to 0.0 (death)
@@ -696,6 +696,11 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           // Calculate an expanding dynamic radius to simulate dispersal dispersion
           const expansion = 1.0 + (1.0 - pct) * (CONFIG.cursorDisruptor.expansionFactor - 1.0);
           const radius = d.radius * expansion;
+
+          // Normalize the velocity direction vector (ux, uy)
+          const speed = Math.sqrt(d.vx * d.vx + d.vy * d.vy);
+          const ux = speed > 0.001 ? d.vx / speed : 0;
+          const uy = speed > 0.001 ? d.vy / speed : 0;
 
           const cMin = Math.max(0, Math.floor(d.cx - radius));
           const cMax = Math.min(cols - 1, Math.ceil(d.cx + radius));
@@ -715,9 +720,18 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
               // Quadratic falloff profile towards edge of disruption circle
               const distRatio = Math.sqrt(distSq) / radius;
               const falloff = 1 - distRatio * distRatio;
-              const val = falloff * currentIntensity;
+
+              // Project coordinate offset onto the velocity direction
+              // positive projection = front wave (compression / thickening)
+              // negative projection = rear wake (rarefaction / thinning)
+              const proj = dx * ux + dy * uy;
+              const projNorm = radius > 0 ? proj / radius : 0;
+
+              const pressureVal = projNorm * falloff * currentIntensity;
               const idx = rowBase + c;
-              disruptionGrid[idx] = Math.min(1.0, disruptionGrid[idx] + val);
+              
+              // Accumulate signed pressure offsets (bounded between -1.0 and 1.0)
+              disruptionGrid[idx] = Math.min(1.0, Math.max(-1.0, disruptionGrid[idx] + pressureVal));
             }
           }
         }
@@ -791,14 +805,16 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           const blobVal = blobAlphaGrid ? blobAlphaGrid[srcRow * cols + col] : 0;
           const blobAlpha255 = Math.floor(blobVal * 255);
 
-          // Calculate interactive wind trail disruption
+          // Calculate interactive wind trail disruption pressure factor
           const disruption = disruptionGrid ? disruptionGrid[srcRow * cols + col] : 0;
-          const reductionFactor = Math.max(0, 1 - disruption);
+          // disruption ranges from -1.0 (rarefaction/darken) to +1.0 (compression/brighten)
+          // Map this to a multiplication scaling factor clamped between 0.0 and 2.0
+          const disruptionFactor = Math.min(2.0, Math.max(0.0, 1.0 + disruption));
 
-          // Combined mask values (reduced by local cursor disruption)
+          // Combined mask values (scaled by local cursor disruption)
           let combinedMaskAlpha = Math.max(imgMaskAlpha, blobAlpha255);
           if (combinedMaskAlpha === 0) continue;
-          combinedMaskAlpha = Math.floor(combinedMaskAlpha * reductionFactor);
+          combinedMaskAlpha = Math.min(255, Math.floor(combinedMaskAlpha * disruptionFactor));
           if (combinedMaskAlpha === 0) continue;
 
           // Combined intensity thresholds
@@ -809,7 +825,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           }
 
           let combinedAlpha = Math.max(imgAlpha, blobVal);
-          combinedAlpha *= reductionFactor;
+          combinedAlpha = Math.min(1.0, combinedAlpha * disruptionFactor);
           if (combinedAlpha < threshold) continue;
 
           const bPhase = NOISE[ni], bSpeed = NOISE[ni + 1];
