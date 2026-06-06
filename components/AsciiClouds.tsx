@@ -15,6 +15,10 @@ const CONFIG = {
   maxGusts: 4,          // maximum concurrent gusts
   spawnInterval: 2.5,   // seconds between spawn attempts
   windWobble: 0.22,     // vertical sine wobble on the gust edge (fraction of rows)
+  gustMinSpeed: 10,     // cols/sec
+  gustMaxSpeed: 20,     // cols/sec
+  gustMinWidth: 0.09,   // half-width as fraction of cols
+  gustMaxWidth: 0.12,   // half-width as fraction of cols
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -79,6 +83,8 @@ interface Gust {
   wobbleFreq: number;
   // Wobble phase offset
   wobblePhase: number;
+  // Per-column noise offsets for organic edge shape (length = cols)
+  edgeNoise: Float32Array;
   // Fade-in/-out envelope (0→1→0 over lifetime)
   born: number;   // time of spawn (seconds)
   fadeIn: number; // duration of fade-in (seconds)
@@ -96,12 +102,12 @@ function spawnGust(t: number, cols: number): Gust {
   const r = () => gustRng();
 
   const leftToRight = r() > 0.5;
-  const speed = (20 + r() * 50) * (leftToRight ? 1 : -1); // 20–70 cols/sec
+  const speed = (CONFIG.gustMinSpeed + r() * (CONFIG.gustMaxSpeed - CONFIG.gustMinSpeed)) * (leftToRight ? 1 : -1);
 
   // Spawn origin: edge (70% chance) or random middle position (30% chance)
   const spawnInMiddle = r() < 0.3;
   let startCenter: number;
-  const halfWidthFrac = 0.10 + r() * 0.20; // 10–30% of cols
+  const halfWidthFrac = CONFIG.gustMinWidth + r() * (CONFIG.gustMaxWidth - CONFIG.gustMinWidth);
   const halfW = halfWidthFrac * cols;
 
   if (spawnInMiddle) {
@@ -116,15 +122,34 @@ function spawnGust(t: number, cols: number): Gust {
   const fadeIn  = 0.4 + r() * 0.8;
   const fadeOut = 0.4 + r() * 0.8;
 
+  // Build per-column edge-noise table: 4 octaves of random offsets
+  // sampled at a coarse resolution then linearly interpolated so the
+  // shape looks organic rather than purely periodic.
+  const EDGE_SAMPLES = 32; // control points
+  const ctrlPts = new Float32Array(EDGE_SAMPLES + 1);
+  for (let i = 0; i <= EDGE_SAMPLES; i++) ctrlPts[i] = r() * 2 - 1; // [-1, 1]
+
+  const edgeNoise = new Float32Array(cols);
+  for (let c = 0; c < cols; c++) {
+    const frac  = (c / Math.max(1, cols - 1)) * EDGE_SAMPLES;
+    const lo    = Math.floor(frac);
+    const hi    = Math.min(EDGE_SAMPLES, lo + 1);
+    const t0    = frac - lo;
+    // Smooth-step interpolation
+    const sm    = t0 * t0 * (3 - 2 * t0);
+    edgeNoise[c] = ctrlPts[lo] * (1 - sm) + ctrlPts[hi] * sm;
+  }
+
   return {
     id: ++gustIdCounter,
     center: startCenter,
     speed,
     halfWidthFrac,
-    boost: 0.15 + r() * 0.35,       // 0.15–0.50
+    boost: 0.08 + r() * 0.14,       // 0.08–0.22: subtle lift, never flatlines
     wobble: 0.05 + r() * 0.25,
     wobbleFreq: 1.5 + r() * 3.0,
     wobblePhase: r() * Math.PI * 2,
+    edgeNoise,
     born: t,
     fadeIn,
     fadeOut,
@@ -205,26 +230,36 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     function gustBrightnessAt(col: number, row: number, rows: number, t: number, cols: number): number {
       let total = 0;
       for (const g of gusts) {
-        const age     = t - g.born;
-        const halfW   = g.halfWidthFrac * cols;
+        const age   = t - g.born;
+        const halfW = g.halfWidthFrac * cols;
 
         // Fade envelope
         let fade = 1;
-        if (age < g.fadeIn)              fade = age / g.fadeIn;
+        if (age < g.fadeIn)                fade = age / g.fadeIn;
         else if (age > g.life - g.fadeOut) fade = (g.life - age) / g.fadeOut;
         fade = Math.max(0, Math.min(1, fade));
 
         // Current center
         const center = g.center + g.speed * age;
 
-        // Vertical wobble
-        const rowFrac  = row / Math.max(1, rows - 1);
-        const wobble   = Math.sin(rowFrac * Math.PI * g.wobbleFreq + t * 0.3 + g.wobblePhase) * g.wobble * cols;
+        // ── Organic edge wobble ───────────────────────────────────────────
+        // Three sine octaves (different frequencies & drift speeds) give a
+        // turbulent, non-repeating look. The per-column edgeNoise value
+        // seeds each column's phase so adjacent columns evolve differently.
+        const colNoise  = g.edgeNoise[Math.min(cols - 1, Math.max(0, col))];
+        const rowFrac   = row / Math.max(1, rows - 1);
+
+        const o1 = Math.sin(rowFrac * Math.PI * g.wobbleFreq       + t * 0.25 + g.wobblePhase + colNoise * 2.1);
+        const o2 = Math.sin(rowFrac * Math.PI * g.wobbleFreq * 2.3 + t * 0.41 + g.wobblePhase * 1.7 + colNoise * 3.9) * 0.45;
+        const o3 = Math.sin(rowFrac * Math.PI * g.wobbleFreq * 0.5 + t * 0.13 + colNoise * 1.3) * 0.25;
+
+        const wobble    = (o1 + o2 + o3) * g.wobble * halfW;
         const effCenter = center + wobble;
 
         const dist = Math.abs(col - effCenter);
         if (dist < halfW) {
-          const env = Math.pow(Math.sin((1 - dist / halfW) * Math.PI * 0.5), 2);
+          // sin^4 gives a narrower, more pointed core than sin^2
+          const env = Math.pow(Math.sin((1 - dist / halfW) * Math.PI * 0.5), 4);
           total += env * g.boost * fade;
         }
       }
