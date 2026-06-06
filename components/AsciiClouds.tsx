@@ -30,6 +30,15 @@ const CONFIG = {
   // -- Gust angle --
   gustMinTilt: 0.15,
   gustMaxTilt: 0.45,
+
+  // -- Blobs (Smoke puffs) --
+  blobCount: 20,             // Maximum active particles on screen
+  blobSpawnChance: 0.18,     // Spawn rate factor
+  blobLife: [3.5, 6.0],      // Lifetime in seconds
+  blobRadius: [12, 62],      // Refined puff size for elegant smoke contours
+  blobSpeedY: [-65, -20],    // Graceful, slower vertical speed (negative = upwards)
+  blobAmbientWind: 12.0,     // Gentle background horizontal breeze
+  blobWindPush: 10.0,        // Strength of gust wind blowing particles sideways
 };
 // -----------------------------------------------------------------------------
 
@@ -138,6 +147,23 @@ function spawnGust(t: number, cols: number): Gust {
   };
 }
 
+// --- Blob (Smoke puff) Type --------------------------------------------------
+interface Blob {
+  px: number;          // X position in cloud texture pixels
+  py: number;          // Y position in cloud texture pixels
+  vx: number;          // X velocity (pixels/sec)
+  vy: number;          // Y velocity (pixels/sec)
+  maxRadius: number;   // Maximum radius in pixels
+  aspectRatio: number; // Horizontal/Vertical stretch ratio
+  roughness: number;   // Boundary edge deformation intensity
+  lobes: number;       // Number of cloud-bump features on the edge
+  rollSpeed: number;   // Churn rotation speed (radians/sec)
+  growthExp: number;   // Exponent controlling the scaling speed
+  seed: number;        // Random rotational starting phase
+  life: number;        // Lifetime remaining (seconds)
+  maxLife: number;     // Starting lifetime (seconds)
+}
+
 export default function AsciiClouds({ className = "" }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef    = useRef<number>(0);
@@ -181,10 +207,12 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     let cachedGridPW   = 0;
     let cachedGridPH   = 0;
     let gustRowCache: Float32Array | null = null;
+    let blobGridCache: Float32Array | null = null;
     let wasIntro = true; // Fixes fractional offset bug
 
     let lastPW = 0, lastPH = 0, lastDpr = 0;
     let startTime = performance.now();
+    let lastT = 0;
 
     let currentW = 0, currentH = 0;
     const ro = new ResizeObserver((entries) => {
@@ -200,8 +228,9 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     ro.observe(cvs);
     { const r = cvs.getBoundingClientRect(); currentW = r.width; currentH = r.height; }
 
-    // -- Gust state ------------------------------------------------------------
+    // -- Dynamic State --------------------------------------------------------
     const gusts: Gust[] = [];
+    const blobs: Blob[] = [];
     let lastSpawnTime = -CONFIG.spawnInterval;
 
     function updateGusts(t: number, cols: number) {
@@ -214,6 +243,109 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       ) {
         gusts.push(spawnGust(t, cols));
         lastSpawnTime = t;
+      }
+    }
+
+    function updateBlobs(dt: number, t: number, cols: number) {
+      // Update active particles
+      for (let i = blobs.length - 1; i >= 0; i--) {
+        const b = blobs[i];
+        b.life -= dt;
+        if (b.life <= 0) {
+          blobs.splice(i, 1);
+          continue;
+        }
+
+        // Apply a gentle horizontal air-resistance (pulls them toward background drift velocity)
+        b.vx += (CONFIG.blobAmbientWind - b.vx) * dt * 1.5;
+
+        // Apply horizontal wind pushes from active crossing gusts
+        for (const g of gusts) {
+          const age = t - g.born;
+          if (age < 0 || age > g.life) continue;
+
+          const center = g.center + g.speed * age;
+          const halfW = g.halfWidthFrac * cols;
+
+          // Project blob position to grid columns
+          const blobCol = (b.px / imgW) * cols;
+          const dist = Math.abs(blobCol - center);
+
+          if (dist < halfW) {
+            // Push intensity decays linearly from center of the gust
+            const strength = (1 - dist / halfW) * g.boost * CONFIG.blobWindPush;
+            const windDir = g.speed > 0 ? 1 : -1;
+
+            // Apply a controlled momentum impulse sideways
+            b.vx += windDir * strength * 120 * dt;
+            // Introduce a subtle updraft lifting
+            b.vy -= strength * 10 * dt;
+          }
+        }
+
+        // Apply velocities in image pixel space
+        b.px += b.vx * dt;
+        b.py += b.vy * dt;
+
+        // Apply tiny idle micro-turbulence
+        b.vx += (rng() - 0.5) * 18 * dt;
+        b.vy += (rng() - 0.5) * 10 * dt;
+      }
+
+      // Spawn new particles
+      if (imgData && imgW > 0 && imgH > 0 && blobs.length < CONFIG.blobCount) {
+        if (rng() < dt * CONFIG.blobSpawnChance * 45) {
+          const px = Math.floor(rng() * imgW);
+          
+          let pyTop = -1;
+          let pyBottom = -1;
+
+          // Find the top boundary of the cloud at this column
+          for (let y = 0; y < imgH; y++) {
+            const idx = (y * imgW + px) * 4;
+            if (imgData[idx + 3] > 130) {
+              pyTop = y;
+              break;
+            }
+          }
+
+          // Find the bottom boundary of the cloud at this column
+          for (let y = imgH - 1; y >= 0; y--) {
+            const idx = (y * imgW + px) * 4;
+            if (imgData[idx + 3] > 130) {
+              pyBottom = y;
+              break;
+            }
+          }
+
+          // If we found a valid cloud column slice
+          if (pyTop !== -1 && pyBottom !== -1) {
+            const cloudHeight = pyBottom - pyTop;
+            
+            // Spawn inside the cloud, but biased toward the top-half (60% to 90% of the way up)
+            // This lets us use a slow, graceful rise speed while still popping out almost instantly.
+            const fractionUp = 0.6 + rng() * 0.3; 
+            const py = Math.floor(pyBottom - (cloudHeight * fractionUp));
+
+            const maxLife = CONFIG.blobLife[0] + rng() * (CONFIG.blobLife[1] - CONFIG.blobLife[0]);
+            const vx = CONFIG.blobAmbientWind + (rng() - 0.5) * 20; // Starts close to base ambient speed
+            const vy = CONFIG.blobSpeedY[0] + rng() * (CONFIG.blobSpeedY[1] - CONFIG.blobSpeedY[0]);
+            const maxRadius = CONFIG.blobRadius[0] + rng() * (CONFIG.blobRadius[1] - CONFIG.blobRadius[0]);
+
+            // Unique geometry profiles
+            const aspectRatio = 0.6 + rng() * 0.8;      // Elongation stretch [0.6 .. 1.4]
+            const roughness = 0.1 + rng() * 0.3;        // Edge complexity [10% .. 40%]
+            const lobes = 3 + Math.floor(rng() * 4);    // 3 to 6 fluffy lobes
+            const rollSpeed = (rng() - 0.5) * 4.0;      // Rotation churn velocity
+            const growthExp = 0.5 + rng() * 1.5;        // Unique scale curve
+            const seed = rng() * Math.PI * 2;
+
+            blobs.push({
+              px, py, vx, vy, maxRadius, aspectRatio, roughness, lobes, rollSpeed, growthExp, seed,
+              life: maxLife, maxLife
+            });
+          }
+        }
       }
     }
 
@@ -241,20 +373,20 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         const tS1 = t * 0.25 + g.wobblePhase;
         const tS2 = t * 0.41 + g.wobblePhase * 1.7;
         const tS3 = t * 0.13;
-        const wf1 = g.wobbleFreq, wf2 = g.wobbleFreq * 2.3, wf3 = g.wobbleFreq * 0.5;
+        const mt1 = g.wobbleFreq, mt2 = g.wobbleFreq * 2.3, mt3 = g.wobbleFreq * 0.5;
 
         for (let row = 0; row < rows; row++) {
           const rowFrac   = row / Math.max(1, rows - 1);
           const tiltShift = g.tilt * (rowFrac - 0.5) * rows;
           const rfPi          = rowFrac * Math.PI;
-          const sin2_unscaled = Math.sin(rfPi * wf2 + tS2);
-          const sin1_r        = Math.sin(rfPi * wf1 + tS1);
+          const sin2_unscaled = Math.sin(rfPi * mt2 + tS2);
+          const sin1_r        = Math.sin(rfPi * mt1 + tS1);
           const sin2_r        = sin2_unscaled * 0.45;
-          const sin3_r        = Math.sin(rfPi * wf3 + tS3) * 0.25;
+          const sin3_r        = Math.sin(rfPi * mt3 + tS3) * 0.25;
           const rowCenter     = center + tiltShift + (sin1_r + sin2_r + sin3_r) * wobbleScale;
-          const cos1_r = Math.cos(rfPi * wf1 + tS1);
-          const cos2_r = Math.cos(rfPi * wf2 + tS2);
-          const cos3_r = Math.cos(rfPi * wf3 + tS3);
+          const cos1_r = Math.cos(rfPi * mt1 + tS1);
+          const cos2_r = Math.cos(rfPi * mt2 + tS2);
+          const cos3_r = Math.cos(rfPi * mt3 + tS3);
 
           const colMin = Math.max(0,    Math.ceil(rowCenter  - halfW - wobbleScale)) | 0;
           const colMax = Math.min(cols, Math.floor(rowCenter + halfW + wobbleScale)) | 0;
@@ -287,6 +419,11 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       if (W === 0 || H === 0) return;
 
       const t   = (now - startTime) / 1000;
+      let dt    = t - lastT;
+      if (dt < 0) dt = 0;
+      if (dt > 0.1) dt = 0.1;
+      lastT = t;
+
       const dpr = getEffectiveDpr();
 
       // -- Intro interpolation (Aggressive Expo Ease-In-Out) -------------------
@@ -296,9 +433,6 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       
       if (isIntro) {
         const progress = t / CONFIG.introDuration;
-        
-        // Warping progress with a 0.3 power compresses the entire start-to-snap
-        // phase into the first ~10% of the timeline (approx. 0.35 seconds).
         const warped = Math.pow(progress, 0.35);
 
         const ease = warped === 0 ? 0 : warped === 1 ? 1 : warped < 0.5 
@@ -324,7 +458,6 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       }
 
       // -- 1. Fast Native Image Coordinates Map ------------------------------
-      // wasIntro check ensures the offset locks perfectly to 0 on the exact frame the intro completes
       if (cols !== cachedImageCols || rows !== cachedImageRows || isIntro || wasIntro) {
         if (pxCols.length < cols) pxCols = new Int32Array(cols);
         if (pxRows.length < rows) pxRows = new Int32Array(rows);
@@ -335,7 +468,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         for (let r = 0; r < rows; r++) {
           const normY = (r + 0.5) / rows - introOffsetNorm;
           if (normY < 0 || normY >= 1) {
-            pxRows[r] = -1; // Marks as out of bounds transparency
+            pxRows[r] = -1; // Out of bounds transparency
           } else {
             pxRows[r] = Math.min(imgH - 1, Math.floor(normY * imgH));
           }
@@ -347,14 +480,87 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         wasIntro = isIntro;
       }
 
-      // -- 2. Gust Map -------------------------------------------------------
+      // -- 2. Dynamic Smoke Blobs --------------------------------------------
+      updateBlobs(dt, t, cols);
+
+      let blobAlphaGrid: Float32Array | null = null;
+      if (blobs.length > 0) {
+        const reqSize = rows * cols;
+        if (!blobGridCache || blobGridCache.length < reqSize) {
+          blobGridCache = new Float32Array(reqSize);
+        }
+        blobAlphaGrid = blobGridCache;
+        blobAlphaGrid.fill(0);
+
+        for (const b of blobs) {
+          const pct = b.life / b.maxLife;
+          // Soft fade-in followed by a slow puff-out
+          const opacity = pct > 0.8 ? (1.0 - pct) / 0.2 : pct / 0.8;
+          const alphaClamp = Math.min(1.0, Math.max(0.0, opacity)) * 0.75;
+
+          // Expand the puff based on its unique growth exponent
+          const scaleProg = Math.pow(1.0 - pct, b.growthExp);
+          const currentRadius = b.maxRadius * (0.45 + 0.75 * scaleProg);
+
+          // Project center to grid space, synchronizing with the intro offsets
+          const g_cx = (b.px / imgW) * cols;
+          const g_cy = ((b.py / imgH) + introOffsetNorm) * rows;
+
+          const g_rx = (currentRadius / imgW) * cols;
+          const g_ry = (currentRadius / imgH) * rows;
+
+          // Apply unique aspect ratio stretch
+          const radiusX = g_rx * b.aspectRatio;
+          const radiusY = g_ry / b.aspectRatio;
+
+          // Pad the bounding box to prevent clipping edge roughness
+          const maxRoughnessExtent = 1.0 + b.roughness;
+          const cMin = Math.max(0, Math.floor(g_cx - radiusX * maxRoughnessExtent));
+          const cMax = Math.min(cols - 1, Math.ceil(g_cx + radiusX * maxRoughnessExtent));
+          const rMin = Math.max(0, Math.floor(g_cy - radiusY * maxRoughnessExtent));
+          const rMax = Math.min(rows - 1, Math.ceil(g_cy + radiusY * maxRoughnessExtent));
+
+          // Draw the deformed, churning puff onto the grid map
+          for (let r = rMin; r <= rMax; r++) {
+            const rowBase = r * cols;
+            const dy = (r - g_cy) / radiusY;
+
+            for (let c = cMin; c <= cMax; c++) {
+              const dx = (c - g_cx) / radiusX;
+
+              // Deform the perimeter circle via polar angles + spinning roll
+              const angle = Math.atan2(dy, dx);
+              const rotationOffset = t * b.rollSpeed + b.seed;
+              
+              // Fractal-like multi-frequency wave summing to build fluffy smoke contours
+              const wave1 = Math.sin(angle * b.lobes + rotationOffset);
+              const wave2 = Math.cos(angle * (b.lobes * 1.9) - rotationOffset * 1.4) * 0.4;
+              const wave3 = Math.sin(angle * 0.8 + rotationOffset * 0.3) * 0.5; // asymmetric wobble
+              
+              // Prevent dividing by zero or negative radius values
+              const radiusPerturbation = Math.max(0.2, 1.0 + (wave1 + wave2 + wave3) * b.roughness * 0.5);
+              
+              const distSq = (dx * dx + dy * dy) / (radiusPerturbation * radiusPerturbation);
+              if (distSq >= 1.0) continue;
+
+              const val = (1.0 - distSq) * alphaClamp;
+              const idx = rowBase + c;
+              if (val > blobAlphaGrid[idx]) {
+                blobAlphaGrid[idx] = val;
+              }
+            }
+          }
+        }
+      }
+
+      // -- 3. Gust Map -------------------------------------------------------
       let gustMap: Float32Array | null = null;
       if (!isIntro) {
         updateGusts(t, cols);
         gustMap = buildGustMap(rows, cols, t);
       }
 
-      // -- 3. Bresenham Grid --------------------------------------------------
+      // -- 4. Bresenham Grid --------------------------------------------------
       if (cols !== cachedGridCols || PW !== cachedGridPW) {
         if (colPx.length < cols + 1) colPx = new Int32Array(cols + 1);
         for (let c = 0; c <= cols; c++) colPx[c] = Math.round(c * PW / cols);
@@ -368,7 +574,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         cachedGridPH   = PH;
       }
 
-      // -- 4. Output buffer --------------------------------------------------
+      // -- 5. Output buffer --------------------------------------------------
       if (PW !== lastPW || PH !== lastPH || dpr !== lastDpr) {
         offOut.width  = PW;
         offOut.height = PH;
@@ -391,7 +597,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       buf32.fill(0x00FFFFFF);
       const activeTileSize = cachedTileSize;
 
-      // -- 5. Main loop ------------------------------------------------------
+      // -- 6. Main loop ------------------------------------------------------
       for (let row = 0; row < rows; row++) {
         const rowBase = row * cols;
         const pyStart = rowPx[row];
@@ -405,23 +611,38 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           if (srcRow < 0) srcRow = 0;
           else if (srcRow >= rows) srcRow = rows - 1;
           
+          // Image mask lookup
           const pYMask = pxRows[srcRow];
-          if (pYMask < 0) continue;
-          const maskAlpha = imgData[(pYMask * imgW + pxCols[col]) * 4 + 3];
-          if (maskAlpha === 0) continue;
+          let imgMaskAlpha = 0;
+          if (pYMask >= 0) {
+            imgMaskAlpha = imgData[(pYMask * imgW + pxCols[col]) * 4 + 3];
+          }
 
+          // Fetch the dynamic deformed blob values at coordinates
+          const blobVal = blobAlphaGrid ? blobAlphaGrid[srcRow * cols + col] : 0;
+          const blobAlpha255 = Math.floor(blobVal * 255);
+
+          // Combined mask values
+          const combinedMaskAlpha = Math.max(imgMaskAlpha, blobAlpha255);
+          if (combinedMaskAlpha === 0) continue;
+
+          // Combined intensity thresholds
           const pYRaw = pxRows[row];
-          if (pYRaw < 0) continue;
-          const alpha = imgData[(pYRaw * imgW + pxCols[col]) * 4 + 3] / 255;
-          if (alpha < threshold) continue;
+          let imgAlpha = 0;
+          if (pYRaw >= 0) {
+            imgAlpha = imgData[(pYRaw * imgW + pxCols[col]) * 4 + 3] / 255;
+          }
+
+          const combinedAlpha = Math.max(imgAlpha, blobVal);
+          if (combinedAlpha < threshold) continue;
 
           const bPhase = NOISE[ni], bSpeed = NOISE[ni + 1];
           const wave   = Math.sin(t * s * bSpeed * 1.3 + bPhase) * wAmp + Math.sin(t * s * bSpeed * 0.6 + bPhase * 1.9) * wAmp * 0.4;
           
           const gVal = gustMap ? gustMap[rowBase + col] : 0;
-          const modulated = Math.min(1, Math.max(0.05, (alpha - threshold) / ceilMinThr + wave + gVal));
+          const modulated = Math.min(1, Math.max(0.05, (combinedAlpha - threshold) / ceilMinThr + wave + gVal));
           const charIdx  = Math.floor(modulated * (CHARS.length - 1));
-          const alphaIdx = Math.min(ALPHA_STEPS - 1, Math.floor(Math.min(1, alpha / thresholdD2) * ALPHA_STEPS));
+          const alphaIdx = Math.min(ALPHA_STEPS - 1, Math.floor(Math.min(1, combinedAlpha / thresholdD2) * ALPHA_STEPS));
           const tile = glyphAtlas[charIdx][alphaIdx];
 
           const pxStart   = colPx[col];
@@ -447,13 +668,13 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
               const glyphA = tile[tileRowOff + srcX];
               if (glyphA === 0) continue;
               
-              buf[dstRowOff + tx * 4 + 3] = (glyphA * maskAlpha) >> 8;
+              buf[dstRowOff + tx * 4 + 3] = (glyphA * combinedMaskAlpha) >> 8;
             }
           }
         }
       }
 
-      // -- 6. Flush ----------------------------------------------------------
+      // -- 7. Flush ----------------------------------------------------------
       offOutCtx.putImageData(outImageData!, 0, 0);
       if (cvs.width !== PW || cvs.height !== PH) {
         cvs.width  = PW;
@@ -504,6 +725,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
 
       startTime = performance.now();
       lastRenderTime = startTime;
+      lastT = 0;
       rafRef.current = requestAnimationFrame(loop);
     };
 
