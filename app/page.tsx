@@ -16,7 +16,7 @@ export default function Home() {
           style={{ top: "calc(5rem - 90vh)" }}
         >
           {/* Sky blue gradient bg */}
-          <div className="absolute inset-0 bg-linear-to-b from-[#77b7ff] to-[#deefff]" />
+          <div className="absolute inset-0 bg-linear-to-b from-[#103f97] to-[#50aaff]" />
 
           {/* ASCII Clouds — tune CONFIG inside AsciiClouds.tsx */}
           <div className="absolute inset-0 pointer-events-none select-none">
