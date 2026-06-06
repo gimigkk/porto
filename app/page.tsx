@@ -12,7 +12,7 @@ export default function Home() {
         {/* Section 1 */}
         <section
           id="home"
-          className="h-[90vh] w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
+          className="h-[95vh] w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
           style={{ top: "calc(5rem - 90vh)" }}
         >
           {/* Sky blue gradient bg */}
@@ -30,11 +30,11 @@ export default function Home() {
               Scroll down to explore.
             </p> */}
           </div>
-          <div className="absolute bottom-10 animate-bounce z-10">
+          {/* <div className="absolute bottom-10 animate-bounce z-10">
             <svg className="w-8 h-8 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
-          </div>
+          </div> */}
         </section>
 
         {/* Sections 2, 3, 4 (Stacked Folders) */}

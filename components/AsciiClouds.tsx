@@ -4,13 +4,18 @@ import { useEffect, useRef } from "react";
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const CONFIG = {
-  cellSize: 8,   // visual size of one character cell in CSS pixels
+  cellSize: 8,
   threshold: 0,
   ceiling: 1,
   speed: 5,
   waveDepth: 0.3,
   displacement: 0.6,
-  fps: 5,
+  fps: 10,
+  // ── Wind gust ──────────────────────────────────────────────────────────────
+  windSpeed: 24,      // cols per second the gust travels left→right
+  windWidth: 0.20,    // gust half-width as fraction of total columns
+  windBoost: 0.3,     // peak brightness boost added to modulated (0–1)
+  windWobble: 0.22,   // vertical sine wobble on the gust edge (fraction of rows)
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -39,14 +44,9 @@ for (let i = 0; i < NOISE_W * NOISE_H; i++) {
 }
 
 // ─── Glyph atlas ─────────────────────────────────────────────────────────────
-// One atlas per (dpr) value. Each tile is cs*dpr physical pixels wide/tall.
-// The font is drawn at cs*dpr px with no ctx.scale() — that way the browser's
-// own text rasterizer works at the native physical resolution and we get its
-// full subpixel hinting for free. A 1:1 drawImage() blit then places it in
-// offAscii with zero upscaling anywhere in the pipeline.
 const ALPHA_STEPS = 16;
 function buildGlyphAtlas(cs: number, dpr: number): HTMLCanvasElement[][] {
-  const tileSize = Math.ceil(cs * dpr); // physical pixels per cell
+  const tileSize = Math.ceil(cs * dpr);
   return CHARS.split("").map((ch) => {
     return Array.from({ length: ALPHA_STEPS }, (_, i) => {
       const a = (i + 1) / ALPHA_STEPS;
@@ -54,9 +54,6 @@ function buildGlyphAtlas(cs: number, dpr: number): HTMLCanvasElement[][] {
       gc.width  = tileSize;
       gc.height = tileSize;
       const gx = gc.getContext("2d")!;
-      // Draw the font at physical pixel size directly — no ctx.scale needed.
-      // This is the sharpest possible text: the rasterizer sees exactly the
-      // pixel grid it will be painted onto.
       gx.font = `bold ${tileSize}px monospace`;
       gx.textBaseline = "top";
       gx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
@@ -75,14 +72,8 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const cs = CONFIG.cellSize; // CSS-pixel cell size (logical design constant)
+    const cs = CONFIG.cellSize;
 
-    // ── Effective pixel ratio — device DPR × visual viewport scale ───────────
-    // There are two independent zoom mechanisms:
-    //   1. Ctrl+/-  / browser zoom  → changes window.devicePixelRatio
-    //   2. Touchpad pinch zoom      → changes window.visualViewport.scale
-    //      (the page is scaled by the compositor; devicePixelRatio stays fixed)
-    // We multiply both together so every zoom path is covered.
     function getEffectiveDpr(): number {
       const vvScale = window.visualViewport?.scale ?? 1;
       return (window.devicePixelRatio || 1) * vvScale;
@@ -90,7 +81,6 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     let cachedDpr  = getEffectiveDpr();
     let glyphAtlas = buildGlyphAtlas(cs, cachedDpr);
 
-    // ── Pre-allocated offscreen canvases ──────────────────────────────────────
     const offSample    = document.createElement("canvas");
     const offSampleCtx = offSample.getContext("2d", { willReadFrequently: true })!;
 
@@ -112,34 +102,34 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     let lastPH  = 0;
     let lastDpr = 0;
 
-    let frame = 0;
+    // ── Time in seconds (fps-independent) ────────────────────────────────────
+    // t is now real elapsed seconds from performance.now(), not a frame counter.
+    // This makes windSpeed (cols/sec), speed, etc. behave consistently regardless
+    // of fps setting or frame drops.
+    const startTime = performance.now();
+    let frame = 0; // still used for the noise phase offsets (same as before)
 
-    function render(t: number) {
+    function render() {
       if (!img.complete || img.naturalWidth === 0) return;
 
-      // ── Measure the canvas's true rendered size ───────────────────────────
-      // getBoundingClientRect() returns CSS pixels that already account for
-      // any CSS transforms, flex/grid layout, etc. — always accurate.
       const rect = canvas!.getBoundingClientRect();
-      const W = rect.width;   // CSS pixels (may be fractional)
+      const W = rect.width;
       const H = rect.height;
       if (W === 0 || H === 0) return;
 
-      // ── Effective dpr — read every frame, covers both zoom mechanisms ────────
+      // Real elapsed seconds — drives wind gust and all other animations
+      const t = (performance.now() - startTime) / 1000;
+
       const dpr = getEffectiveDpr();
       if (Math.abs(dpr - cachedDpr) > 0.001) {
         cachedDpr  = dpr;
         glyphAtlas = buildGlyphAtlas(cs, dpr);
       }
 
-      // Physical canvas dimensions
-      const PW = Math.round(W * dpr);
-      const PH = Math.round(H * dpr);
-
-      // Physical cell stride — the atlas tile size exactly
+      const PW   = Math.round(W * dpr);
+      const PH   = Math.round(H * dpr);
       const phys = Math.ceil(cs * dpr);
 
-      // Grid dimensions (still in CSS-pixel terms — determines how many cells)
       const cols = Math.floor(W / cs);
       const rows = Math.floor(H / cs);
 
@@ -149,9 +139,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       offSampleCtx.drawImage(img, 0, 0, cols, rows);
       const px = offSampleCtx.getImageData(0, 0, cols, rows).data;
 
-      // ── 2. Draw ASCII glyph layer at physical resolution ──────────────────
-      // offAscii is exactly PW×PH physical pixels.
-      // Each atlas tile (phys×phys) is blitted 1:1 — zero scaling, zero blur.
+      // ── 2. Draw ASCII glyph layer ─────────────────────────────────────────
       offAscii.width  = PW;
       offAscii.height = PH;
 
@@ -160,7 +148,21 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       const dAmp = CONFIG.displacement * MAX_DISP;
       const { threshold, ceiling } = CONFIG;
 
+      // ── Wind gust pre-computation ─────────────────────────────────────────
+      // gustCenter is in col-space, advancing at windSpeed cols/second.
+      // The period includes full entry from left and exit to right so there's
+      // no visible pop when it wraps.
+      const halfW      = CONFIG.windWidth * cols;
+      const gustPeriod = cols + 2 * halfW;
+      const gustCenter = ((t * CONFIG.windSpeed) % gustPeriod) - halfW;
+
       for (let row = 0; row < rows; row++) {
+        // Vertical wobble: shifts the gust center per row so the leading edge
+        // has a soft diagonal ripple rather than a ruler-straight vertical bar.
+        const rowFrac       = row / Math.max(1, rows - 1);
+        const wobble        = Math.sin(rowFrac * Math.PI * 2.5 + t * 0.3) * CONFIG.windWobble * cols;
+        const gustColCenter = gustCenter + wobble;
+
         for (let col = 0; col < cols; col++) {
           const ni = ((row % NOISE_H) * NOISE_W + (col % NOISE_W)) * 5;
           const bPhase = NOISE[ni];
@@ -175,8 +177,16 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
             Math.sin(t * s * bSpeed * 1.3 + bPhase) * wAmp +
             Math.sin(t * s * bSpeed * 0.6 + bPhase * 1.9) * wAmp * 0.4;
 
-          const base      = (alpha - threshold) / (ceiling - threshold);
-          const modulated = Math.min(1, Math.max(0.05, base + wave));
+          const base = (alpha - threshold) / (ceiling - threshold);
+
+          // ── Wind brightness ───────────────────────────────────────────────
+          // sin² envelope: smooth hill, peaks at 1 at center, 0 at ±halfW.
+          const dist           = Math.abs(col - gustColCenter);
+          const windBrightness = dist < halfW
+            ? Math.pow(Math.sin((1 - dist / halfW) * Math.PI * 0.5), 2) * CONFIG.windBoost
+            : 0;
+
+          const modulated = Math.min(1, Math.max(0.05, base + wave + windBrightness));
           const charIdx   = Math.floor(modulated * (CHARS.length - 1));
 
           const edgeAlpha = Math.min(1, alpha / (threshold * 0.5 + 0.05));
@@ -222,7 +232,6 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       offAsciiCtx.globalCompositeOperation = "source-over";
 
       // ── 5. Paint onto main canvas ─────────────────────────────────────────
-      // Resize the backing buffer only when the physical size actually changes.
       if (PW !== lastPW || PH !== lastPH || dpr !== lastDpr) {
         canvas!.width  = PW;
         canvas!.height = PH;
@@ -231,12 +240,10 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         lastDpr = dpr;
       }
       const ctx = canvas!.getContext("2d")!;
-      // imageSmoothingEnabled stays TRUE (default) on the final blit.
-      // The buffer is physical-pixel sized; the browser composites it back to
-      // CSS size using bilinear filtering — which gives smooth, anti-aliased
-      // characters. Setting it to false would make nearest-neighbour = blocky.
       ctx.clearRect(0, 0, PW, PH);
       ctx.drawImage(offAscii, 0, 0);
+
+      frame++;
     }
 
     // ── FPS cap via setTimeout → rAF ─────────────────────────────────────────
@@ -245,7 +252,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     function scheduleNext() {
       timerRef.current = setTimeout(() => {
         rafRef.current = requestAnimationFrame(() => {
-          render(frame++);
+          render();
           scheduleNext();
         });
       }, interval);
