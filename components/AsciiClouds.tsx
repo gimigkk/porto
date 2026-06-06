@@ -11,15 +11,19 @@ const CONFIG = {
   waveDepth: 0.3,
   displacement: 0.6,
   fps: 10,
-  
+
   // -- Wind gusts --
-  maxGusts: 4,          // maximum concurrent gusts
-  spawnInterval: 2.5,   // seconds between spawn attempts
-  windWobble: 0.22,     // vertical sine wobble on the gust edge (fraction of rows)
-  gustMinSpeed: 10,     // cols/sec
-  gustMaxSpeed: 20,     // cols/sec
-  gustMinWidth: 0.09,   // half-width as fraction of cols
-  gustMaxWidth: 0.12,   // half-width as fraction of cols
+  maxGusts: 4,
+  spawnInterval: 2.5,
+  windWobble: 0.22,
+  gustMinSpeed: 10,
+  gustMaxSpeed: 20,
+  gustMinWidth: 0.09,
+  gustMaxWidth: 0.12,
+
+  // -- Gust angle --
+  gustMinTilt: 0.15,
+  gustMaxTilt: 0.45,
 };
 // -----------------------------------------------------------------------------
 
@@ -47,115 +51,89 @@ for (let i = 0; i < NOISE_W * NOISE_H; i++) {
   NOISE[i * 5 + 4] = 0.4 + rng() * 0.6;
 }
 
-// --- Glyph atlas -------------------------------------------------------------
+// --- Glyph pixel atlas -------------------------------------------------------
+// Each glyph tile is a Uint8Array of alpha values (R/G/B assumed 255).
+// Pre-flattened as row-major pixels so the blit inner loop is a single
+// typed-array copy per output row, not a per-pixel branch.
+// Layout: atlas[charIdx][alphaIdx] = Uint8Array[tileSize * tileSize]
 const ALPHA_STEPS = 16;
-function buildGlyphAtlas(cs: number, dpr: number): HTMLCanvasElement[][] {
+
+function buildGlyphAtlas(cs: number, dpr: number): Uint8Array[][] {
   const tileSize = Math.ceil(cs * dpr);
-  return CHARS.split("").map((ch) => {
-    return Array.from({ length: ALPHA_STEPS }, (_, i) => {
-      const a = (i + 1) / ALPHA_STEPS;
+  return CHARS.split("").map((ch) =>
+    Array.from({ length: ALPHA_STEPS }, (_, ai) => {
+      const opacity = (ai + 1) / ALPHA_STEPS;
       const gc = document.createElement("canvas");
-      gc.width  = tileSize;
-      gc.height = tileSize;
+      gc.width = gc.height = tileSize;
       const gx = gc.getContext("2d")!;
       gx.font = `bold ${tileSize}px monospace`;
       gx.textBaseline = "top";
-      gx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+      gx.fillStyle = `rgba(255,255,255,${opacity.toFixed(3)})`;
       gx.fillText(ch, 0, 0);
-      return gc;
-    });
-  });
+      const raw   = gx.getImageData(0, 0, tileSize, tileSize).data;
+      const alpha = new Uint8Array(tileSize * tileSize);
+      for (let i = 0; i < alpha.length; i++) alpha[i] = raw[i * 4 + 3];
+      return alpha;
+    })
+  );
 }
 
 // --- Gust type ----------------------------------------------------------------
 interface Gust {
   id: number;
-  // Current center position in col-space
   center: number;
-  // Speed in cols/sec, negative = right-to-left
   speed: number;
-  // Half-width as fraction of cols
   halfWidthFrac: number;
-  // Peak brightness boost
   boost: number;
-  // Wobble amplitude as fraction of rows
   wobble: number;
-  // Wobble frequency multiplier
   wobbleFreq: number;
-  // Wobble phase offset
   wobblePhase: number;
-  // Per-column noise offsets for organic edge shape (length = cols)
+  tilt: number;
   edgeNoise: Float32Array;
-  // Fade-in/-out envelope (0→1→0 over lifetime)
-  born: number;   // time of spawn (seconds)
-  fadeIn: number; // duration of fade-in (seconds)
-  fadeOut: number;// duration of fade-out (seconds)
-  life: number;   // total lifetime (seconds)
+  born: number;
+  fadeIn: number;
+  fadeOut: number;
+  life: number;
   dead: boolean;
 }
 
-// Seeded random for gust generation (separate from noise rng)
 const gustRng = mulberry32(0xdeadbeef);
-
 let gustIdCounter = 0;
 
 function spawnGust(t: number, cols: number): Gust {
   const r = () => gustRng();
-
-  const leftToRight = r() > 0.5;
-  const speed = (CONFIG.gustMinSpeed + r() * (CONFIG.gustMaxSpeed - CONFIG.gustMinSpeed)) * (leftToRight ? 1 : -1);
-
-  // Spawn origin: edge (70% chance) or random middle position (30% chance)
-  const spawnInMiddle = r() < 0.3;
-  let startCenter: number;
+  const leftToRight  = r() > 0.5;
+  const speed        = (CONFIG.gustMinSpeed + r() * (CONFIG.gustMaxSpeed - CONFIG.gustMinSpeed)) * (leftToRight ? 1 : -1);
   const halfWidthFrac = CONFIG.gustMinWidth + r() * (CONFIG.gustMaxWidth - CONFIG.gustMinWidth);
-  const halfW = halfWidthFrac * cols;
-
-  if (spawnInMiddle) {
-    // Appear somewhere mid-canvas
-    startCenter = halfW + r() * (cols - 2 * halfW);
-  } else {
-    // Enter from the appropriate edge
-    startCenter = leftToRight ? -halfW : cols + halfW;
-  }
-
-  const life = (cols + 2 * halfW) / Math.abs(speed) + r() * 1.5;
+  const halfW        = halfWidthFrac * cols;
+  const spawnInMiddle = r() < 0.3;
+  const startCenter  = spawnInMiddle
+    ? halfW + r() * (cols - 2 * halfW)
+    : leftToRight ? -halfW : cols + halfW;
+  const life    = (cols + 2 * halfW) / Math.abs(speed) + r() * 1.5;
   const fadeIn  = 0.4 + r() * 0.8;
   const fadeOut = 0.4 + r() * 0.8;
+  const tiltSign = r() > 0.5 ? 1 : -1;
+  const tilt     = tiltSign * (CONFIG.gustMinTilt + r() * (CONFIG.gustMaxTilt - CONFIG.gustMinTilt));
 
-  // Build per-column edge-noise table: 4 octaves of random offsets
-  // sampled at a coarse resolution then linearly interpolated so the
-  // shape looks organic rather than purely periodic.
-  const EDGE_SAMPLES = 32; // control points
-  const ctrlPts = new Float32Array(EDGE_SAMPLES + 1);
-  for (let i = 0; i <= EDGE_SAMPLES; i++) ctrlPts[i] = r() * 2 - 1; // [-1, 1]
-
+  const EDGE_SAMPLES = 32;
+  const ctrlPts  = new Float32Array(EDGE_SAMPLES + 1);
+  for (let i = 0; i <= EDGE_SAMPLES; i++) ctrlPts[i] = r() * 2 - 1;
   const edgeNoise = new Float32Array(cols);
   for (let c = 0; c < cols; c++) {
-    const frac  = (c / Math.max(1, cols - 1)) * EDGE_SAMPLES;
-    const lo    = Math.floor(frac);
-    const hi    = Math.min(EDGE_SAMPLES, lo + 1);
-    const t0    = frac - lo;
-    // Smooth-step interpolation
-    const sm    = t0 * t0 * (3 - 2 * t0);
+    const frac = (c / Math.max(1, cols - 1)) * EDGE_SAMPLES;
+    const lo   = Math.floor(frac);
+    const hi   = Math.min(EDGE_SAMPLES, lo + 1);
+    const t0   = frac - lo;
+    const sm   = t0 * t0 * (3 - 2 * t0);
     edgeNoise[c] = ctrlPts[lo] * (1 - sm) + ctrlPts[hi] * sm;
   }
 
   return {
-    id: ++gustIdCounter,
-    center: startCenter,
-    speed,
-    halfWidthFrac,
-    boost: 0.08 + r() * 0.14,       // 0.08–0.22: subtle lift, never flatlines
-    wobble: 0.05 + r() * 0.25,
-    wobbleFreq: 1.5 + r() * 3.0,
-    wobblePhase: r() * Math.PI * 2,
-    edgeNoise,
-    born: t,
-    fadeIn,
-    fadeOut,
-    life,
-    dead: false,
+    id: ++gustIdCounter, center: startCenter, speed, halfWidthFrac, tilt,
+    boost: 0.08 + r() * 0.14, wobble: 0.05 + r() * 0.25,
+    wobbleFreq: 1.5 + r() * 3.0, wobblePhase: r() * Math.PI * 2,
+    edgeNoise, born: t, fadeIn, fadeOut, life, dead: false,
   };
 }
 
@@ -167,58 +145,67 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    const cs = CONFIG.cellSize;
+    // Capture in a non-nullable local so TypeScript doesn't lose the narrowing
+    // inside render() and other closures defined later in this effect.
+    const cvs = canvas;
+    const ctx = cvs.getContext("2d")!;
 
     function getEffectiveDpr(): number {
       const vvScale = window.visualViewport?.scale ?? 1;
       return (window.devicePixelRatio || 1) * vvScale;
     }
     let cachedDpr  = getEffectiveDpr();
-    let glyphAtlas = buildGlyphAtlas(cs, cachedDpr);
+    let glyphAtlas = buildGlyphAtlas(CONFIG.cellSize, cachedDpr);
+    let tileSize   = Math.ceil(CONFIG.cellSize * cachedDpr);
 
     const offSample    = document.createElement("canvas");
     const offSampleCtx = offSample.getContext("2d", { willReadFrequently: true })!;
 
-    const offAscii    = document.createElement("canvas");
-    const offAsciiCtx = offAscii.getContext("2d")!;
+    // Single output ImageData written entirely in JS — one putImageData per frame.
+    // RGB channels are pre-set to 255 (white) and never touched again.
+    // Only the alpha channel is written each frame.
+    const offOut    = document.createElement("canvas");
+    const offOutCtx = offOut.getContext("2d")!;
+    let outImageData: ImageData | null = null;
+    let outBuf:  Uint8ClampedArray | null = null;
+    // Uint32Array view used to zero the alpha plane in one typed-array pass
+    // by writing 0x00FFFFFF (white, transparent) to every pixel at once.
+    let outBuf32: Uint32Array | null = null;
 
-    const maskCell    = document.createElement("canvas");
-    const maskCellCtx = maskCell.getContext("2d", { willReadFrequently: true })!;
-    let maskImageData: ImageData | null = null;
-    let maskCols = 0;
-    let maskRows = 0;
+    let cachedPx:    Uint8ClampedArray | null = null;
+    let cachedPxCols = 0;
+    let cachedPxRows = 0;
+    let gustRowCache: Float32Array | null = null;
 
     const img = new Image();
     img.src = "/assets/clouds.png";
 
     const MAX_DISP = 2;
-
-    let lastPW  = 0;
-    let lastPH  = 0;
-    let lastDpr = 0;
-
+    let lastPW = 0, lastPH = 0, lastDpr = 0;
     const startTime = performance.now();
-    let frame = 0;
+
+    let currentW = 0, currentH = 0;
+    const ro = new ResizeObserver((entries) => {
+      const e = entries[0];
+      if (e.contentBoxSize) {
+        currentW = e.contentBoxSize[0].inlineSize;
+        currentH = e.contentBoxSize[0].blockSize;
+      } else {
+        currentW = e.contentRect.width;
+        currentH = e.contentRect.height;
+      }
+    });
+    ro.observe(cvs);
+    { const r = cvs.getBoundingClientRect(); currentW = r.width; currentH = r.height; }
 
     // -- Gust state ------------------------------------------------------------
     const gusts: Gust[] = [];
-    let lastSpawnTime = -CONFIG.spawnInterval; // spawn immediately on first frame
+    let lastSpawnTime = -CONFIG.spawnInterval;
 
     function updateGusts(t: number, cols: number) {
-      // Advance existing gusts
-      // (position is computed per-frame from born+speed, not mutated here)
-
-      // Cull dead gusts
       for (let i = gusts.length - 1; i >= 0; i--) {
-        const g = gusts[i];
-        const age = t - g.born;
-        if (age > g.life) {
-          gusts.splice(i, 1);
-        }
+        if (t - gusts[i].born > gusts[i].life) gusts.splice(i, 1);
       }
-
-      // Spawn new gusts
       if (
         gusts.length < CONFIG.maxGusts &&
         t - lastSpawnTime >= CONFIG.spawnInterval * (0.5 + gustRng() * 1.0)
@@ -228,168 +215,189 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       }
     }
 
-    function gustBrightnessAt(col: number, row: number, rows: number, t: number, cols: number): number {
-      let total = 0;
+    function buildGustMap(rows: number, cols: number, t: number): Float32Array {
+      const map = gustRowCache!;
+      map.fill(0);
       for (const g of gusts) {
         const age   = t - g.born;
         const halfW = g.halfWidthFrac * cols;
-
-        // Fade envelope
         let fade = 1;
         if (age < g.fadeIn)                fade = age / g.fadeIn;
         else if (age > g.life - g.fadeOut) fade = (g.life - age) / g.fadeOut;
-        fade = Math.max(0, Math.min(1, fade));
+        if (fade <= 0) continue;
+        if (fade > 1)  fade = 1;
 
-        // Current center
-        const center = g.center + g.speed * age;
+        const center      = g.center + g.speed * age;
+        const boostFade   = g.boost * fade;
+        const wobbleScale = g.wobble * halfW;
+        const halfWInv    = 1 / halfW;
+        const tS1 = t * 0.25 + g.wobblePhase;
+        const tS2 = t * 0.41 + g.wobblePhase * 1.7;
+        const tS3 = t * 0.13;
+        const wf1 = g.wobbleFreq, wf2 = g.wobbleFreq * 2.3, wf3 = g.wobbleFreq * 0.5;
 
-        // -- Organic edge wobble -------------------------------------------
-        // Three sine octaves (different frequencies & drift speeds) give a
-        // turbulent, non-repeating look. The per-column edgeNoise value
-        // seeds each column's phase so adjacent columns evolve differently.
-        const colNoise  = g.edgeNoise[Math.min(cols - 1, Math.max(0, col))];
-        const rowFrac   = row / Math.max(1, rows - 1);
+        for (let row = 0; row < rows; row++) {
+          const rowFrac   = row / Math.max(1, rows - 1);
+          const tiltShift = g.tilt * (rowFrac - 0.5) * rows;
+          const rfPi          = rowFrac * Math.PI;
+          const sin2_unscaled = Math.sin(rfPi * wf2 + tS2);
+          const sin1_r        = Math.sin(rfPi * wf1 + tS1);
+          const sin2_r        = sin2_unscaled * 0.45;
+          const sin3_r        = Math.sin(rfPi * wf3 + tS3) * 0.25;
+          const rowCenter     = center + tiltShift + (sin1_r + sin2_r + sin3_r) * wobbleScale;
+          const cos1_r = Math.cos(rfPi * wf1 + tS1);
+          const cos2_r = Math.cos(rfPi * wf2 + tS2);
+          const cos3_r = Math.cos(rfPi * wf3 + tS3);
 
-        const o1 = Math.sin(rowFrac * Math.PI * g.wobbleFreq       + t * 0.25 + g.wobblePhase + colNoise * 2.1);
-        const o2 = Math.sin(rowFrac * Math.PI * g.wobbleFreq * 2.3 + t * 0.41 + g.wobblePhase * 1.7 + colNoise * 3.9) * 0.45;
-        const o3 = Math.sin(rowFrac * Math.PI * g.wobbleFreq * 0.5 + t * 0.13 + colNoise * 1.3) * 0.25;
+          const colMin = Math.max(0,    Math.ceil(rowCenter  - halfW - wobbleScale)) | 0;
+          const colMax = Math.min(cols, Math.floor(rowCenter + halfW + wobbleScale)) | 0;
+          const rowBase = row * cols;
 
-        const wobble    = (o1 + o2 + o3) * g.wobble * halfW;
-        const effCenter = center + wobble;
-
-        const dist = Math.abs(col - effCenter);
-        if (dist < halfW) {
-          // sin^4 gives a narrower, more pointed core than sin^2
-          const env = Math.pow(Math.sin((1 - dist / halfW) * Math.PI * 0.5), 4);
-          total += env * g.boost * fade;
+          for (let col = colMin; col < colMax; col++) {
+            const cn  = g.edgeNoise[col] * 2.1;
+            const cn2 = g.edgeNoise[col] * 3.9;
+            const cn3 = g.edgeNoise[col] * 1.3;
+            const sinCn  = Math.sin(cn),  cosCn  = Math.cos(cn);
+            const sinCn2 = Math.sin(cn2), cosCn2 = Math.cos(cn2);
+            const sinCn3 = Math.sin(cn3), cosCn3 = Math.cos(cn3);
+            const no1 = (sin1_r        * cosCn  + cos1_r * sinCn);
+            const no2 = (sin2_unscaled * cosCn2 + cos2_r * sinCn2) * 0.45;
+            const no3 = (sin3_r        * cosCn3 + cos3_r * sinCn3) * 0.25;
+            const dist = Math.abs(col - (center + tiltShift + (no1 + no2 + no3) * wobbleScale));
+            if (dist < halfW) {
+              const x = Math.sin((1 - dist * halfWInv) * (Math.PI * 0.5));
+              map[rowBase + col] += x * x * x * x * boostFade;
+            }
+          }
         }
       }
-      return total;
+      return map;
     }
 
     function render() {
       if (!img.complete || img.naturalWidth === 0) return;
-
-      const rect = canvas!.getBoundingClientRect();
-      const W = rect.width;
-      const H = rect.height;
+      const W = currentW, H = currentH;
       if (W === 0 || H === 0) return;
 
       const t   = (performance.now() - startTime) / 1000;
       const dpr = getEffectiveDpr();
+      const cs  = CONFIG.cellSize;
 
       if (Math.abs(dpr - cachedDpr) > 0.001) {
         cachedDpr  = dpr;
         glyphAtlas = buildGlyphAtlas(cs, dpr);
+        tileSize   = Math.ceil(cs * dpr);
       }
 
       const PW   = Math.round(W * dpr);
       const PH   = Math.round(H * dpr);
-      const phys = Math.ceil(cs * dpr);
-
+      const phys = tileSize;
       const cols = Math.floor(W / cs);
       const rows = Math.floor(H / cs);
 
-      // Update gust pool
       updateGusts(t, cols);
 
-      // -- 1. Sample cloud image at grid resolution --------------------------
-      offSample.width  = cols;
-      offSample.height = rows;
-      offSampleCtx.drawImage(img, 0, 0, cols, rows);
-      const px = offSampleCtx.getImageData(0, 0, cols, rows).data;
+      // -- 1. Sample cloud image (only on grid resize) -----------------------
+      if (cols !== cachedPxCols || rows !== cachedPxRows) {
+        offSample.width  = cols;
+        offSample.height = rows;
+        offSampleCtx.drawImage(img, 0, 0, cols, rows);
+        cachedPx     = offSampleCtx.getImageData(0, 0, cols, rows).data;
+        cachedPxCols = cols;
+        cachedPxRows = rows;
+        gustRowCache = new Float32Array(rows * cols);
+      }
+      const px = cachedPx!;
 
-      // -- 2. Draw ASCII glyph layer -----------------------------------------
-      offAscii.width  = PW;
-      offAscii.height = PH;
+      // -- 2. Build gust map -------------------------------------------------
+      const gustMap = buildGustMap(rows, cols, t);
 
-      const s    = CONFIG.speed * 0.018;
-      const wAmp = CONFIG.waveDepth * 0.3;
-      const dAmp = CONFIG.displacement * MAX_DISP;
+      // -- 3. Resize output buffer (only on PW/PH/dpr change) ----------------
+      if (PW !== lastPW || PH !== lastPH || dpr !== lastDpr) {
+        offOut.width  = PW;
+        offOut.height = PH;
+        outImageData  = offOutCtx.createImageData(PW, PH);
+        outBuf        = outImageData.data;
+        outBuf32      = new Uint32Array(outBuf.buffer);
+        // Pre-fill all pixels as opaque white once; we only update alpha per frame.
+        outBuf.fill(255);
+        lastPW = PW; lastPH = PH; lastDpr = dpr;
+      }
+
+      const buf   = outBuf!;
+      const buf32 = outBuf32!;
+      const s     = CONFIG.speed * 0.018;
+      const wAmp  = CONFIG.waveDepth * 0.3;
+      const dAmp  = CONFIG.displacement * MAX_DISP;
       const { threshold, ceiling } = CONFIG;
+      const thresholdD2 = threshold * 0.5 + 0.05;
+      const ceilMinThr  = ceiling - threshold;
 
+      // -- 4. Clear alpha plane via Uint32Array ------------------------------
+      // Writing 0x00FFFFFF (little-endian: R=FF G=FF B=FF A=00) resets every
+      // pixel to white-transparent in one pass — no branch, no stride tricks.
+      buf32.fill(0x00FFFFFF);
+
+      // -- 5. Main loop: blit glyph alphas into output buffer ----------------
       for (let row = 0; row < rows; row++) {
+        const rowBase = row * cols;
         for (let col = 0; col < cols; col++) {
           const ni = ((row % NOISE_H) * NOISE_W + (col % NOISE_W)) * 5;
-          const bPhase = NOISE[ni];
-          const bSpeed = NOISE[ni + 1];
 
-          const idx   = (row * cols + col) * 4;
-          const alpha = px[idx + 3] / 255;
+          // Displaced cloud alpha (mask)
+          const dPhase = NOISE[ni + 2], dDir = NOISE[ni + 3], dSpeed = NOISE[ni + 4];
+          const disp   = Math.sin(t * s * dSpeed + dPhase) * dAmp * dDir;
+          let srcRow   = (row + disp + 0.5) | 0;
+          if (srcRow < 0) srcRow = 0;
+          else if (srcRow >= rows) srcRow = rows - 1;
+          const maskAlpha = px[(srcRow * cols + col) * 4 + 3];
+          if (maskAlpha === 0) continue;
 
+          // Undisplaced alpha for glyph selection
+          const alpha = px[(rowBase + col) * 4 + 3] / 255;
           if (alpha < threshold) continue;
 
-          const wave =
+          // Pick glyph
+          const bPhase = NOISE[ni], bSpeed = NOISE[ni + 1];
+          const wave   =
             Math.sin(t * s * bSpeed * 1.3 + bPhase) * wAmp +
             Math.sin(t * s * bSpeed * 0.6 + bPhase * 1.9) * wAmp * 0.4;
+          const modulated = Math.min(1, Math.max(0.05,
+            (alpha - threshold) / ceilMinThr + wave + gustMap[rowBase + col]));
+          const charIdx  = Math.floor(modulated * (CHARS.length - 1));
+          const alphaIdx = Math.min(ALPHA_STEPS - 1,
+            Math.floor(Math.min(1, alpha / thresholdD2) * ALPHA_STEPS));
+          const tile = glyphAtlas[charIdx][alphaIdx];
 
-          const base = (alpha - threshold) / (ceiling - threshold);
-
-          const windBrightness = gustBrightnessAt(col, row, rows, t, cols);
-
-          const modulated = Math.min(1, Math.max(0.05, base + wave + windBrightness));
-          const charIdx   = Math.floor(modulated * (CHARS.length - 1));
-
-          const edgeAlpha = Math.min(1, alpha / (threshold * 0.5 + 0.05));
-          const alphaIdx  = Math.min(ALPHA_STEPS - 1, Math.floor(edgeAlpha * ALPHA_STEPS));
-
-          offAsciiCtx.drawImage(glyphAtlas[charIdx][alphaIdx], col * phys, row * phys);
+          // Blit tile: copy alpha row-by-row into output buffer.
+          // Each output row is one typed-array slice; we write only alpha (byte 3).
+          // dstBase: index of pixel (col*phys, row*phys) in the output buffer.
+          const dstBase = (row * phys * PW + col * phys) * 4;
+          const rowStride = PW * 4;
+          for (let ty = 0; ty < phys; ty++) {
+            const tileRowOff = ty * phys;
+            const dstRowOff  = dstBase + ty * rowStride;
+            for (let tx = 0; tx < phys; tx++) {
+              const glyphA = tile[tileRowOff + tx];
+              if (glyphA === 0) continue;
+              buf[dstRowOff + tx * 4 + 3] = (glyphA * maskAlpha) >> 8;
+            }
+          }
         }
       }
 
-      // -- 3. Build displaced cloud mask -------------------------------------
-      if (cols !== maskCols || rows !== maskRows) {
-        maskCell.width  = cols;
-        maskCell.height = rows;
-        maskImageData   = maskCellCtx.createImageData(cols, rows);
-        maskCols = cols;
-        maskRows = rows;
+      // -- 6. Flush: one putImageData + one drawImage ------------------------
+      offOutCtx.putImageData(outImageData!, 0, 0);
+      if (cvs.width !== PW || cvs.height !== PH) {
+        cvs.width  = PW;
+        cvs.height = PH;
       }
-      const maskPx = maskImageData!.data;
-
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          const ni     = ((row % NOISE_H) * NOISE_W + (col % NOISE_W)) * 5;
-          const dPhase = NOISE[ni + 2];
-          const dDir   = NOISE[ni + 3];
-          const dSpeed = NOISE[ni + 4];
-
-          const disp   = Math.sin(t * s * dSpeed + dPhase) * dAmp * dDir;
-          const srcRow = Math.min(rows - 1, Math.max(0, Math.round(row + disp)));
-
-          const srcIdx = (srcRow * cols + col) * 4;
-          const dstIdx = (row   * cols + col) * 4;
-          maskPx[dstIdx]     = px[srcIdx];
-          maskPx[dstIdx + 1] = px[srcIdx + 1];
-          maskPx[dstIdx + 2] = px[srcIdx + 2];
-          maskPx[dstIdx + 3] = px[srcIdx + 3];
-        }
-      }
-      maskCellCtx.putImageData(maskImageData!, 0, 0);
-
-      // -- 4. Composite: displaced mask as destination-in --------------------
-      offAsciiCtx.globalCompositeOperation = "destination-in";
-      offAsciiCtx.drawImage(maskCell, 0, 0, PW, PH);
-      offAsciiCtx.globalCompositeOperation = "source-over";
-
-      // -- 5. Paint onto main canvas -----------------------------------------
-      if (PW !== lastPW || PH !== lastPH || dpr !== lastDpr) {
-        canvas!.width  = PW;
-        canvas!.height = PH;
-        lastPW  = PW;
-        lastPH  = PH;
-        lastDpr = dpr;
-      }
-      const ctx = canvas!.getContext("2d")!;
       ctx.clearRect(0, 0, PW, PH);
-      ctx.drawImage(offAscii, 0, 0);
-
-      frame++;
+      ctx.drawImage(offOut, 0, 0);
     }
 
     // -- FPS cap via setTimeout → rAF -----------------------------------------
     const interval = 1000 / CONFIG.fps;
-
     function scheduleNext() {
       timerRef.current = setTimeout(() => {
         rafRef.current = requestAnimationFrame(() => {
@@ -406,6 +414,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     }
 
     return () => {
+      ro.disconnect();
       cancelAnimationFrame(rafRef.current);
       if (timerRef.current !== null) clearTimeout(timerRef.current);
     };
