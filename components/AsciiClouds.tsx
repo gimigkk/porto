@@ -53,13 +53,12 @@ for (let i = 0; i < NOISE_W * NOISE_H; i++) {
 
 // --- Glyph pixel atlas -------------------------------------------------------
 // Each glyph tile is a Uint8Array of alpha values (R/G/B assumed 255).
-// Pre-flattened as row-major pixels so the blit inner loop is a single
-// typed-array copy per output row, not a per-pixel branch.
-// Layout: atlas[charIdx][alphaIdx] = Uint8Array[tileSize * tileSize]
+// tileSize is the atlas tile dimension (square). The actual blit region for
+// each cell may be tileSize or tileSize+1 px wide/tall (Bresenham-style) but
+// the tile is always sampled at tileSize resolution.
 const ALPHA_STEPS = 16;
 
-function buildGlyphAtlas(cs: number, dpr: number): Uint8Array[][] {
-  const tileSize = Math.ceil(cs * dpr);
+function buildGlyphAtlas(tileSize: number): Uint8Array[][] {
   return CHARS.split("").map((ch) =>
     Array.from({ length: ALPHA_STEPS }, (_, ai) => {
       const opacity = (ai + 1) / ALPHA_STEPS;
@@ -145,8 +144,6 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    // Capture in a non-nullable local so TypeScript doesn't lose the narrowing
-    // inside render() and other closures defined later in this effect.
     const cvs = canvas;
     const ctx = cvs.getContext("2d")!;
 
@@ -155,8 +152,8 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       return (window.devicePixelRatio || 1) * vvScale;
     }
     let cachedDpr  = getEffectiveDpr();
-    let glyphAtlas = buildGlyphAtlas(CONFIG.cellSize, cachedDpr);
     let tileSize   = Math.ceil(CONFIG.cellSize * cachedDpr);
+    let glyphAtlas = buildGlyphAtlas(tileSize);
 
     const offSample    = document.createElement("canvas");
     const offSampleCtx = offSample.getContext("2d", { willReadFrequently: true })!;
@@ -168,14 +165,23 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     const offOutCtx = offOut.getContext("2d")!;
     let outImageData: ImageData | null = null;
     let outBuf:  Uint8ClampedArray | null = null;
-    // Uint32Array view used to zero the alpha plane in one typed-array pass
-    // by writing 0x00FFFFFF (white, transparent) to every pixel at once.
     let outBuf32: Uint32Array | null = null;
 
     let cachedPx:    Uint8ClampedArray | null = null;
     let cachedPxCols = 0;
     let cachedPxRows = 0;
     let gustRowCache: Float32Array | null = null;
+
+    // Precomputed per-column and per-row pixel origins.
+    // colPx[c] = first physical pixel x for column c
+    // rowPx[r] = first physical pixel y for row r
+    // These are recomputed whenever cols/rows/PW/PH change.
+    let colPx: Int32Array | null = null;
+    let rowPx: Int32Array | null = null;
+    let cachedColCount = 0;
+    let cachedRowCount = 0;
+    let cachedGridPW   = 0;
+    let cachedGridPH   = 0;
 
     const img = new Image();
     img.src = "/assets/clouds.png";
@@ -285,13 +291,12 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
 
       if (Math.abs(dpr - cachedDpr) > 0.001) {
         cachedDpr  = dpr;
-        glyphAtlas = buildGlyphAtlas(cs, dpr);
         tileSize   = Math.ceil(cs * dpr);
+        glyphAtlas = buildGlyphAtlas(tileSize);
       }
 
       const PW   = Math.round(W * dpr);
       const PH   = Math.round(H * dpr);
-      const phys = tileSize;
       const cols = Math.floor(W / cs);
       const rows = Math.floor(H / cs);
 
@@ -312,7 +317,31 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       // -- 2. Build gust map -------------------------------------------------
       const gustMap = buildGustMap(rows, cols, t);
 
-      // -- 3. Resize output buffer (only on PW/PH/dpr change) ----------------
+      // -- 3. Recompute pixel-origin lookup tables when grid or canvas size changes.
+      //
+      // THE CORE FIX: instead of placing cell (col, row) at (col*phys, row*phys),
+      // we use Math.round(col * PW / cols) for each column independently.
+      // This is the Bresenham / "painter's algorithm" approach: each cell's
+      // origin is derived from the total canvas width, so rounding errors never
+      // accumulate across columns. Adjacent cells may be tileSize or tileSize+1
+      // physical pixels wide, but they perfectly tile [0, PW) with zero gaps
+      // and zero overlaps at every zoom level.
+      if (cols !== cachedColCount || PW !== cachedGridPW) {
+        colPx = new Int32Array(cols + 1);
+        for (let c = 0; c <= cols; c++) colPx[c] = Math.round(c * PW / cols);
+        cachedColCount = cols;
+        cachedGridPW   = PW;
+      }
+      if (rows !== cachedRowCount || PH !== cachedGridPH) {
+        rowPx = new Int32Array(rows + 1);
+        for (let r = 0; r <= rows; r++) rowPx[r] = Math.round(r * PH / rows);
+        cachedRowCount = rows;
+        cachedGridPH   = PH;
+      }
+      const cpx = colPx!;
+      const rpx = rowPx!;
+
+      // -- 4. Resize output buffer (only on PW/PH/dpr change) ----------------
       if (PW !== lastPW || PH !== lastPH || dpr !== lastDpr) {
         offOut.width  = PW;
         offOut.height = PH;
@@ -333,14 +362,14 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       const thresholdD2 = threshold * 0.5 + 0.05;
       const ceilMinThr  = ceiling - threshold;
 
-      // -- 4. Clear alpha plane via Uint32Array ------------------------------
-      // Writing 0x00FFFFFF (little-endian: R=FF G=FF B=FF A=00) resets every
-      // pixel to white-transparent in one pass — no branch, no stride tricks.
+      // -- 5. Clear alpha plane via Uint32Array ------------------------------
       buf32.fill(0x00FFFFFF);
 
-      // -- 5. Main loop: blit glyph alphas into output buffer ----------------
+      // -- 6. Main loop: blit glyph alphas into output buffer ----------------
       for (let row = 0; row < rows; row++) {
-        const rowBase = row * cols;
+        const rowBase  = row * cols;
+        const pyStart  = rpx[row];
+
         for (let col = 0; col < cols; col++) {
           const ni = ((row % NOISE_H) * NOISE_W + (col % NOISE_W)) * 5;
 
@@ -369,15 +398,21 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
             Math.floor(Math.min(1, alpha / thresholdD2) * ALPHA_STEPS));
           const tile = glyphAtlas[charIdx][alphaIdx];
 
-          // Blit tile: copy alpha row-by-row into output buffer.
-          // Each output row is one typed-array slice; we write only alpha (byte 3).
-          // dstBase: index of pixel (col*phys, row*phys) in the output buffer.
-          const dstBase = (row * phys * PW + col * phys) * 4;
+          // Blit tile using per-cell pixel origins from the lookup tables.
+          // pxStart/cellW come from the precomputed Bresenham grid, so tiles
+          // butt up perfectly — no gap, no overlap, even at fractional DPRs.
+          const pxStart   = cpx[col];
           const rowStride = PW * 4;
-          for (let ty = 0; ty < phys; ty++) {
-            const tileRowOff = ty * phys;
+          const dstBase   = (pyStart * PW + pxStart) * 4;
+
+          // Blit exactly tileSize×tileSize atlas pixels — 1:1, no stretching.
+          // The Bresenham cell may be tileSize or tileSize+1 px wide/tall; we
+          // simply don't write the extra pixel. It stays transparent (cleared
+          // by buf32.fill above) so no grid-line seam appears.
+          for (let ty = 0; ty < tileSize; ty++) {
+            const tileRowOff = ty * tileSize;
             const dstRowOff  = dstBase + ty * rowStride;
-            for (let tx = 0; tx < phys; tx++) {
+            for (let tx = 0; tx < tileSize; tx++) {
               const glyphA = tile[tileRowOff + tx];
               if (glyphA === 0) continue;
               buf[dstRowOff + tx * 4 + 3] = (glyphA * maskAlpha) >> 8;
@@ -386,7 +421,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         }
       }
 
-      // -- 6. Flush: one putImageData + one drawImage ------------------------
+      // -- 7. Flush: one putImageData + one drawImage ------------------------
       offOutCtx.putImageData(outImageData!, 0, 0);
       if (cvs.width !== PW || cvs.height !== PH) {
         cvs.width  = PW;
