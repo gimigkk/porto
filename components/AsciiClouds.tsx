@@ -5,6 +5,12 @@ import { useEffect, useRef } from "react";
 // --- CONFIG -------------------------------------------------------------------
 const CONFIG = {
   cellSize: 8,
+  
+  // -- Intro Sequence --
+  introStartSize: 1000,
+  introDuration: 3.5,  // 600ms to allow the Expo tail to glide smoothly
+  introSlideY: 0.3,    // Slide up translation (20% of screen height)
+
   threshold: 0,
   ceiling: 1,
   speed: 5,
@@ -52,10 +58,6 @@ for (let i = 0; i < NOISE_W * NOISE_H; i++) {
 }
 
 // --- Glyph pixel atlas -------------------------------------------------------
-// Each glyph tile is a Uint8Array of alpha values (R/G/B assumed 255).
-// tileSize is the atlas tile dimension (square). The actual blit region for
-// each cell may be tileSize or tileSize+1 px wide/tall (Bresenham-style) but
-// the tile is always sampled at tileSize resolution.
 const ALPHA_STEPS = 16;
 
 function buildGlyphAtlas(tileSize: number): Uint8Array[][] {
@@ -139,7 +141,6 @@ function spawnGust(t: number, cols: number): Gust {
 export default function AsciiClouds({ className = "" }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef    = useRef<number>(0);
-  const timerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -151,44 +152,39 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       const vvScale = window.visualViewport?.scale ?? 1;
       return (window.devicePixelRatio || 1) * vvScale;
     }
-    let cachedDpr  = getEffectiveDpr();
-    let tileSize   = Math.ceil(CONFIG.cellSize * cachedDpr);
-    let glyphAtlas = buildGlyphAtlas(tileSize);
+    
+    // Master image data memory block
+    let imgData: Uint8ClampedArray | null = null;
+    let imgW = 0;
+    let imgH = 0;
 
-    const offSample    = document.createElement("canvas");
-    const offSampleCtx = offSample.getContext("2d", { willReadFrequently: true })!;
+    let cachedDpr = 0;
+    let cachedTileSize = 0;
+    let glyphAtlas: Uint8Array[][] = [];
 
-    // Single output ImageData written entirely in JS — one putImageData per frame.
-    // RGB channels are pre-set to 255 (white) and never touched again.
-    // Only the alpha channel is written each frame.
     const offOut    = document.createElement("canvas");
-    const offOutCtx = offOut.getContext("2d")!;
+    const offOutCtx = offOut.getContext("2d", { willReadFrequently: true })!;
     let outImageData: ImageData | null = null;
     let outBuf:  Uint8ClampedArray | null = null;
     let outBuf32: Uint32Array | null = null;
 
-    let cachedPx:    Uint8ClampedArray | null = null;
-    let cachedPxCols = 0;
-    let cachedPxRows = 0;
-    let gustRowCache: Float32Array | null = null;
-
-    // Precomputed per-column and per-row pixel origins.
-    // colPx[c] = first physical pixel x for column c
-    // rowPx[r] = first physical pixel y for row r
-    // These are recomputed whenever cols/rows/PW/PH change.
-    let colPx: Int32Array | null = null;
-    let rowPx: Int32Array | null = null;
-    let cachedColCount = 0;
-    let cachedRowCount = 0;
+    // Reusable cached mapping arrays
+    let colPx = new Int32Array(0);
+    let rowPx = new Int32Array(0);
+    let pxCols = new Int32Array(0);
+    let pxRows = new Int32Array(0);
+    
+    let cachedImageCols = 0;
+    let cachedImageRows = 0;
+    let cachedGridCols = 0;
+    let cachedGridRows = 0;
     let cachedGridPW   = 0;
     let cachedGridPH   = 0;
+    let gustRowCache: Float32Array | null = null;
+    let wasIntro = true; // Fixes fractional offset bug
 
-    const img = new Image();
-    img.src = "/assets/clouds.png";
-
-    const MAX_DISP = 2;
     let lastPW = 0, lastPH = 0, lastDpr = 0;
-    const startTime = performance.now();
+    let startTime = performance.now();
 
     let currentW = 0, currentH = 0;
     const ro = new ResizeObserver((entries) => {
@@ -222,8 +218,13 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     }
 
     function buildGustMap(rows: number, cols: number, t: number): Float32Array {
-      const map = gustRowCache!;
+      const reqSize = rows * cols;
+      if (!gustRowCache || gustRowCache.length < reqSize) {
+        gustRowCache = new Float32Array(reqSize);
+      }
+      const map = gustRowCache;
       map.fill(0);
+
       for (const g of gusts) {
         const age   = t - g.born;
         const halfW = g.halfWidthFrac * cols;
@@ -280,75 +281,95 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       return map;
     }
 
-    function render() {
-      if (!img.complete || img.naturalWidth === 0) return;
+    function render(now: number) {
+      if (!imgData) return;
       const W = currentW, H = currentH;
       if (W === 0 || H === 0) return;
 
-      const t   = (performance.now() - startTime) / 1000;
+      const t   = (now - startTime) / 1000;
       const dpr = getEffectiveDpr();
-      const cs  = CONFIG.cellSize;
 
-      if (Math.abs(dpr - cachedDpr) > 0.001) {
-        cachedDpr  = dpr;
-        tileSize   = Math.ceil(cs * dpr);
-        glyphAtlas = buildGlyphAtlas(tileSize);
+      // -- Intro interpolation (Aggressive Expo Ease-In-Out) -------------------
+      const isIntro = t < CONFIG.introDuration;
+      let currentCellSize = CONFIG.cellSize;
+      let introOffsetNorm = 0;
+      
+      if (isIntro) {
+        const progress = t / CONFIG.introDuration;
+        
+        // Expo Ease-In-Out: Violent snap in the middle with a very long, floating tail
+        const ease = progress === 0 ? 0 : progress === 1 ? 1 : progress < 0.5 
+          ? Math.pow(2, 20 * progress - 10) / 2 
+          : (2 - Math.pow(2, -20 * progress + 10)) / 2;
+
+        currentCellSize = CONFIG.introStartSize * Math.pow(CONFIG.cellSize / CONFIG.introStartSize, ease);
+        introOffsetNorm = CONFIG.introSlideY * (1 - ease);
       }
 
       const PW   = Math.round(W * dpr);
       const PH   = Math.round(H * dpr);
-      const cols = Math.floor(W / cs);
-      const rows = Math.floor(H / cs);
+      const cols = Math.max(1, Math.floor(W / currentCellSize));
+      const rows = Math.max(1, Math.floor(H / currentCellSize));
 
-      updateGusts(t, cols);
-
-      // -- 1. Sample cloud image (only on grid resize) -----------------------
-      if (cols !== cachedPxCols || rows !== cachedPxRows) {
-        offSample.width  = cols;
-        offSample.height = rows;
-        offSampleCtx.drawImage(img, 0, 0, cols, rows);
-        cachedPx     = offSampleCtx.getImageData(0, 0, cols, rows).data;
-        cachedPxCols = cols;
-        cachedPxRows = rows;
-        gustRowCache = new Float32Array(rows * cols);
+      const targetTileSize = Math.ceil(CONFIG.cellSize * dpr);
+      if (targetTileSize !== cachedTileSize || dpr !== cachedDpr) {
+        cachedDpr = dpr;
+        cachedTileSize = targetTileSize;
+        glyphAtlas = buildGlyphAtlas(targetTileSize);
       }
-      const px = cachedPx!;
 
-      // -- 2. Build gust map -------------------------------------------------
-      const gustMap = buildGustMap(rows, cols, t);
+      // -- 1. Fast Native Image Coordinates Map ------------------------------
+      // wasIntro check ensures the offset locks perfectly to 0 on the exact frame the intro completes
+      if (cols !== cachedImageCols || rows !== cachedImageRows || isIntro || wasIntro) {
+        if (pxCols.length < cols) pxCols = new Int32Array(cols);
+        if (pxRows.length < rows) pxRows = new Int32Array(rows);
+        
+        for (let c = 0; c < cols; c++) {
+          pxCols[c] = Math.min(imgW - 1, Math.floor(((c + 0.5) / cols) * imgW));
+        }
+        for (let r = 0; r < rows; r++) {
+          const normY = (r + 0.5) / rows - introOffsetNorm;
+          if (normY < 0 || normY >= 1) {
+            pxRows[r] = -1; // Marks as out of bounds transparency
+          } else {
+            pxRows[r] = Math.min(imgH - 1, Math.floor(normY * imgH));
+          }
+        }
+        
+        cachedImageCols = cols;
+        cachedImageRows = rows;
+        if (isIntro) gusts.length = 0; 
+        wasIntro = isIntro;
+      }
 
-      // -- 3. Recompute pixel-origin lookup tables when grid or canvas size changes.
-      //
-      // THE CORE FIX: instead of placing cell (col, row) at (col*phys, row*phys),
-      // we use Math.round(col * PW / cols) for each column independently.
-      // This is the Bresenham / "painter's algorithm" approach: each cell's
-      // origin is derived from the total canvas width, so rounding errors never
-      // accumulate across columns. Adjacent cells may be tileSize or tileSize+1
-      // physical pixels wide, but they perfectly tile [0, PW) with zero gaps
-      // and zero overlaps at every zoom level.
-      if (cols !== cachedColCount || PW !== cachedGridPW) {
-        colPx = new Int32Array(cols + 1);
+      // -- 2. Gust Map -------------------------------------------------------
+      let gustMap: Float32Array | null = null;
+      if (!isIntro) {
+        updateGusts(t, cols);
+        gustMap = buildGustMap(rows, cols, t);
+      }
+
+      // -- 3. Bresenham Grid --------------------------------------------------
+      if (cols !== cachedGridCols || PW !== cachedGridPW) {
+        if (colPx.length < cols + 1) colPx = new Int32Array(cols + 1);
         for (let c = 0; c <= cols; c++) colPx[c] = Math.round(c * PW / cols);
-        cachedColCount = cols;
+        cachedGridCols = cols;
         cachedGridPW   = PW;
       }
-      if (rows !== cachedRowCount || PH !== cachedGridPH) {
-        rowPx = new Int32Array(rows + 1);
+      if (rows !== cachedGridRows || PH !== cachedGridPH) {
+        if (rowPx.length < rows + 1) rowPx = new Int32Array(rows + 1);
         for (let r = 0; r <= rows; r++) rowPx[r] = Math.round(r * PH / rows);
-        cachedRowCount = rows;
+        cachedGridRows = rows;
         cachedGridPH   = PH;
       }
-      const cpx = colPx!;
-      const rpx = rowPx!;
 
-      // -- 4. Resize output buffer (only on PW/PH/dpr change) ----------------
+      // -- 4. Output buffer --------------------------------------------------
       if (PW !== lastPW || PH !== lastPH || dpr !== lastDpr) {
         offOut.width  = PW;
         offOut.height = PH;
         outImageData  = offOutCtx.createImageData(PW, PH);
         outBuf        = outImageData.data;
         outBuf32      = new Uint32Array(outBuf.buffer);
-        // Pre-fill all pixels as opaque white once; we only update alpha per frame.
         outBuf.fill(255);
         lastPW = PW; lastPH = PH; lastDpr = dpr;
       }
@@ -357,101 +378,133 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       const buf32 = outBuf32!;
       const s     = CONFIG.speed * 0.018;
       const wAmp  = CONFIG.waveDepth * 0.3;
-      const dAmp  = CONFIG.displacement * MAX_DISP;
+      const dAmp  = CONFIG.displacement * 2;
       const { threshold, ceiling } = CONFIG;
       const thresholdD2 = threshold * 0.5 + 0.05;
       const ceilMinThr  = ceiling - threshold;
 
-      // -- 5. Clear alpha plane via Uint32Array ------------------------------
       buf32.fill(0x00FFFFFF);
+      const activeTileSize = cachedTileSize;
 
-      // -- 6. Main loop: blit glyph alphas into output buffer ----------------
+      // -- 5. Main loop ------------------------------------------------------
       for (let row = 0; row < rows; row++) {
-        const rowBase  = row * cols;
-        const pyStart  = rpx[row];
+        const rowBase = row * cols;
+        const pyStart = rowPx[row];
 
         for (let col = 0; col < cols; col++) {
           const ni = ((row % NOISE_H) * NOISE_W + (col % NOISE_W)) * 5;
 
-          // Displaced cloud alpha (mask)
           const dPhase = NOISE[ni + 2], dDir = NOISE[ni + 3], dSpeed = NOISE[ni + 4];
           const disp   = Math.sin(t * s * dSpeed + dPhase) * dAmp * dDir;
           let srcRow   = (row + disp + 0.5) | 0;
           if (srcRow < 0) srcRow = 0;
           else if (srcRow >= rows) srcRow = rows - 1;
-          const maskAlpha = px[(srcRow * cols + col) * 4 + 3];
+          
+          const pYMask = pxRows[srcRow];
+          if (pYMask < 0) continue;
+          const maskAlpha = imgData[(pYMask * imgW + pxCols[col]) * 4 + 3];
           if (maskAlpha === 0) continue;
 
-          // Undisplaced alpha for glyph selection
-          const alpha = px[(rowBase + col) * 4 + 3] / 255;
+          const pYRaw = pxRows[row];
+          if (pYRaw < 0) continue;
+          const alpha = imgData[(pYRaw * imgW + pxCols[col]) * 4 + 3] / 255;
           if (alpha < threshold) continue;
 
-          // Pick glyph
           const bPhase = NOISE[ni], bSpeed = NOISE[ni + 1];
-          const wave   =
-            Math.sin(t * s * bSpeed * 1.3 + bPhase) * wAmp +
-            Math.sin(t * s * bSpeed * 0.6 + bPhase * 1.9) * wAmp * 0.4;
-          const modulated = Math.min(1, Math.max(0.05,
-            (alpha - threshold) / ceilMinThr + wave + gustMap[rowBase + col]));
+          const wave   = Math.sin(t * s * bSpeed * 1.3 + bPhase) * wAmp + Math.sin(t * s * bSpeed * 0.6 + bPhase * 1.9) * wAmp * 0.4;
+          
+          const gVal = gustMap ? gustMap[rowBase + col] : 0;
+          const modulated = Math.min(1, Math.max(0.05, (alpha - threshold) / ceilMinThr + wave + gVal));
           const charIdx  = Math.floor(modulated * (CHARS.length - 1));
-          const alphaIdx = Math.min(ALPHA_STEPS - 1,
-            Math.floor(Math.min(1, alpha / thresholdD2) * ALPHA_STEPS));
+          const alphaIdx = Math.min(ALPHA_STEPS - 1, Math.floor(Math.min(1, alpha / thresholdD2) * ALPHA_STEPS));
           const tile = glyphAtlas[charIdx][alphaIdx];
 
-          // Blit tile using per-cell pixel origins from the lookup tables.
-          // pxStart/cellW come from the precomputed Bresenham grid, so tiles
-          // butt up perfectly — no gap, no overlap, even at fractional DPRs.
-          const pxStart   = cpx[col];
+          const pxStart   = colPx[col];
+          const cellW     = colPx[col + 1] - pxStart;
+          const cellH     = rowPx[row + 1] - pyStart;
+
           const rowStride = PW * 4;
           const dstBase   = (pyStart * PW + pxStart) * 4;
 
-          // Blit exactly tileSize×tileSize atlas pixels — 1:1, no stretching.
-          // The Bresenham cell may be tileSize or tileSize+1 px wide/tall; we
-          // simply don't write the extra pixel. It stays transparent (cleared
-          // by buf32.fill above) so no grid-line seam appears.
-          for (let ty = 0; ty < tileSize; ty++) {
-            const tileRowOff = ty * tileSize;
+          const scaleX = activeTileSize / cellW;
+          const scaleY = activeTileSize / cellH;
+
+          // Inner rendering loop 
+          for (let ty = 0; ty < cellH; ty++) {
+            let srcY = (ty * scaleY) | 0;
+            if (srcY >= activeTileSize) srcY = activeTileSize - 1;
+            const tileRowOff = srcY * activeTileSize;
             const dstRowOff  = dstBase + ty * rowStride;
-            for (let tx = 0; tx < tileSize; tx++) {
-              const glyphA = tile[tileRowOff + tx];
+            
+            for (let tx = 0; tx < cellW; tx++) {
+              let srcX = (tx * scaleX) | 0;
+              if (srcX >= activeTileSize) srcX = activeTileSize - 1;
+              const glyphA = tile[tileRowOff + srcX];
               if (glyphA === 0) continue;
+              
               buf[dstRowOff + tx * 4 + 3] = (glyphA * maskAlpha) >> 8;
             }
           }
         }
       }
 
-      // -- 7. Flush: one putImageData + one drawImage ------------------------
+      // -- 6. Flush ----------------------------------------------------------
       offOutCtx.putImageData(outImageData!, 0, 0);
       if (cvs.width !== PW || cvs.height !== PH) {
         cvs.width  = PW;
         cvs.height = PH;
       }
-      ctx.clearRect(0, 0, PW, PH);
+      
+      ctx.clearRect(0, 0, PW, PH); 
       ctx.drawImage(offOut, 0, 0);
     }
 
-    // -- FPS cap via setTimeout → rAF -----------------------------------------
-    const interval = 1000 / CONFIG.fps;
-    function scheduleNext() {
-      timerRef.current = setTimeout(() => {
-        rafRef.current = requestAnimationFrame(() => {
-          render();
-          scheduleNext();
-        });
-      }, interval);
+    // -- Dynamic FPS rAF Loop -------------------------------------------------
+    let lastRenderTime = performance.now();
+
+    function loop(now: number) {
+      rafRef.current = requestAnimationFrame(loop);
+      const t = (now - startTime) / 1000;
+      
+      const isIntro = t < CONFIG.introDuration;
+
+      // Unthrottled render during Intro to hit max native refresh-rate (60fps+)
+      if (isIntro) {
+        render(now);
+        lastRenderTime = now;
+      } else {
+        // Fall back to stylized cinematic target FPS
+        const interval = 1000 / CONFIG.fps;
+        if (now - lastRenderTime >= interval) {
+          lastRenderTime = now - ((now - lastRenderTime) % interval);
+          render(now);
+        }
+      }
     }
 
-    if (img.complete && img.naturalWidth > 0) {
-      scheduleNext();
-    } else {
-      img.onload = scheduleNext;
-    }
+    const img = new Image();
+    img.src = "/assets/clouds.png";
+
+    img.onload = () => {
+      // Decode image raw data entirely ONCE. 
+      const tempCvs = document.createElement("canvas");
+      tempCvs.width = img.naturalWidth;
+      tempCvs.height = img.naturalHeight;
+      const tCtx = tempCvs.getContext("2d", { willReadFrequently: true })!;
+      tCtx.drawImage(img, 0, 0);
+      
+      imgData = tCtx.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
+      imgW = img.naturalWidth;
+      imgH = img.naturalHeight;
+
+      startTime = performance.now();
+      lastRenderTime = startTime;
+      rafRef.current = requestAnimationFrame(loop);
+    };
 
     return () => {
       ro.disconnect();
       cancelAnimationFrame(rafRef.current);
-      if (timerRef.current !== null) clearTimeout(timerRef.current);
     };
   }, []);
 
