@@ -16,7 +16,7 @@ export default function Home() {
           style={{ top: "calc(5rem - 90vh)" }}
         >
           {/* Sky blue gradient bg */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#99DFFF] to-[#CBE5FF]" />
+          <div className="absolute inset-0 bg-linear-to-b from-[#77b7ff] to-[#deefff]" />
 
           {/* ASCII Clouds — tune CONFIG inside AsciiClouds.tsx */}
           <div className="absolute inset-0 pointer-events-none select-none">
@@ -25,10 +25,10 @@ export default function Home() {
 
           {/* Content */}
           <div className="relative z-10 flex flex-col items-center">
-            <h1 className="text-6xl font-extrabold tracking-tight mb-6">Welcome</h1>
+            {/* <h1 className="text-6xl font-extrabold tracking-tight mb-6">Welcome</h1>
             <p className="text-2xl opacity-60 max-w-2xl text-center">
               Scroll down to explore.
-            </p>
+            </p> */}
           </div>
           <div className="absolute bottom-10 animate-bounce z-10">
             <svg className="w-8 h-8 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

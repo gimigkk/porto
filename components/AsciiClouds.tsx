@@ -5,28 +5,15 @@ import { useEffect, useRef } from "react";
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const CONFIG = {
   cellSize: 8,
-
-  // Like Photoshop Levels input black point (0–1).
-  // Pixels below this brightness are treated as sky and hidden.
-  // 0 = show everything, 0.2 = clip dark edges, 0.5 = only bright cores
   threshold: 0,
-
-  // Like Photoshop Levels input white point (0–1), must be > threshold.
-  // Pixels at or above this are fully opaque. Between threshold and ceiling
-  // is a soft feathered edge.
   ceiling: 1,
-
   speed: 5,
-
-  // How much the wave ripples char density (0–1)
   waveDepth: 0.3,
-
-  // How much cells physically drift (0–1)
   displacement: 0.6,
+  fps: 5,
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Dense ASCII ramp — chars that actually fill horizontal space
 const CHARS = ".:+#@G";
 
 function mulberry32(seed: number) {
@@ -51,26 +38,69 @@ for (let i = 0; i < NOISE_W * NOISE_H; i++) {
   NOISE[i * 5 + 4] = 0.4 + rng() * 0.6;
 }
 
+// ─── Glyph atlas ─────────────────────────────────────────────────────────────
+// Pre-render every (char × opacity-step) combination once at startup.
+// During animation we call drawImage() instead of fillText() + fillStyle=,
+// eliminating per-cell GPU state flushes entirely.
+const ALPHA_STEPS = 16; // quantise edgeAlpha to 16 levels — visually identical
+function buildGlyphAtlas(cs: number): HTMLCanvasElement[][] {
+  return CHARS.split("").map((ch) => {
+    return Array.from({ length: ALPHA_STEPS }, (_, i) => {
+      const a = (i + 1) / ALPHA_STEPS;
+      const gc = document.createElement("canvas");
+      gc.width = cs;
+      gc.height = cs;
+      const gx = gc.getContext("2d")!;
+      gx.font = `bold ${cs}px monospace`;
+      gx.textBaseline = "top";
+      gx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+      gx.fillText(ch, 0, 0);
+      return gc;
+    });
+  });
+}
+
 export default function AsciiClouds({ className = "" }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Off-screen A: sample cloud image at grid resolution
-    const offSample = document.createElement("canvas");
-    const offSampleCtx = offSample.getContext("2d")!;
+    const cs = CONFIG.cellSize;
 
-    // Off-screen B: render ASCII text layer at full resolution
+    // Build glyph atlas once — tiny canvases, drawn once, reused every frame
+    const glyphAtlas = buildGlyphAtlas(cs);
+
+    // ── Pre-allocated offscreen canvases ──────────────────────────────────────
+    // willReadFrequently: true → browser keeps this in CPU RAM, getImageData
+    // becomes a direct memcpy instead of a GPU→CPU readback.
+    const offSample = document.createElement("canvas");
+    const offSampleCtx = offSample.getContext("2d", { willReadFrequently: true })!;
+
+    // ASCII layer — white glyphs on transparent, masked later
     const offAscii = document.createElement("canvas");
     const offAsciiCtx = offAscii.getContext("2d")!;
+
+    // Displacement mask — pre-allocated, only resized on grid change
+    const maskCell = document.createElement("canvas");
+    const maskCellCtx = maskCell.getContext("2d", { willReadFrequently: true })!;
+    let maskImageData: ImageData | null = null;
+    let maskCols = 0;
+    let maskRows = 0;
 
     const img = new Image();
     img.src = "/assets/clouds.png";
 
     const MAX_DISP = 2;
+
+    // Track last rendered size to avoid redundant main-canvas resizes
+    let lastW = 0;
+    let lastH = 0;
+
+    let frame = 0;
 
     function render(t: number) {
       const container = canvas!.parentElement;
@@ -80,23 +110,22 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       if (W === 0 || H === 0) return;
       if (!img.complete || img.naturalWidth === 0) return;
 
-      const cs = CONFIG.cellSize;
       const cols = Math.floor(W / cs);
       const rows = Math.floor(H / cs);
 
       // ── 1. Sample cloud image at grid resolution ──────────────────────────
+      // Assign .width to clear+reset context state (same as original)
       offSample.width = cols;
       offSample.height = rows;
       offSampleCtx.drawImage(img, 0, 0, cols, rows);
+      // Fast because willReadFrequently keeps the buffer CPU-side
       const px = offSampleCtx.getImageData(0, 0, cols, rows).data;
 
-      // ── 2. Draw ASCII text layer at full resolution ───────────────────────
-      // White text on transparent background — cloud image will mask it
+      // ── 2. Draw ASCII glyph layer ─────────────────────────────────────────
+      // Assign .width to clear + reset composite op (load-bearing, same as original)
       offAscii.width = W;
       offAscii.height = H;
-      offAsciiCtx.clearRect(0, 0, W, H);
-      offAsciiCtx.font = `bold ${cs}px monospace`;
-      offAsciiCtx.textBaseline = "top";
+      // No fillStyle or font needed — we drawImage from the atlas
 
       const s = CONFIG.speed * 0.018;
       const wAmp = CONFIG.waveDepth * 0.3;
@@ -109,46 +138,39 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           const bPhase = NOISE[ni];
           const bSpeed = NOISE[ni + 1];
 
-          // Sample alpha (opacity) from original image — cloud density,
-          // not brightness. White clouds on transparent bg all have high
-          // brightness regardless of edge softness.
           const idx = (row * cols + col) * 4;
           const alpha = px[idx + 3] / 255;
 
-          // Hard threshold on opacity
           if (alpha < threshold) continue;
 
-          // Opacity wave — ripples char density
           const wave =
             Math.sin(t * s * bSpeed * 1.3 + bPhase) * wAmp +
             Math.sin(t * s * bSpeed * 0.6 + bPhase * 1.9) * wAmp * 0.4;
 
-          // Remap threshold→ceiling to 0→1, apply wave
           const base = (alpha - threshold) / (ceiling - threshold);
           const modulated = Math.min(1, Math.max(0.05, base + wave));
 
-          // Map to char — more opaque = denser char
           const charIdx = Math.floor(modulated * (CHARS.length - 1));
-          const ch = CHARS[charIdx];
-          if (ch === " ") continue;
 
-          // Visual opacity from alpha feather — soft cloud edges
-          const edgeAlpha = Math.min(1, (alpha - threshold) / (threshold * 0.5 + 0.05));
+          // Quantise edgeAlpha to ALPHA_STEPS levels → index into atlas
+          // Matches original formula: alpha / 0.05 (clamped) when threshold=0
+          const edgeAlpha = Math.min(1, alpha / (threshold * 0.5 + 0.05));
+          const alphaIdx = Math.min(ALPHA_STEPS - 1, Math.floor(edgeAlpha * ALPHA_STEPS));
 
-          offAsciiCtx.fillStyle = `rgba(255,255,255,${edgeAlpha.toFixed(2)})`;
-          offAsciiCtx.fillText(ch, col * cs, row * cs);
+          // drawImage from pre-rendered atlas — no fillStyle change, no fillText
+          offAsciiCtx.drawImage(glyphAtlas[charIdx][alphaIdx], col * cs, row * cs);
         }
       }
 
-      // ── 3. Build displaced cloud mask at cell resolution ──────────────────
-      // Displacement applied to cloud image (mask), not ASCII cells.
-      // This makes the ASCII grid appear to warp with the wave.
-      const maskCell = document.createElement("canvas");
-      maskCell.width = cols;
-      maskCell.height = rows;
-      const maskCellCtx = maskCell.getContext("2d")!;
-      const maskImageData = maskCellCtx.createImageData(cols, rows);
-      const maskPx = maskImageData.data;
+      // ── 3. Build displaced cloud mask — reuse pre-allocated canvas ─────────
+      if (cols !== maskCols || rows !== maskRows) {
+        maskCell.width = cols;
+        maskCell.height = rows;
+        maskImageData = maskCellCtx.createImageData(cols, rows);
+        maskCols = cols;
+        maskRows = rows;
+      }
+      const maskPx = maskImageData!.data;
 
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
@@ -168,34 +190,53 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           maskPx[dstIdx + 3] = px[srcIdx + 3];
         }
       }
-      maskCellCtx.putImageData(maskImageData, 0, 0);
+      maskCellCtx.putImageData(maskImageData!, 0, 0);
 
-      // ── 4. Composite: displaced cloud mask as destination-in ──────────────
+      // ── 4. Composite: displaced mask as destination-in ────────────────────
       offAsciiCtx.globalCompositeOperation = "destination-in";
       offAsciiCtx.drawImage(maskCell, 0, 0, W, H);
-      offAsciiCtx.globalCompositeOperation = "source-over"; // reset
+      offAsciiCtx.globalCompositeOperation = "source-over";
 
-      // ── 5. Paint final result onto main canvas ────────────────────────────
-      canvas!.width = W;
-      canvas!.height = H;
+      // ── 5. Paint onto main canvas ─────────────────────────────────────────
+      // Only resize the main canvas when dimensions change — avoids a full
+      // GPU surface reallocation on every frame (was canvas.width=W every frame)
+      if (W !== lastW || H !== lastH) {
+        canvas!.width = W;
+        canvas!.height = H;
+        lastW = W;
+        lastH = H;
+      }
       const ctx = canvas!.getContext("2d")!;
       ctx.clearRect(0, 0, W, H);
       ctx.drawImage(offAscii, 0, 0);
     }
 
-    let frame = 0;
-    function loop() {
-      render(frame++);
-      rafRef.current = requestAnimationFrame(loop);
+    // ── FPS cap via setTimeout → rAF ─────────────────────────────────────────
+    // Why not just skip frames inside rAF?
+    // Skipping in rAF means work still fires in a burst at vsync — you get a
+    // stutter spike every N frames. setTimeout fires at the right cadence,
+    // then rAF aligns the actual paint to the next vsync after that.
+    const interval = 1000 / CONFIG.fps;
+
+    function scheduleNext() {
+      timerRef.current = setTimeout(() => {
+        rafRef.current = requestAnimationFrame(() => {
+          render(frame++);
+          scheduleNext();
+        });
+      }, interval);
     }
 
     if (img.complete && img.naturalWidth > 0) {
-      loop();
+      scheduleNext();
     } else {
-      img.onload = loop;
+      img.onload = scheduleNext;
     }
 
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+    };
   }, []);
 
   return (
