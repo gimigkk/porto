@@ -11,15 +11,14 @@ const CONFIG = {
   waveDepth: 0.3,
   displacement: 0.6,
   fps: 10,
-  // ── Wind gust ──────────────────────────────────────────────────────────────
-  windSpeed: 35,      // cols per second the gust travels left→right
-  windWidth: 0.20,    // gust half-width as fraction of total columns
-  windBoost: 0.3,     // peak brightness boost added to modulated (0–1)
-  windWobble: 0.22,   // vertical sine wobble on the gust edge (fraction of rows)
+  // ── Wind gusts ─────────────────────────────────────────────────────────────
+  maxGusts: 4,          // maximum concurrent gusts
+  spawnInterval: 2.5,   // seconds between spawn attempts
+  windWobble: 0.22,     // vertical sine wobble on the gust edge (fraction of rows)
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
-const CHARS = ".:+#@G";
+const CHARS = ".:/#@G";
 
 function mulberry32(seed: number) {
   return function () {
@@ -63,6 +62,77 @@ function buildGlyphAtlas(cs: number, dpr: number): HTMLCanvasElement[][] {
   });
 }
 
+// ─── Gust type ────────────────────────────────────────────────────────────────
+interface Gust {
+  id: number;
+  // Current center position in col-space
+  center: number;
+  // Speed in cols/sec, negative = right-to-left
+  speed: number;
+  // Half-width as fraction of cols
+  halfWidthFrac: number;
+  // Peak brightness boost
+  boost: number;
+  // Wobble amplitude as fraction of rows
+  wobble: number;
+  // Wobble frequency multiplier
+  wobbleFreq: number;
+  // Wobble phase offset
+  wobblePhase: number;
+  // Fade-in/-out envelope (0→1→0 over lifetime)
+  born: number;   // time of spawn (seconds)
+  fadeIn: number; // duration of fade-in (seconds)
+  fadeOut: number;// duration of fade-out (seconds)
+  life: number;   // total lifetime (seconds)
+  dead: boolean;
+}
+
+// Seeded random for gust generation (separate from noise rng)
+const gustRng = mulberry32(0xdeadbeef);
+
+let gustIdCounter = 0;
+
+function spawnGust(t: number, cols: number): Gust {
+  const r = () => gustRng();
+
+  const leftToRight = r() > 0.5;
+  const speed = (20 + r() * 50) * (leftToRight ? 1 : -1); // 20–70 cols/sec
+
+  // Spawn origin: edge (70% chance) or random middle position (30% chance)
+  const spawnInMiddle = r() < 0.3;
+  let startCenter: number;
+  const halfWidthFrac = 0.10 + r() * 0.20; // 10–30% of cols
+  const halfW = halfWidthFrac * cols;
+
+  if (spawnInMiddle) {
+    // Appear somewhere mid-canvas
+    startCenter = halfW + r() * (cols - 2 * halfW);
+  } else {
+    // Enter from the appropriate edge
+    startCenter = leftToRight ? -halfW : cols + halfW;
+  }
+
+  const life = (cols + 2 * halfW) / Math.abs(speed) + r() * 1.5;
+  const fadeIn  = 0.4 + r() * 0.8;
+  const fadeOut = 0.4 + r() * 0.8;
+
+  return {
+    id: ++gustIdCounter,
+    center: startCenter,
+    speed,
+    halfWidthFrac,
+    boost: 0.15 + r() * 0.35,       // 0.15–0.50
+    wobble: 0.05 + r() * 0.25,
+    wobbleFreq: 1.5 + r() * 3.0,
+    wobblePhase: r() * Math.PI * 2,
+    born: t,
+    fadeIn,
+    fadeOut,
+    life,
+    dead: false,
+  };
+}
+
 export default function AsciiClouds({ className = "" }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef    = useRef<number>(0);
@@ -102,12 +172,64 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     let lastPH  = 0;
     let lastDpr = 0;
 
-    // ── Time in seconds (fps-independent) ────────────────────────────────────
-    // t is now real elapsed seconds from performance.now(), not a frame counter.
-    // This makes windSpeed (cols/sec), speed, etc. behave consistently regardless
-    // of fps setting or frame drops.
     const startTime = performance.now();
-    let frame = 0; // still used for the noise phase offsets (same as before)
+    let frame = 0;
+
+    // ── Gust state ────────────────────────────────────────────────────────────
+    const gusts: Gust[] = [];
+    let lastSpawnTime = -CONFIG.spawnInterval; // spawn immediately on first frame
+
+    function updateGusts(t: number, cols: number) {
+      // Advance existing gusts
+      // (position is computed per-frame from born+speed, not mutated here)
+
+      // Cull dead gusts
+      for (let i = gusts.length - 1; i >= 0; i--) {
+        const g = gusts[i];
+        const age = t - g.born;
+        if (age > g.life) {
+          gusts.splice(i, 1);
+        }
+      }
+
+      // Spawn new gusts
+      if (
+        gusts.length < CONFIG.maxGusts &&
+        t - lastSpawnTime >= CONFIG.spawnInterval * (0.5 + gustRng() * 1.0)
+      ) {
+        gusts.push(spawnGust(t, cols));
+        lastSpawnTime = t;
+      }
+    }
+
+    function gustBrightnessAt(col: number, row: number, rows: number, t: number, cols: number): number {
+      let total = 0;
+      for (const g of gusts) {
+        const age     = t - g.born;
+        const halfW   = g.halfWidthFrac * cols;
+
+        // Fade envelope
+        let fade = 1;
+        if (age < g.fadeIn)              fade = age / g.fadeIn;
+        else if (age > g.life - g.fadeOut) fade = (g.life - age) / g.fadeOut;
+        fade = Math.max(0, Math.min(1, fade));
+
+        // Current center
+        const center = g.center + g.speed * age;
+
+        // Vertical wobble
+        const rowFrac  = row / Math.max(1, rows - 1);
+        const wobble   = Math.sin(rowFrac * Math.PI * g.wobbleFreq + t * 0.3 + g.wobblePhase) * g.wobble * cols;
+        const effCenter = center + wobble;
+
+        const dist = Math.abs(col - effCenter);
+        if (dist < halfW) {
+          const env = Math.pow(Math.sin((1 - dist / halfW) * Math.PI * 0.5), 2);
+          total += env * g.boost * fade;
+        }
+      }
+      return total;
+    }
 
     function render() {
       if (!img.complete || img.naturalWidth === 0) return;
@@ -117,10 +239,9 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       const H = rect.height;
       if (W === 0 || H === 0) return;
 
-      // Real elapsed seconds — drives wind gust and all other animations
-      const t = (performance.now() - startTime) / 1000;
-
+      const t   = (performance.now() - startTime) / 1000;
       const dpr = getEffectiveDpr();
+
       if (Math.abs(dpr - cachedDpr) > 0.001) {
         cachedDpr  = dpr;
         glyphAtlas = buildGlyphAtlas(cs, dpr);
@@ -132,6 +253,9 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
 
       const cols = Math.floor(W / cs);
       const rows = Math.floor(H / cs);
+
+      // Update gust pool
+      updateGusts(t, cols);
 
       // ── 1. Sample cloud image at grid resolution ──────────────────────────
       offSample.width  = cols;
@@ -148,21 +272,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       const dAmp = CONFIG.displacement * MAX_DISP;
       const { threshold, ceiling } = CONFIG;
 
-      // ── Wind gust pre-computation ─────────────────────────────────────────
-      // gustCenter is in col-space, advancing at windSpeed cols/second.
-      // The period includes full entry from left and exit to right so there's
-      // no visible pop when it wraps.
-      const halfW      = CONFIG.windWidth * cols;
-      const gustPeriod = cols + 2 * halfW;
-      const gustCenter = ((t * CONFIG.windSpeed) % gustPeriod) - halfW;
-
       for (let row = 0; row < rows; row++) {
-        // Vertical wobble: shifts the gust center per row so the leading edge
-        // has a soft diagonal ripple rather than a ruler-straight vertical bar.
-        const rowFrac       = row / Math.max(1, rows - 1);
-        const wobble        = Math.sin(rowFrac * Math.PI * 2.5 + t * 0.3) * CONFIG.windWobble * cols;
-        const gustColCenter = gustCenter + wobble;
-
         for (let col = 0; col < cols; col++) {
           const ni = ((row % NOISE_H) * NOISE_W + (col % NOISE_W)) * 5;
           const bPhase = NOISE[ni];
@@ -179,12 +289,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
 
           const base = (alpha - threshold) / (ceiling - threshold);
 
-          // ── Wind brightness ───────────────────────────────────────────────
-          // sin² envelope: smooth hill, peaks at 1 at center, 0 at ±halfW.
-          const dist           = Math.abs(col - gustColCenter);
-          const windBrightness = dist < halfW
-            ? Math.pow(Math.sin((1 - dist / halfW) * Math.PI * 0.5), 2) * CONFIG.windBoost
-            : 0;
+          const windBrightness = gustBrightnessAt(col, row, rows, t, cols);
 
           const modulated = Math.min(1, Math.max(0.05, base + wave + windBrightness));
           const charIdx   = Math.floor(modulated * (CHARS.length - 1));
