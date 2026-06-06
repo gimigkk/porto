@@ -7,7 +7,7 @@ const CONFIG = {
   cellSize: 8,
   
   // -- Intro Sequence --
-  introStartSize: 1000,
+  introStartSize: 200,
   introDuration: 3.5,  // 600ms to allow the Expo tail to glide smoothly
   introSlideY: 0.3,    // Slide up translation (20% of screen height)
 
@@ -297,14 +297,19 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       if (isIntro) {
         const progress = t / CONFIG.introDuration;
         
-        // Expo Ease-In-Out: Violent snap in the middle with a very long, floating tail
-        const ease = progress === 0 ? 0 : progress === 1 ? 1 : progress < 0.5 
-          ? Math.pow(2, 20 * progress - 10) / 2 
-          : (2 - Math.pow(2, -20 * progress + 10)) / 2;
+        // Warping progress with a 0.3 power compresses the entire start-to-snap
+        // phase into the first ~10% of the timeline (approx. 0.35 seconds).
+        const warped = Math.pow(progress, 0.35);
 
-        currentCellSize = CONFIG.introStartSize * Math.pow(CONFIG.cellSize / CONFIG.introStartSize, ease);
+        const ease = warped === 0 ? 0 : warped === 1 ? 1 : warped < 0.5 
+          ? Math.pow(2, 20 * warped - 10) / 2 
+          : (2 - Math.pow(2, -20 * warped + 10)) / 2;
+
+        const calculatedSize = CONFIG.introStartSize * Math.pow(CONFIG.cellSize / CONFIG.introStartSize, ease);
+        currentCellSize = Math.min(200, calculatedSize); // Guard against render lag
         introOffsetNorm = CONFIG.introSlideY * (1 - ease);
       }
+
 
       const PW   = Math.round(W * dpr);
       const PH   = Math.round(H * dpr);
