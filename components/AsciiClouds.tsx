@@ -12,7 +12,7 @@ const CONFIG = {
   displacement: 0.6,
   fps: 10,
   // ── Wind gust ──────────────────────────────────────────────────────────────
-  windSpeed: 24,      // cols per second the gust travels left→right
+  windSpeed: 35,      // cols per second the gust travels left→right
   windWidth: 0.20,    // gust half-width as fraction of total columns
   windBoost: 0.3,     // peak brightness boost added to modulated (0–1)
   windWobble: 0.22,   // vertical sine wobble on the gust edge (fraction of rows)

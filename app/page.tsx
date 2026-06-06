@@ -19,9 +19,12 @@ export default function Home() {
           <div className="absolute inset-0 bg-linear-to-b from-[#103f97] to-[#50aaff]" />
 
           {/* ASCII Clouds — tune CONFIG inside AsciiClouds.tsx */}
-          <div className="absolute inset-0 pointer-events-none select-none">
+          <div className="absolute inset-0 pointer-events-none select-none z-10">
             <AsciiClouds className="w-full h-full" />
           </div>
+
+          {/* dark gradient from bottom */}
+          <div className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#00000081] to-transparent z-0" />
 
           {/* Content */}
           <div className="relative z-10 flex flex-col items-center">
