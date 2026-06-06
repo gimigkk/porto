@@ -1,7 +1,7 @@
 import { getAllProjects } from "@/lib/projects";
 import StackedSections from "@/components/layout/StackedSections";
 import ClientProjectModal from "@/components/projects/ClientProjectModal";
-import AsciiClouds from "@/components/AsciiClouds";
+import AsciiClouds from "@/components/AsciiClouds/AsciiClouds";
 
 // IMPORT: Loading Cormorant Garamond for the stylish italic accent
 import { Cormorant_Garamond } from 'next/font/google';

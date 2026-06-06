@@ -1,0 +1,147 @@
+/**
+ * useAsciiClouds.ts
+ * 
+ * React hook that manages the lifecycle of the ASCII cloud simulation.
+ * It initializes the renderer, binds DOM event listeners for pointer interaction,
+ * and runs the main requestAnimationFrame loop that drives the physics and rendering.
+ */
+import { useEffect, useRef } from "react";
+import { CONFIG, CloudState, MouseState } from "./CloudAsciiCore";
+import { updateGusts, updateBlobs, updateDisruptions } from "./CloudAsciiPhysics";
+import { AsciiRenderer } from "./CloudAsciiRenderer";
+
+export function useAsciiClouds() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const renderer = new AsciiRenderer(canvas);
+    
+    let startTime = performance.now();
+    let lastPhysicsTime = performance.now();
+    let lastRenderTime = performance.now();
+
+    const mouse: MouseState = { x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0, active: false, hasMoved: false };
+    const state: CloudState = {
+      gusts: [],
+      blobs: [],
+      disruptions: [],
+      lastSpawnTime: -CONFIG.spawnInterval,
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (!mouse.active) {
+        mouse.px = x;
+        mouse.py = y;
+      }
+      mouse.x = x;
+      mouse.y = y;
+      mouse.active = true;
+      mouse.hasMoved = true;
+    };
+
+    const handlePointerLeave = () => {
+      mouse.active = false;
+      mouse.hasMoved = false;
+    };
+
+    const handleScroll = () => {
+      mouse.active = false;
+      mouse.hasMoved = false;
+      mouse.vx = 0;
+      mouse.vy = 0;
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerdown", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerLeave);
+    window.addEventListener("pointerleave", handlePointerLeave);
+    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+
+    function loop(now: number) {
+      rafRef.current = requestAnimationFrame(loop);
+
+      const t = (now - startTime) / 1000;
+      let dt = (now - lastPhysicsTime) / 1000;
+      if (dt < 0) dt = 0;
+      if (dt > 0.1) dt = 0.1;
+      lastPhysicsTime = now;
+
+      const W = renderer.currentW;
+      const H = renderer.currentH;
+      if (W === 0 || H === 0) return;
+
+      const isIntro = t < CONFIG.introDuration;
+
+      let currentCellSize = CONFIG.cellSize;
+      let introOffsetNorm = 0;
+      if (isIntro) {
+        const progress = t / CONFIG.introDuration;
+        const warped = Math.pow(progress, 0.35);
+        const ease = warped === 0 ? 0 : warped === 1 ? 1 : warped < 0.5 
+          ? Math.pow(2, 20 * warped - 10) / 2 
+          : (2 - Math.pow(2, -20 * warped + 10)) / 2;
+        const calculatedSize = CONFIG.introStartSize * Math.pow(CONFIG.cellSize / CONFIG.introStartSize, ease);
+        currentCellSize = Math.min(200, calculatedSize);
+        introOffsetNorm = CONFIG.introSlideY * (1 - ease);
+      }
+
+      const cols = Math.max(1, Math.floor(W / currentCellSize));
+      const rows = Math.max(1, Math.floor(H / currentCellSize));
+
+      updateDisruptions(state, mouse, dt, cols, rows, W, H);
+      updateBlobs(state, mouse, dt, t, cols, isIntro, W, H, renderer.imgData, renderer.imgW, renderer.imgH);
+      if (!isIntro) {
+        updateGusts(state, t, cols);
+      }
+
+      const interval = 1000 / CONFIG.fps;
+      if (isIntro || (now - lastRenderTime >= interval)) {
+        if (!isIntro) {
+          lastRenderTime = now - ((now - lastRenderTime) % interval);
+        } else {
+          lastRenderTime = now;
+        }
+        renderer.render(state, now, startTime, isIntro, introOffsetNorm, cols, rows);
+      }
+    }
+
+    const img = new Image();
+    img.src = "/assets/clouds.png";
+
+    img.onload = () => {
+      const tempCvs = document.createElement("canvas");
+      tempCvs.width = img.naturalWidth;
+      tempCvs.height = img.naturalHeight;
+      const tCtx = tempCvs.getContext("2d", { willReadFrequently: true })!;
+      tCtx.drawImage(img, 0, 0);
+      
+      const data = tCtx.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
+      renderer.setImageData(data, img.naturalWidth, img.naturalHeight);
+
+      startTime = performance.now();
+      lastPhysicsTime = startTime;
+      lastRenderTime = startTime;
+      rafRef.current = requestAnimationFrame(loop);
+    };
+
+    return () => {
+      renderer.destroy();
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerdown", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerLeave);
+      window.removeEventListener("pointerleave", handlePointerLeave);
+      window.removeEventListener("scroll", handleScroll, { capture: true });
+    };
+  }, []);
+
+  return canvasRef;
+}
