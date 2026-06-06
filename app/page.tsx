@@ -37,7 +37,7 @@ export default function Home() {
           <div className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#00000081] to-transparent z-0" />
           <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-[#000000b2] to-transparent z-11" />
 
-          {/* PROGRESSIVE BLUR STACK (3 Layers) */}
+          {/* PROGRESSIVE BLUR STACK (2 Layers) */}
           <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none select-none z-15 overflow-hidden">
             {/* Layer 1 */}
             <div 
@@ -54,8 +54,8 @@ export default function Home() {
             <div 
               className="absolute inset-0"
               style={{
-                backdropFilter: 'blur(2px)',
-                WebkitBackdropFilter: 'blur(2px)',
+                backdropFilter: 'blur(4px)',
+                WebkitBackdropFilter: 'blur(4px)',
                 WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
                 maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
               }}
@@ -69,9 +69,9 @@ export default function Home() {
           <div className="absolute bottom-6 left-0 right-0 z-20 select-none pointer-events-none">
             <div className="max-w-7xl mx-auto px-6 md:px-8 text-right">
               <p className="text-white/80 text-lg md:text-xs tracking-wider font-mono font-medium ">
-                this is real{" "}
+                It's a real{" "}
                 <span className={`${cormorant.className} italic text-white text-lg md:text-xl font-black px-1 tracking-tight`}>
-                  cloud sim ascii
+                  cloud sim ASCII
                 </span>{" "}
                 btw
               </p>
