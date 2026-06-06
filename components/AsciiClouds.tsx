@@ -14,7 +14,7 @@ const CONFIG = {
   threshold: 0,
   ceiling: 1,
   speed: 5,
-  waveDepth: 0.3,
+  waveDepth: 0.6,
   displacement: 0.6,
   fps: 10,
 

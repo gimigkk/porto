@@ -256,6 +256,7 @@ export default function Navbar() {
     <>
       {/* Desktop page dimming backdrop */}
       <motion.div
+        initial={{ opacity: 0 }} // Added initial state
         animate={{ opacity: isExpanded ? 1 : 0 }}
         transition={{ opacity: { duration: 0.25, ease: easeOut } }}
         className="fixed inset-0 z-30 bg-black/10 hidden md:block"
@@ -347,6 +348,7 @@ export default function Navbar() {
         {/* Desktop dropdown */}
         <div className="hidden md:block">
           <motion.div
+            initial={{ height: 0 }} // Added initial height to stop SSR flash
             animate={{
               height: isExpanded ? contentHeight : 0,
             }}
@@ -363,7 +365,6 @@ export default function Navbar() {
               className="max-w-[1400px] mx-auto px-4 md:px-12 py-6"
               style={{ paddingLeft: `${hoveredOffset + 16}px`, paddingRight: "1rem" }}
             >
-              {/* Added AnimatePresence & popLayout so layout doesnt jump during crossfades */}
               <AnimatePresence mode="popLayout">
                 {activeSublinks && (
                   <motion.div
