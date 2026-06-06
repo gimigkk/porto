@@ -348,7 +348,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           }
         }
 
-        // Physical wind push from the active cursor (interactable immediately)
+        // Physical wind push from the active cursor
         if (CONFIG.cursorDisruptor.enabled && mouse.active) {
           const mImgX = (mouse.x / safeW) * imgW;
           const mImgY = (mouse.y / safeH) * imgH;
@@ -477,7 +477,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         mouse.vy *= damp;
       }
 
-      // Generate new trails from active cursor sweeps (interactable immediately)
+      // Generate new trails from active cursor sweeps
       if (CONFIG.cursorDisruptor.enabled && mouse.active) {
         const mSpeed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
         if (mSpeed > CONFIG.cursorDisruptor.minSpeedToSpawn) {
@@ -786,29 +786,59 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         const pyStart = rowPx[row];
 
         for (let col = 0; col < cols; col++) {
+          
+          // Warp displacement: Calculate physical coordinate pushing from pointer trail
+          let dispCol = 0;
+          let dispRow = 0;
+
+          if (disruptions.length > 0) {
+            for (let i = 0; i < disruptions.length; i++) {
+              const d = disruptions[i];
+              const dx = col - d.cx;
+              const dy = row - d.cy;
+              const distSq = dx * dx + dy * dy;
+              const rSq = d.radius * d.radius;
+              if (distSq < rSq) {
+                const dist = Math.sqrt(distSq);
+                const falloff = 1.0 - dist / d.radius;
+                const smoothFalloff = falloff * falloff * (3.0 - 2.0 * falloff);
+                const pct = d.life / d.maxLife;
+                
+                // Shift coordinates responsive to trailing movement vector
+                const force = smoothFalloff * pct * 0.15; 
+                dispCol += d.vx * force;
+                dispRow += d.vy * force;
+              }
+            }
+          }
+
           const ni = ((row % NOISE_H) * NOISE_W + (col % NOISE_W)) * 5;
 
           const dPhase = NOISE[ni + 2], dDir = NOISE[ni + 3], dSpeed = NOISE[ni + 4];
           const disp   = Math.sin(t * s * dSpeed + dPhase) * dAmp * dDir;
-          let srcRow   = (row + disp + 0.5) | 0;
+          
+          // Apply horizontal & vertical displacement offset to lookup coordinates
+          let srcCol = (col - dispCol + 0.5) | 0;
+          if (srcCol < 0) srcCol = 0;
+          else if (srcCol >= cols) srcCol = cols - 1;
+
+          let srcRow   = (row - dispRow + disp + 0.5) | 0;
           if (srcRow < 0) srcRow = 0;
           else if (srcRow >= rows) srcRow = rows - 1;
           
-          // Image mask lookup
+          // Image mask lookup with displaced lookup coordinates
           const pYMask = pxRows[srcRow];
           let imgMaskAlpha = 0;
           if (pYMask >= 0) {
-            imgMaskAlpha = imgData[(pYMask * imgW + pxCols[col]) * 4 + 3];
+            imgMaskAlpha = imgData[(pYMask * imgW + pxCols[srcCol]) * 4 + 3];
           }
 
           // Fetch the dynamic deformed blob values at coordinates
-          const blobVal = blobAlphaGrid ? blobAlphaGrid[srcRow * cols + col] : 0;
+          const blobVal = blobAlphaGrid ? blobAlphaGrid[srcRow * cols + srcCol] : 0;
           const blobAlpha255 = Math.floor(blobVal * 255);
 
-          // Calculate interactive wind trail disruption pressure factor
-          const disruption = disruptionGrid ? disruptionGrid[srcRow * cols + col] : 0;
-          // disruption ranges from -1.0 (rarefaction/darken) to +1.0 (compression/brighten)
-          // Map this to a multiplication scaling factor clamped between 0.0 and 2.0
+          // Calculate interactive wind trail disruption pressure factor in screen space
+          const disruption = disruptionGrid ? disruptionGrid[rowBase + col] : 0;
           const disruptionFactor = Math.min(2.0, Math.max(0.0, 1.0 + disruption));
 
           // Combined mask values (scaled by local cursor disruption)
@@ -818,10 +848,10 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           if (combinedMaskAlpha === 0) continue;
 
           // Combined intensity thresholds
-          const pYRaw = pxRows[row];
+          const pYRaw = pxRows[srcRow];
           let imgAlpha = 0;
           if (pYRaw >= 0) {
-            imgAlpha = imgData[(pYRaw * imgW + pxCols[col]) * 4 + 3] / 255;
+            imgAlpha = imgData[(pYRaw * imgW + pxCols[srcCol]) * 4 + 3] / 255;
           }
 
           let combinedAlpha = Math.max(imgAlpha, blobVal);
