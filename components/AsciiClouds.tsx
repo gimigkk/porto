@@ -16,7 +16,7 @@ const CONFIG = {
   speed: 5,
   waveDepth: 0.6,
   displacement: 0.6,
-  fps: 10,
+  fps: 15,             // Visual render framerate
 
   // -- Wind gusts --
   maxGusts: 4,
@@ -39,6 +39,21 @@ const CONFIG = {
   blobSpeedY: [-65, -20],    // Graceful, slower vertical speed (negative = upwards)
   blobAmbientWind: 12.0,     // Gentle background horizontal breeze
   blobWindPush: 10.0,        // Strength of gust wind blowing particles sideways
+
+  // -- Cursor Disruptor --
+  cursorDisruptor: {
+    enabled: true,
+    minSpeedToSpawn: 40,        // Minimum pointer speed (px/sec) to generate wind trails
+    maxSpeedReference: 2500,    // Speed at which the effect hits maximum intensity
+    maxIntensity: 0.05,         // Maximum darkening/carving depth (0 to 1)
+    particleLife: 1.2,          // Lifespan of trail particles (seconds)
+    minRadius: 3.0,             // Minimum trail radius (in grid cells) for slow speeds
+    maxRadius: 10.0,            // Maximum trail radius (in grid cells) for fast speeds
+    expansionFactor: 2.5,       // Scale multiplier for dispersion as particles age (1.0 = no expansion)
+    trailFling: 0.28,           // Speed multiplier transferred to trail drift
+    pushRadius: 180,            // Physical push radius for smoke blobs (in image pixels)
+    pushStrength: 0.65,         // Scaling factor for force applied to the particles
+  }
 };
 // -----------------------------------------------------------------------------
 
@@ -164,6 +179,18 @@ interface Blob {
   maxLife: number;     // Starting lifetime (seconds)
 }
 
+// --- Disruption Trail Particle Type -----------------------------------------
+interface DisruptionParticle {
+  cx: number;          // Grid column
+  cy: number;          // Grid row
+  vx: number;          // Column velocity
+  vy: number;          // Row velocity
+  radius: number;      // Effect radius (grid cells)
+  intensity: number;   // Darkening factor
+  life: number;        // Life remaining
+  maxLife: number;     // Initial life
+}
+
 export default function AsciiClouds({ className = "" }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef    = useRef<number>(0);
@@ -208,11 +235,13 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     let cachedGridPH   = 0;
     let gustRowCache: Float32Array | null = null;
     let blobGridCache: Float32Array | null = null;
+    let disruptionGridCache: Float32Array | null = null;
     let wasIntro = true; // Fixes fractional offset bug
 
     let lastPW = 0, lastPH = 0, lastDpr = 0;
     let startTime = performance.now();
-    let lastT = 0;
+    let lastPhysicsTime = performance.now();
+    let lastRenderTime = performance.now();
 
     let currentW = 0, currentH = 0;
     const ro = new ResizeObserver((entries) => {
@@ -227,6 +256,39 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     });
     ro.observe(cvs);
     { const r = cvs.getBoundingClientRect(); currentW = r.width; currentH = r.height; }
+
+    // -- Pointer & Physics State ----------------------------------------------
+    const mouse = { x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0, active: false, hasMoved: false };
+    const disruptions: DisruptionParticle[] = [];
+
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!cvs) return;
+      const rect = cvs.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Establish starting points on initial interaction to prevent sudden velocity jumps
+      if (!mouse.active) {
+        mouse.px = x;
+        mouse.py = y;
+      }
+
+      mouse.x = x;
+      mouse.y = y;
+      mouse.active = true;
+      mouse.hasMoved = true;
+    };
+
+    const handlePointerLeave = () => {
+      mouse.active = false;
+      mouse.hasMoved = false;
+    };
+
+    // Global event listeners to track movement across absolute overlay panels
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerdown", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerLeave);
+    window.addEventListener("pointerleave", handlePointerLeave);
 
     // -- Dynamic State --------------------------------------------------------
     const gusts: Gust[] = [];
@@ -246,7 +308,10 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       }
     }
 
-    function updateBlobs(dt: number, t: number, cols: number) {
+    function updateBlobs(dt: number, t: number, cols: number, isIntro: boolean) {
+      const safeW = currentW || 1;
+      const safeH = currentH || 1;
+
       // Update active particles
       for (let i = blobs.length - 1; i >= 0; i--) {
         const b = blobs[i];
@@ -280,6 +345,37 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
             b.vx += windDir * strength * 120 * dt;
             // Introduce a subtle updraft lifting
             b.vy -= strength * 10 * dt;
+          }
+        }
+
+        // Physical wind push from the active cursor (interactable immediately)
+        if (CONFIG.cursorDisruptor.enabled && mouse.active) {
+          const mImgX = (mouse.x / safeW) * imgW;
+          const mImgY = (mouse.y / safeH) * imgH;
+          const mSpeed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
+
+          if (mSpeed > CONFIG.cursorDisruptor.minSpeedToSpawn) {
+            const pushRadius = CONFIG.cursorDisruptor.pushRadius;
+            const pushStrength = CONFIG.cursorDisruptor.pushStrength;
+
+            const dx = b.px - mImgX;
+            const dy = b.py - mImgY;
+            const distSq = dx * dx + dy * dy;
+            const rSq = pushRadius * pushRadius;
+
+            if (distSq < rSq && distSq > 0.1) {
+              const dist = Math.sqrt(distSq);
+              const force = (1.0 - dist / pushRadius) * pushStrength;
+              const dirX = dx / dist;
+              const dirY = dy / dist;
+
+              const mNormX = mouse.vx / mSpeed;
+              const mNormY = mouse.vy / mSpeed;
+
+              // Combined radial blast outward + cursor translation velocity
+              b.vx += (dirX * 0.35 + mNormX * 0.65) * force * 140 * dt;
+              b.vy += (dirY * 0.35 + mNormY * 0.65) * force * 140 * dt;
+            }
           }
         }
 
@@ -323,7 +419,6 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
             const cloudHeight = pyBottom - pyTop;
             
             // Spawn inside the cloud, but biased toward the top-half (60% to 90% of the way up)
-            // This lets us use a slow, graceful rise speed while still popping out almost instantly.
             const fractionUp = 0.6 + rng() * 0.3; 
             const py = Math.floor(pyBottom - (cloudHeight * fractionUp));
 
@@ -345,6 +440,65 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
               life: maxLife, maxLife
             });
           }
+        }
+      }
+    }
+
+    function updateDisruptions(dt: number, cols: number, rows: number) {
+      const safeW = currentW || 1;
+      const safeH = currentH || 1;
+
+      // Update existing trail particles
+      for (let i = disruptions.length - 1; i >= 0; i--) {
+        const d = disruptions[i];
+        d.life -= dt;
+        if (d.life <= 0) {
+          disruptions.splice(i, 1);
+          continue;
+        }
+        d.cx += d.vx * dt;
+        d.cy += d.vy * dt;
+        d.vx *= Math.exp(-dt * 3.0); // momentum air resistance
+        d.vy *= Math.exp(-dt * 3.0);
+      }
+
+      // Decouple input from frame rate: compute reliable velocity over regular 'dt'
+      if (mouse.active && mouse.hasMoved) {
+        const dx = mouse.x - mouse.px;
+        const dy = mouse.y - mouse.py;
+        mouse.vx = dx / dt;
+        mouse.vy = dy / dt;
+        mouse.px = mouse.x;
+        mouse.py = mouse.y;
+        mouse.hasMoved = false; // Reset flag for next check frame
+      } else {
+        const damp = Math.exp(-dt * 5);
+        mouse.vx *= damp;
+        mouse.vy *= damp;
+      }
+
+      // Generate new trails from active cursor sweeps (interactable immediately)
+      if (CONFIG.cursorDisruptor.enabled && mouse.active) {
+        const mSpeed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
+        if (mSpeed > CONFIG.cursorDisruptor.minSpeedToSpawn) {
+          const normSpeed = Math.min(1.0, mSpeed / CONFIG.cursorDisruptor.maxSpeedReference);
+          
+          // Apply an exponential curve to make speed transitions feel more dynamic
+          const speedCurve = Math.pow(normSpeed, 1.2);
+          const mCol = (mouse.x / safeW) * cols;
+          const mRow = (mouse.y / safeH) * rows;
+
+          disruptions.push({
+            cx: mCol,
+            cy: mRow,
+            vx: (mouse.vx / safeW) * cols * CONFIG.cursorDisruptor.trailFling,
+            vy: (mouse.vy / safeH) * rows * CONFIG.cursorDisruptor.trailFling,
+            // Radius scales dynamically: fast cursor speeds generate substantially wider disruption bands
+            radius: CONFIG.cursorDisruptor.minRadius + speedCurve * (CONFIG.cursorDisruptor.maxRadius - CONFIG.cursorDisruptor.minRadius),
+            intensity: speedCurve * CONFIG.cursorDisruptor.maxIntensity,
+            life: CONFIG.cursorDisruptor.particleLife,
+            maxLife: CONFIG.cursorDisruptor.particleLife,
+          });
         }
       }
     }
@@ -413,42 +567,17 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       return map;
     }
 
-    function render(now: number) {
+    // --- Dedicated Render Phase (Invoked only at target CONFIG.fps) ----------
+    function render(now: number, cols: number, rows: number, isIntro: boolean, introOffsetNorm: number) {
       if (!imgData) return;
       const W = currentW, H = currentH;
       if (W === 0 || H === 0) return;
 
       const t   = (now - startTime) / 1000;
-      let dt    = t - lastT;
-      if (dt < 0) dt = 0;
-      if (dt > 0.1) dt = 0.1;
-      lastT = t;
-
       const dpr = getEffectiveDpr();
-
-      // -- Intro interpolation (Aggressive Expo Ease-In-Out) -------------------
-      const isIntro = t < CONFIG.introDuration;
-      let currentCellSize = CONFIG.cellSize;
-      let introOffsetNorm = 0;
-      
-      if (isIntro) {
-        const progress = t / CONFIG.introDuration;
-        const warped = Math.pow(progress, 0.35);
-
-        const ease = warped === 0 ? 0 : warped === 1 ? 1 : warped < 0.5 
-          ? Math.pow(2, 20 * warped - 10) / 2 
-          : (2 - Math.pow(2, -20 * warped + 10)) / 2;
-
-        const calculatedSize = CONFIG.introStartSize * Math.pow(CONFIG.cellSize / CONFIG.introStartSize, ease);
-        currentCellSize = Math.min(200, calculatedSize); // Guard against render lag
-        introOffsetNorm = CONFIG.introSlideY * (1 - ease);
-      }
-
 
       const PW   = Math.round(W * dpr);
       const PH   = Math.round(H * dpr);
-      const cols = Math.max(1, Math.floor(W / currentCellSize));
-      const rows = Math.max(1, Math.floor(H / currentCellSize));
 
       const targetTileSize = Math.ceil(CONFIG.cellSize * dpr);
       if (targetTileSize !== cachedTileSize || dpr !== cachedDpr) {
@@ -476,13 +605,10 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         
         cachedImageCols = cols;
         cachedImageRows = rows;
-        if (isIntro) gusts.length = 0; 
         wasIntro = isIntro;
       }
 
       // -- 2. Dynamic Smoke Blobs --------------------------------------------
-      updateBlobs(dt, t, cols);
-
       let blobAlphaGrid: Float32Array | null = null;
       if (blobs.length > 0) {
         const reqSize = rows * cols;
@@ -553,14 +679,57 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         }
       }
 
-      // -- 3. Gust Map -------------------------------------------------------
+      // -- 3. Pointer Disruption Grid ----------------------------------------
+      let disruptionGrid: Float32Array | null = null;
+      if (disruptions.length > 0) {
+        const reqSize = rows * cols;
+        if (!disruptionGridCache || disruptionGridCache.length < reqSize) {
+          disruptionGridCache = new Float32Array(reqSize);
+        }
+        disruptionGrid = disruptionGridCache;
+        disruptionGrid.fill(0);
+
+        for (const d of disruptions) {
+          const pct = d.life / d.maxLife; // 1.0 (spawn) to 0.0 (death)
+          const currentIntensity = d.intensity * pct;
+
+          // Calculate an expanding dynamic radius to simulate dispersal dispersion
+          const expansion = 1.0 + (1.0 - pct) * (CONFIG.cursorDisruptor.expansionFactor - 1.0);
+          const radius = d.radius * expansion;
+
+          const cMin = Math.max(0, Math.floor(d.cx - radius));
+          const cMax = Math.min(cols - 1, Math.ceil(d.cx + radius));
+          const rMin = Math.max(0, Math.floor(d.cy - radius));
+          const rMax = Math.min(rows - 1, Math.ceil(d.cy + radius));
+
+          for (let r = rMin; r <= rMax; r++) {
+            const rowBase = r * cols;
+            const dy = r - d.cy;
+
+            for (let c = cMin; c <= cMax; c++) {
+              const dx = c - d.cx;
+              const distSq = dx * dx + dy * dy;
+              const rSq = radius * radius;
+              if (distSq >= rSq) continue;
+
+              // Quadratic falloff profile towards edge of disruption circle
+              const distRatio = Math.sqrt(distSq) / radius;
+              const falloff = 1 - distRatio * distRatio;
+              const val = falloff * currentIntensity;
+              const idx = rowBase + c;
+              disruptionGrid[idx] = Math.min(1.0, disruptionGrid[idx] + val);
+            }
+          }
+        }
+      }
+
+      // -- 4. Gust Map -------------------------------------------------------
       let gustMap: Float32Array | null = null;
       if (!isIntro) {
-        updateGusts(t, cols);
         gustMap = buildGustMap(rows, cols, t);
       }
 
-      // -- 4. Bresenham Grid --------------------------------------------------
+      // -- 5. Bresenham Grid --------------------------------------------------
       if (cols !== cachedGridCols || PW !== cachedGridPW) {
         if (colPx.length < cols + 1) colPx = new Int32Array(cols + 1);
         for (let c = 0; c <= cols; c++) colPx[c] = Math.round(c * PW / cols);
@@ -574,7 +743,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         cachedGridPH   = PH;
       }
 
-      // -- 5. Output buffer --------------------------------------------------
+      // -- 6. Output buffer --------------------------------------------------
       if (PW !== lastPW || PH !== lastPH || dpr !== lastDpr) {
         offOut.width  = PW;
         offOut.height = PH;
@@ -597,7 +766,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       buf32.fill(0x00FFFFFF);
       const activeTileSize = cachedTileSize;
 
-      // -- 6. Main loop ------------------------------------------------------
+      // -- 7. Main loop ------------------------------------------------------
       for (let row = 0; row < rows; row++) {
         const rowBase = row * cols;
         const pyStart = rowPx[row];
@@ -622,8 +791,14 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           const blobVal = blobAlphaGrid ? blobAlphaGrid[srcRow * cols + col] : 0;
           const blobAlpha255 = Math.floor(blobVal * 255);
 
-          // Combined mask values
-          const combinedMaskAlpha = Math.max(imgMaskAlpha, blobAlpha255);
+          // Calculate interactive wind trail disruption
+          const disruption = disruptionGrid ? disruptionGrid[srcRow * cols + col] : 0;
+          const reductionFactor = Math.max(0, 1 - disruption);
+
+          // Combined mask values (reduced by local cursor disruption)
+          let combinedMaskAlpha = Math.max(imgMaskAlpha, blobAlpha255);
+          if (combinedMaskAlpha === 0) continue;
+          combinedMaskAlpha = Math.floor(combinedMaskAlpha * reductionFactor);
           if (combinedMaskAlpha === 0) continue;
 
           // Combined intensity thresholds
@@ -633,7 +808,8 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
             imgAlpha = imgData[(pYRaw * imgW + pxCols[col]) * 4 + 3] / 255;
           }
 
-          const combinedAlpha = Math.max(imgAlpha, blobVal);
+          let combinedAlpha = Math.max(imgAlpha, blobVal);
+          combinedAlpha *= reductionFactor;
           if (combinedAlpha < threshold) continue;
 
           const bPhase = NOISE[ni], bSpeed = NOISE[ni + 1];
@@ -674,7 +850,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
         }
       }
 
-      // -- 7. Flush ----------------------------------------------------------
+      // -- 8. Flush ----------------------------------------------------------
       offOutCtx.putImageData(outImageData!, 0, 0);
       if (cvs.width !== PW || cvs.height !== PH) {
         cvs.width  = PW;
@@ -685,26 +861,55 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       ctx.drawImage(offOut, 0, 0);
     }
 
-    // -- Dynamic FPS rAF Loop -------------------------------------------------
-    let lastRenderTime = performance.now();
-
+    // -- Dual-Rate Main Loop (Physics at 60Hz, Render at CONFIG.fps) ----------
     function loop(now: number) {
       rafRef.current = requestAnimationFrame(loop);
+
       const t = (now - startTime) / 1000;
-      
+      let dt = (now - lastPhysicsTime) / 1000;
+      if (dt < 0) dt = 0;
+      if (dt > 0.1) dt = 0.1;
+      lastPhysicsTime = now;
+
+      const W = currentW, H = currentH;
+      if (W === 0 || H === 0) return;
+
       const isIntro = t < CONFIG.introDuration;
 
-      // Unthrottled render during Intro to hit max native refresh-rate (60fps+)
+      // Current cell size depending on intro progress
+      let currentCellSize = CONFIG.cellSize;
+      let introOffsetNorm = 0;
       if (isIntro) {
-        render(now);
-        lastRenderTime = now;
-      } else {
-        // Fall back to stylized cinematic target FPS
-        const interval = 1000 / CONFIG.fps;
-        if (now - lastRenderTime >= interval) {
+        const progress = t / CONFIG.introDuration;
+        const warped = Math.pow(progress, 0.35);
+        const ease = warped === 0 ? 0 : warped === 1 ? 1 : warped < 0.5 
+          ? Math.pow(2, 20 * warped - 10) / 2 
+          : (2 - Math.pow(2, -20 * warped + 10)) / 2;
+        const calculatedSize = CONFIG.introStartSize * Math.pow(CONFIG.cellSize / CONFIG.introStartSize, ease);
+        currentCellSize = Math.min(200, calculatedSize);
+        introOffsetNorm = CONFIG.introSlideY * (1 - ease);
+      }
+
+      const cols = Math.max(1, Math.floor(W / currentCellSize));
+      const rows = Math.max(1, Math.floor(H / currentCellSize));
+
+      // 1. Run Physics & Input Tracking at unthrottled 60fps (Active instantly)
+      updateDisruptions(dt, cols, rows);
+      updateBlobs(dt, t, cols, isIntro);
+      if (!isIntro) {
+        updateGusts(t, cols);
+      }
+
+      // 2. Throttle visual canvas drawing (render) strictly to CONFIG.fps (10fps)
+      // (Intro sequence is kept unthrottled for smooth scaling)
+      const interval = 1000 / CONFIG.fps;
+      if (isIntro || (now - lastRenderTime >= interval)) {
+        if (!isIntro) {
           lastRenderTime = now - ((now - lastRenderTime) % interval);
-          render(now);
+        } else {
+          lastRenderTime = now;
         }
+        render(now, cols, rows, isIntro, introOffsetNorm);
       }
     }
 
@@ -724,14 +929,18 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       imgH = img.naturalHeight;
 
       startTime = performance.now();
+      lastPhysicsTime = startTime;
       lastRenderTime = startTime;
-      lastT = 0;
       rafRef.current = requestAnimationFrame(loop);
     };
 
     return () => {
       ro.disconnect();
       cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerdown", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerLeave);
+      window.removeEventListener("pointerleave", handlePointerLeave);
     };
   }, []);
 
@@ -739,7 +948,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
     <canvas
       ref={canvasRef}
       className={className}
-      style={{ display: "block", width: "100%", height: "100%" }}
+      style={{ display: "block", width: "100%", height: "100%", touchAction: "none" }}
     />
   );
 }

@@ -68,9 +68,9 @@ export default function Home() {
           {/* pamer note */}
           <div className="absolute bottom-6 left-0 right-0 z-20 select-none pointer-events-none">
             <div className="max-w-7xl mx-auto px-6 md:px-8 text-right">
-              <p className="text-white/80 text-[12px] md:text-xs tracking-wider font-mono font-medium ">
+              <p className="text-white/80 text-lg md:text-xs tracking-wider font-mono font-medium ">
                 this is real{" "}
-                <span className={`${cormorant.className} italic text-white text-lg md:text-xl font-black px-1`}>
+                <span className={`${cormorant.className} italic text-white text-lg md:text-xl font-black px-1 tracking-tight`}>
                   cloud sim ascii
                 </span>{" "}
                 btw
