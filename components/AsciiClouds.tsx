@@ -32,13 +32,14 @@ const CONFIG = {
   gustMaxTilt: 0.45,
 
   // -- Blobs (Smoke puffs) --
-  blobCount: 20,             // Maximum active particles on screen
-  blobSpawnChance: 0.18,     // Spawn rate factor
+  blobCount: 30,             // Maximum active particles on screen
+  blobSpawnChance: 0.2,     // Spawn rate factor
   blobLife: [3.5, 6.0],      // Lifetime in seconds
-  blobRadius: [12, 62],      // Refined puff size for elegant smoke contours
+  blobRadius: [12, 92],      // Refined puff size for elegant smoke contours
   blobSpeedY: [-65, -20],    // Graceful, slower vertical speed (negative = upwards)
   blobAmbientWind: 12.0,     // Gentle background horizontal breeze
   blobWindPush: 10.0,        // Strength of gust wind blowing particles sideways
+  blobStrength: 0.95,        // Opacity/density strength of puffs (0.0 to 1.0+. Higher = bolder ASCII glyphs)
 
   // -- Cursor Disruptor --
   cursorDisruptor: {
@@ -53,6 +54,10 @@ const CONFIG = {
     trailFling: 0.28,           // Speed multiplier transferred to trail drift
     pushRadius: 180,            // Physical push radius for smoke blobs (in image pixels)
     pushStrength: 0.65,         // Scaling factor for force applied to the particles
+    
+    // -- Tune limits below to adjust responsiveness vs. constraints --
+    maxWarpDisplacement: 14.0,  // Max grid cells allowed to warp. Lower = stiffer, Higher = looser warp.
+    maxBlobSpeed: 320.0,        // Max drift speed of smoke puffs to keep them elegant.
   }
 };
 // -----------------------------------------------------------------------------
@@ -284,11 +289,22 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       mouse.hasMoved = false;
     };
 
+    // Resets tracking on scroll to prevent the element position shifts from injecting fake high velocity
+    const handleScroll = () => {
+      mouse.active = false;
+      mouse.hasMoved = false;
+      mouse.vx = 0;
+      mouse.vy = 0;
+    };
+
     // Global event listeners to track movement across absolute overlay panels
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerdown", handlePointerMove);
     window.addEventListener("pointerup", handlePointerLeave);
     window.addEventListener("pointerleave", handlePointerLeave);
+    
+    // Capture scroll events anywhere on the page/container
+    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
 
     // -- Dynamic State --------------------------------------------------------
     const gusts: Gust[] = [];
@@ -377,6 +393,15 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
               b.vy += (dirY * 0.35 + mNormY * 0.65) * force * 140 * dt;
             }
           }
+        }
+
+        // Guardrail: Clamp maximum smoke puff speed to keep them elegant
+        const maxBlobSpeed = CONFIG.cursorDisruptor.maxBlobSpeed;
+        const speedSq = b.vx * b.vx + b.vy * b.vy;
+        if (speedSq > maxBlobSpeed * maxBlobSpeed) {
+          const speed = Math.sqrt(speedSq);
+          b.vx = (b.vx / speed) * maxBlobSpeed;
+          b.vy = (b.vy / speed) * maxBlobSpeed;
         }
 
         // Apply velocities in image pixel space
@@ -622,7 +647,9 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           const pct = b.life / b.maxLife;
           // Soft fade-in followed by a slow puff-out
           const opacity = pct > 0.8 ? (1.0 - pct) / 0.2 : pct / 0.8;
-          const alphaClamp = Math.min(1.0, Math.max(0.0, opacity)) * 0.75;
+          
+          // Uses the configured strength variable to control peak opacity
+          const alphaClamp = Math.min(1.0, Math.max(0.0, opacity)) * CONFIG.blobStrength;
 
           // Expand the puff based on its unique growth exponent
           const scaleProg = Math.pow(1.0 - pct, b.growthExp);
@@ -812,29 +839,45 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
             }
           }
 
+          // Guardrail: Clamp maximum coordinate warp displacement to prevent pulling
+          // in distant cloud pixels when the cursor sweeps at high speeds
+          const maxWarp = CONFIG.cursorDisruptor.maxWarpDisplacement;
+          if (dispCol > maxWarp) dispCol = maxWarp;
+          else if (dispCol < -maxWarp) dispCol = -maxWarp;
+          if (dispRow > maxWarp) dispRow = maxWarp;
+          else if (dispRow < -maxWarp) dispRow = -maxWarp;
+
           const ni = ((row % NOISE_H) * NOISE_W + (col % NOISE_W)) * 5;
 
           const dPhase = NOISE[ni + 2], dDir = NOISE[ni + 3], dSpeed = NOISE[ni + 4];
           const disp   = Math.sin(t * s * dSpeed + dPhase) * dAmp * dDir;
           
           // Apply horizontal & vertical displacement offset to lookup coordinates
-          let srcCol = (col - dispCol + 0.5) | 0;
-          if (srcCol < 0) srcCol = 0;
-          else if (srcCol >= cols) srcCol = cols - 1;
+          const srcCol = (col - dispCol + 0.5) | 0;
+          const srcRow = (row - dispRow + disp + 0.5) | 0;
 
-          let srcRow   = (row - dispRow + disp + 0.5) | 0;
-          if (srcRow < 0) srcRow = 0;
-          else if (srcRow >= rows) srcRow = rows - 1;
-          
-          // Image mask lookup with displaced lookup coordinates
-          const pYMask = pxRows[srcRow];
           let imgMaskAlpha = 0;
-          if (pYMask >= 0) {
-            imgMaskAlpha = imgData[(pYMask * imgW + pxCols[srcCol]) * 4 + 3];
+          let blobVal = 0;
+          let imgAlpha = 0;
+
+          // Bounds check: Only query texture/blob data if coordinates are inside the grid.
+          // If we are out of bounds, we leave alphas at 0 (treating it as completely transparent space)
+          const isInside = srcCol >= 0 && srcCol < cols && srcRow >= 0 && srcRow < rows;
+
+          if (isInside) {
+            const pYMask = pxRows[srcRow];
+            if (pYMask >= 0) {
+              imgMaskAlpha = imgData[(pYMask * imgW + pxCols[srcCol]) * 4 + 3];
+            }
+
+            blobVal = blobAlphaGrid ? blobAlphaGrid[srcRow * cols + srcCol] : 0;
+
+            const pYRaw = pxRows[srcRow];
+            if (pYRaw >= 0) {
+              imgAlpha = imgData[(pYRaw * imgW + pxCols[srcCol]) * 4 + 3] / 255;
+            }
           }
 
-          // Fetch the dynamic deformed blob values at coordinates
-          const blobVal = blobAlphaGrid ? blobAlphaGrid[srcRow * cols + srcCol] : 0;
           const blobAlpha255 = Math.floor(blobVal * 255);
 
           // Calculate interactive wind trail disruption pressure factor in screen space
@@ -846,13 +889,6 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
           if (combinedMaskAlpha === 0) continue;
           combinedMaskAlpha = Math.min(255, Math.floor(combinedMaskAlpha * disruptionFactor));
           if (combinedMaskAlpha === 0) continue;
-
-          // Combined intensity thresholds
-          const pYRaw = pxRows[srcRow];
-          let imgAlpha = 0;
-          if (pYRaw >= 0) {
-            imgAlpha = imgData[(pYRaw * imgW + pxCols[srcCol]) * 4 + 3] / 255;
-          }
 
           let combinedAlpha = Math.max(imgAlpha, blobVal);
           combinedAlpha = Math.min(1.0, combinedAlpha * disruptionFactor);
@@ -987,6 +1023,7 @@ export default function AsciiClouds({ className = "" }: { className?: string }) 
       window.removeEventListener("pointerdown", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerLeave);
       window.removeEventListener("pointerleave", handlePointerLeave);
+      window.removeEventListener("scroll", handleScroll, { capture: true });
     };
   }, []);
 
