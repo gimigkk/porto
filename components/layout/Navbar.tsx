@@ -130,8 +130,16 @@ export default function Navbar() {
 
   // Deriving panel open state
   const anyPanelOpen = mobileMenuOpen || gimigkkPanelOpen;
-  // Removed body scroll lock: setting overflow='hidden' on body triggers a massive
-  // global layout recalculation on iOS Safari and causes massive jank when opening menus.
+
+  // Pause the ASCII canvas animation loop while mobile menu is open.
+  // This frees the entire main thread (~30ms/frame) for smooth CSS transitions.
+  useEffect(() => {
+    if (anyPanelOpen) {
+      window.dispatchEvent(new Event("ascii-pause"));
+    } else {
+      window.dispatchEvent(new Event("ascii-resume"));
+    }
+  }, [anyPanelOpen]);
 
   // Hide-on-scroll: hide navbar when scrolling down, show when scrolling up or at top.
   // Keep visible when panels (mobile/menu) or desktop dropdown is open to avoid jank.
@@ -415,9 +423,8 @@ export default function Navbar() {
 
       {/* @gimigkk mobile panel */}
       <>
-        {/* Backdrop */}
         <div
-          className={`md:hidden fixed inset-0 z-40 bg-black/10 transition-opacity duration-200 ${gimigkkPanelOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          className={`md:hidden fixed inset-0 z-40 bg-black/10 backdrop-blur-sm transition-opacity duration-200 ${gimigkkPanelOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
             }`}
           onClick={closeGimigkkPanel}
         />
@@ -476,9 +483,8 @@ export default function Navbar() {
 
       {/* Hamburger mobile panel */}
       <>
-        {/* Backdrop */}
         <div
-          className={`md:hidden fixed inset-0 z-40 bg-black/10 transition-opacity duration-200 ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          className={`md:hidden fixed inset-0 z-40 bg-black/10 backdrop-blur-sm transition-opacity duration-200 ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
             }`}
           onClick={closeMobileMenu}
         />

@@ -4,6 +4,9 @@
  * React hook that manages the lifecycle of the ASCII cloud simulation.
  * It initializes the renderer, binds DOM event listeners for pointer interaction,
  * and runs the main requestAnimationFrame loop that drives the physics and rendering.
+ * 
+ * Supports pause/resume via global 'ascii-pause' / 'ascii-resume' events so the
+ * mobile navbar can temporarily free the main thread for smooth CSS transitions.
  */
 import { useEffect, useRef } from "react";
 import { CONFIG, CloudState, MouseState } from "./CloudAsciiCore";
@@ -25,6 +28,7 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
   const introCompleteRef = useRef(false);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     // Don't start until preloader signals ready
@@ -38,6 +42,9 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     let startTime = performance.now();
     let lastPhysicsTime = performance.now();
     let lastRenderTime = performance.now();
+    /** Accumulated pause time so animation resumes without a time jump */
+    let pauseAccum = 0;
+    let pauseStart = 0;
 
     // Detect mobile for FPS capping
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -77,16 +84,37 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       mouse.vy = 0;
     };
 
+    // Pause/resume handlers — called by Navbar when mobile menu opens/closes
+    const handlePause = () => {
+      if (pausedRef.current) return;
+      pausedRef.current = true;
+      pauseStart = performance.now();
+      cancelAnimationFrame(rafRef.current);
+    };
+
+    const handleResume = () => {
+      if (!pausedRef.current) return;
+      pausedRef.current = false;
+      pauseAccum += performance.now() - pauseStart;
+      lastPhysicsTime = performance.now();
+      lastRenderTime = performance.now();
+      rafRef.current = requestAnimationFrame(loop);
+    };
+
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerdown", handlePointerMove);
     window.addEventListener("pointerup", handlePointerLeave);
     window.addEventListener("pointerleave", handlePointerLeave);
     window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    window.addEventListener("ascii-pause", handlePause);
+    window.addEventListener("ascii-resume", handleResume);
 
     function loop(now: number) {
       rafRef.current = requestAnimationFrame(loop);
 
-      const t = (now - startTime) / 1000;
+      // Subtract accumulated pause time so animation doesn't jump
+      const adjustedNow = now - pauseAccum;
+      const t = (adjustedNow - startTime) / 1000;
       let dt = (now - lastPhysicsTime) / 1000;
       if (dt < 0) dt = 0;
       if (dt > 0.1) dt = 0.1;
@@ -192,6 +220,8 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       window.removeEventListener("pointerup", handlePointerLeave);
       window.removeEventListener("pointerleave", handlePointerLeave);
       window.removeEventListener("scroll", handleScroll, { capture: true });
+      window.removeEventListener("ascii-pause", handlePause);
+      window.removeEventListener("ascii-resume", handleResume);
     };
   }, [isReady, preloadedAssets]);
 
