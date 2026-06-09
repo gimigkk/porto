@@ -3,7 +3,7 @@
 import { useRef, useEffect } from "react";
 import { IBM_Plex_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import { Download, Send, FolderOpen } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useAnimationControls } from "framer-motion";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -16,11 +16,22 @@ const ibmPlexSerif = IBM_Plex_Serif({
   style: ["normal", "italic"],
 });
 
-export default function HeroContent() {
+interface HeroContentProps {
+  isReady?: boolean;
+}
+
+export default function HeroContent({ isReady = true }: HeroContentProps) {
   const words = ['Digitalisasi', 'dimulai', 'dari', 'hati,'];
   const mobileHeadlineRef = useRef<HTMLHeadingElement>(null);
   const mobileContactRef = useRef<HTMLParagraphElement>(null);
 
+  // Animation controls for imperative triggering
+  const wordControls = words.map(() => useAnimationControls());
+  const contactControls = [useAnimationControls(), useAnimationControls(), useAnimationControls()];
+  const subtextControls = useAnimationControls();
+  const ctaControls = useAnimationControls();
+
+  // Mobile word width matching
   useEffect(() => {
     const matchWidths = () => {
       const headline = mobileHeadlineRef.current;
@@ -45,6 +56,44 @@ export default function HeroContent() {
     return () => window.removeEventListener('resize', matchWidths);
   }, []);
 
+  // Trigger animations only when isReady flips to true
+  useEffect(() => {
+    if (!isReady) return;
+
+    // Words: staggered spring with rotateX
+    wordControls.forEach((ctrl, i) => {
+      ctrl.start({
+        opacity: 1,
+        rotateX: 0,
+        transition: { type: "spring", bounce: 0.6, duration: 1.2, delay: 0.5 + i * 0.25 },
+      });
+    });
+
+    // Contact text
+    contactControls[0].start({
+      opacity: 1, rotateX: 0,
+      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: 2 },
+    });
+    contactControls[1].start({
+      opacity: 1, rotateX: 0,
+      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: 3 },
+    });
+    contactControls[2].start({
+      opacity: 1, rotateX: 0,
+      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: 3.2 },
+    });
+
+    // Subtext + CTA
+    subtextControls.start({
+      opacity: 1, y: 0,
+      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 4 },
+    });
+    ctaControls.start({
+      opacity: 1, y: 0,
+      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 4 },
+    });
+  }, [isReady]);
+
   return (
     <>
       {/* --- DESKTOP VERSION --- */}
@@ -55,8 +104,7 @@ export default function HeroContent() {
             <span key={i} className="inline-block" style={{ perspective: "1000px" }}>
               <motion.span
                 initial={{ opacity: 0, rotateX: -90 }}
-                animate={{ opacity: 1, rotateX: 0 }}
-                transition={{ type: "spring", bounce: 0.6, duration: 1.2, delay: 0.5 + i * 0.25 }}
+                animate={wordControls[i]}
                 className="inline-block origin-top"
               >
                 {word}
@@ -68,17 +116,17 @@ export default function HeroContent() {
         {/* 2. Contact Text - IBM Plex Serif */}
         <p className={`${ibmPlexSerif.className} font-[400] text-4xl opacity-90 mb-[60px] flex gap-x-2 justify-center`}>
           <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={{ opacity: 1, rotateX: 0 }} transition={{ type: "spring", bounce: 0.5, duration: 1.2, delay: 2 }} className="italic inline-block origin-top">
+            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[0]} className="italic inline-block origin-top">
               Contact me!
             </motion.span>
           </span>
           <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={{ opacity: 1, rotateX: 0 }} transition={{ type: "spring", bounce: 0.5, duration: 1.2, delay: 3 }} className="inline-block origin-top">
+            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[1]} className="inline-block origin-top">
               Mari
             </motion.span>
           </span>
           <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={{ opacity: 1, rotateX: 0 }} transition={{ type: "spring", bounce: 0.5, duration: 1.2, delay: 3.2 }} className="inline-block origin-top">
+            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[2]} className="inline-block origin-top">
               berkolaborasi.
             </motion.span>
           </span>
@@ -87,18 +135,16 @@ export default function HeroContent() {
         {/* 3. Subtext - IBM Plex Serif */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 4 }}
+          animate={subtextControls}
           className={`${ibmPlexSerif.className} font-[400] text-[22.5px] opacity-90 mb-2`}
         >
-          Full-stack Dev & Product Designer
+          Full-stack Dev &amp; Product Designer
         </motion.p>
 
         {/* 4. CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 4 }}
+          animate={ctaControls}
           className="flex justify-center -space-x-2 w-full max-w-fit mx-auto drop-shadow-xl"
         >
           <a
@@ -150,8 +196,7 @@ export default function HeroContent() {
             <span key={i} className="inline-block" style={{ perspective: "1000px" }}>
               <motion.span
                 initial={{ opacity: 0, rotateX: -90 }}
-                animate={{ opacity: 1, rotateX: 0 }}
-                transition={{ type: "spring", bounce: 0.6, duration: 1.2, delay: 0.5 + i * 0.25 }}
+                animate={wordControls[i]}
                 className="inline-block origin-top"
               >
                 {word}
@@ -163,17 +208,17 @@ export default function HeroContent() {
         {/* 2. Contact Text — font-size dynamically matched to headline width */}
         <p ref={mobileContactRef} className={`${ibmPlexSerif.className} font-[400] text-[5vw] opacity-90 mb-8 whitespace-nowrap`}>
           <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={{ opacity: 1, rotateX: 0 }} transition={{ type: "spring", bounce: 0.5, duration: 1.2, delay: 2 }} className="italic inline-block origin-top">
+            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[0]} className="italic inline-block origin-top">
               Contact me!
             </motion.span>
           </span>{" "}
           <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={{ opacity: 1, rotateX: 0 }} transition={{ type: "spring", bounce: 0.5, duration: 1.2, delay: 3 }} className="inline-block origin-top">
+            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[1]} className="inline-block origin-top">
               Mari
             </motion.span>
           </span>{" "}
           <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={{ opacity: 1, rotateX: 0 }} transition={{ type: "spring", bounce: 0.5, duration: 1.2, delay: 3.2 }} className="inline-block origin-top">
+            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[2]} className="inline-block origin-top">
               berkolaborasi.
             </motion.span>
           </span>
@@ -182,18 +227,16 @@ export default function HeroContent() {
         {/* 3. Subtext */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 4 }}
+          animate={subtextControls}
           className={`${ibmPlexSerif.className} font-[400] text-[17.5px] opacity-90 mb-1`}
         >
-          Full-stack Dev & Product Designer
+          Full-stack Dev &amp; Product Designer
         </motion.p>
 
         {/* 4. CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 4 }}
+          animate={ctaControls}
           className="flex justify-center -space-x-1 w-full max-w-fit mx-auto drop-shadow-md"
         >
           <a

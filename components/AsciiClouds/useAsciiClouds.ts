@@ -9,12 +9,24 @@ import { useEffect, useRef } from "react";
 import { CONFIG, CloudState, MouseState } from "./CloudAsciiCore";
 import { updateGusts, updateBlobs, updateDisruptions } from "./CloudAsciiPhysics";
 import { AsciiRenderer } from "./CloudAsciiRenderer";
+import type { PreloadedAssets } from "@/hooks/usePreloader";
 
-export function useAsciiClouds() {
+interface UseAsciiCloudsOptions {
+  /** Signal: start animation only when true */
+  isReady?: boolean;
+  /** Pre-extracted cloud image data from the preloader */
+  preloadedAssets?: PreloadedAssets | null;
+}
+
+export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
+  const { isReady = true, preloadedAssets = null } = options;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
 
   useEffect(() => {
+    // Don't start until preloader signals ready
+    if (!isReady) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -23,6 +35,9 @@ export function useAsciiClouds() {
     let startTime = performance.now();
     let lastPhysicsTime = performance.now();
     let lastRenderTime = performance.now();
+
+    // Detect mobile for FPS capping
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
     const mouse: MouseState = { x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0, active: false, hasMoved: false };
     const state: CloudState = {
@@ -102,35 +117,55 @@ export function useAsciiClouds() {
         updateGusts(state, t, cols);
       }
 
-      const interval = 1000 / CONFIG.fps;
+      // FPS cap: 30fps for mobile intro, 60fps for desktop, normal 60fps post-intro
+      const targetFps = (isIntro && isMobile) ? 30 : CONFIG.fps;
+      const interval = 1000 / targetFps;
       if (isIntro || (now - lastRenderTime >= interval)) {
         if (!isIntro) {
           lastRenderTime = now - ((now - lastRenderTime) % interval);
         } else {
-          lastRenderTime = now;
+          // Mobile intro: enforce interval. Desktop intro: uncapped (original behavior)
+          if (isMobile) {
+            if (now - lastRenderTime < interval) return;
+            lastRenderTime = now - ((now - lastRenderTime) % interval);
+          } else {
+            lastRenderTime = now;
+          }
         }
         renderer.render(state, now, startTime, isIntro, introOffsetNorm, cols, rows);
       }
     }
 
-    const img = new Image();
-    img.src = "/assets/clouds.png";
-
-    img.onload = () => {
-      const tempCvs = document.createElement("canvas");
-      tempCvs.width = img.naturalWidth;
-      tempCvs.height = img.naturalHeight;
-      const tCtx = tempCvs.getContext("2d", { willReadFrequently: true })!;
-      tCtx.drawImage(img, 0, 0);
-      
-      const data = tCtx.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
-      renderer.setImageData(data, img.naturalWidth, img.naturalHeight);
-
+    function startLoop() {
       startTime = performance.now();
       lastPhysicsTime = startTime;
       lastRenderTime = startTime;
       rafRef.current = requestAnimationFrame(loop);
-    };
+    }
+
+    // Use preloaded assets if available, otherwise fall back to loading
+    if (preloadedAssets) {
+      renderer.setImageData(
+        preloadedAssets.cloudImageData,
+        preloadedAssets.cloudImageWidth,
+        preloadedAssets.cloudImageHeight
+      );
+      startLoop();
+    } else {
+      // Fallback: load image ourselves
+      const img = new Image();
+      img.src = "/assets/clouds.png";
+      img.onload = () => {
+        const tempCvs = document.createElement("canvas");
+        tempCvs.width = img.naturalWidth;
+        tempCvs.height = img.naturalHeight;
+        const tCtx = tempCvs.getContext("2d", { willReadFrequently: true })!;
+        tCtx.drawImage(img, 0, 0);
+        const data = tCtx.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
+        renderer.setImageData(data, img.naturalWidth, img.naturalHeight);
+        startLoop();
+      };
+    }
 
     return () => {
       renderer.destroy();
@@ -141,7 +176,7 @@ export function useAsciiClouds() {
       window.removeEventListener("pointerleave", handlePointerLeave);
       window.removeEventListener("scroll", handleScroll, { capture: true });
     };
-  }, []);
+  }, [isReady, preloadedAssets]);
 
   return canvasRef;
 }

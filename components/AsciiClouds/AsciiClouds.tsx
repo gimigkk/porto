@@ -8,9 +8,16 @@
 "use client";
 
 import { useAsciiClouds } from "./useAsciiClouds";
+import type { PreloadedAssets } from "@/hooks/usePreloader";
 
-export default function AsciiClouds({ className = "" }: { className?: string }) {
-  const canvasRef = useAsciiClouds();
+interface AsciiCloudsProps {
+  className?: string;
+  isReady?: boolean;
+  preloadedAssets?: PreloadedAssets | null;
+}
+
+export default function AsciiClouds({ className = "", isReady, preloadedAssets }: AsciiCloudsProps) {
+  const canvasRef = useAsciiClouds({ isReady, preloadedAssets });
 
   return (
     <canvas

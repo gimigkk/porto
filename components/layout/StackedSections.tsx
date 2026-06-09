@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { useScroll, useMotionValue } from "framer-motion";
+import { motion, useScroll, useMotionValue } from "framer-motion";
 import type { MotionValue } from "framer-motion";
 import { useLenis } from "lenis/react";
 import type { ProjectMeta } from "@/lib/projects";
@@ -10,7 +10,12 @@ import AboutSection from "@/components/sections/AboutSection";
 import ExperienceSection from "@/components/sections/ExperienceSection";
 import ProjectsSection from "@/components/sections/ProjectsSection";
 
-export default function StackedSections({ projects }: { projects: ProjectMeta[] }) {
+interface StackedSectionsProps {
+	projects: ProjectMeta[];
+	isReady?: boolean;
+}
+
+export default function StackedSections({ projects, isReady = true }: StackedSectionsProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [isMobile, setIsMobile] = useState(false);
 	const mobileProgress = useMotionValue(0);
@@ -63,7 +68,13 @@ export default function StackedSections({ projects }: { projects: ProjectMeta[] 
 
 	return (
 		/* FIXED: Pulled up by -mt-[56px] to hide the light blue behind the rounded corners */
-		<div ref={containerRef} className="relative z-20 w-full -mt-[56px] -mb-[80px]">
+		<motion.div 
+			ref={containerRef} 
+			className="relative z-[9999] w-full -mt-[56px] -mb-[80px]"
+			initial={{ y: 200 }}
+			animate={isReady ? { y: 0 } : { y: 200 }}
+			transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0 }}
+		>
 			<FolderSection
 				tabTitle="About"
 				tabPosition="left"
@@ -106,6 +117,6 @@ export default function StackedSections({ projects }: { projects: ProjectMeta[] 
 			>
 				<ProjectsSection projects={projects} />
 			</FolderSection>
-		</div>
+		</motion.div>
 	);
 }

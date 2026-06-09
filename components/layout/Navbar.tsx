@@ -112,6 +112,19 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  // Intro collapse logic (only on homepage)
+  const [introCollapsed, setIntroCollapsed] = useState(pathname === "/");
+
+  useEffect(() => {
+    if (pathname !== "/") {
+      setIntroCollapsed(false);
+      return;
+    }
+    const onReady = () => setIntroCollapsed(false);
+    window.addEventListener("hero-ready", onReady);
+    return () => window.removeEventListener("hero-ready", onReady);
+  }, [pathname]);
+
   // Derive which accordion index matches current route: 1=Home, 2=Project Archive
   const currentPageAccordion = pathname === "/projects" ? 2 : 1;
 
@@ -274,10 +287,10 @@ export default function Navbar() {
       />
 
       <nav
-        className="fixed top-0 inset-x-0 z-50"
+        className="fixed top-0 inset-x-0 z-[10000]"
         onMouseLeave={handleNavMouseLeave}
         style={{
-          transform: navVisible ? "translateY(0)" : "translateY(-100%)",
+          transform: (navVisible && !introCollapsed) ? "translateY(0)" : "translateY(-100%)",
           transition: "transform 300ms cubic-bezier(0.22,1,0.36,1)",
           willChange: "transform",
         }}
