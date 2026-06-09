@@ -25,6 +25,47 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* SSR loading screen — renders in initial HTML before any JS executes */}
+        <div
+          id="ssr-loading-screen"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(to bottom, #0c3888, #50aaff)',
+            transition: 'opacity 400ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+          aria-hidden="true"
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  backgroundColor: '#ffffff',
+                  display: 'block',
+                  animation: `ssrDotJump 0.8s infinite ${i * 0.15}s, ssrDotFade 0.8s infinite ${i * 0.15}s`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes ssrDotJump {
+            0%, 100% { transform: translateY(0); animation-timing-function: ease-out; }
+            50% { transform: translateY(-12px); animation-timing-function: ease-in; }
+          }
+          @keyframes ssrDotFade {
+            0% { opacity: 1; }
+            100% { opacity: 0.2; }
+          }
+        `}} />
         <Navbar />
         <LenisProvider>{children}</LenisProvider>
       </body>
