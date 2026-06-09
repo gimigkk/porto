@@ -163,6 +163,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
         preloadedAssets.cloudImageWidth,
         preloadedAssets.cloudImageHeight
       );
+      // Use pre-built glyph atlas to avoid blocking first render frame
+      if (preloadedAssets.glyphAtlas) {
+        renderer.setGlyphAtlas(preloadedAssets.glyphAtlas, preloadedAssets.glyphTileSize);
+      }
       startLoop();
     } else {
       // Fallback: load image ourselves

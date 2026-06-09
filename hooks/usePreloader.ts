@@ -6,6 +6,8 @@ export interface PreloadedAssets {
   cloudImageData: Uint8ClampedArray;
   cloudImageWidth: number;
   cloudImageHeight: number;
+  glyphAtlas: Uint8Array[][];
+  glyphTileSize: number;
 }
 
 /**
@@ -29,7 +31,7 @@ export function usePreloader(): {
       const fontsReady = document.fonts.ready;
 
       // 2. Cloud texture
-      const imageReady = new Promise<PreloadedAssets>((resolve, reject) => {
+      const imageReady = new Promise<{ data: Uint8ClampedArray; w: number; h: number }>((resolve, reject) => {
         const img = new Image();
         img.src = "/assets/clouds.png";
         img.onload = () => {
@@ -41,18 +43,31 @@ export function usePreloader(): {
           ctx.drawImage(img, 0, 0);
           const data = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
           resolve({
-            cloudImageData: data,
-            cloudImageWidth: img.naturalWidth,
-            cloudImageHeight: img.naturalHeight,
+            data,
+            w: img.naturalWidth,
+            h: img.naturalHeight,
           });
         };
         img.onerror = reject;
       });
 
       try {
-        const [, imageAssets] = await Promise.all([fontsReady, imageReady]);
+        const [, imageResult] = await Promise.all([fontsReady, imageReady]);
 
         if (!cancelled) {
+          // 3. Build glyph atlas now (behind loading screen) so first render frame is free
+          const { buildGlyphAtlas } = await import("@/components/AsciiClouds/CloudAsciiCore");
+          const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+          const tileSize = Math.ceil(8 * dpr); // CONFIG.cellSize * capped DPR
+          const atlas = buildGlyphAtlas(tileSize);
+
+          const imageAssets: PreloadedAssets = {
+            cloudImageData: imageResult.data,
+            cloudImageWidth: imageResult.w,
+            cloudImageHeight: imageResult.h,
+            glyphAtlas: atlas,
+            glyphTileSize: tileSize,
+          };
           assetsRef.current = imageAssets;
           setAssets(imageAssets);
           setIsReady(true);

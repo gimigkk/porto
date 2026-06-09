@@ -85,6 +85,12 @@ export class AsciiRenderer {
     this.imgH = h;
   }
 
+  setGlyphAtlas(atlas: Uint8Array[][], tileSize: number) {
+    this.glyphAtlas = atlas;
+    this.cachedTileSize = tileSize;
+    this.cachedDpr = this.getEffectiveDpr();
+  }
+
   getEffectiveDpr(): number {
     const vvScale = window.visualViewport?.scale ?? 1;
     // Cap DPR at 1.5. ASCII doesn't need 3x retina resolution,
@@ -169,7 +175,8 @@ export class AsciiRenderer {
     const PH   = Math.round(H * dpr);
 
     const targetTileSize = Math.ceil(CONFIG.cellSize * dpr);
-    if (targetTileSize !== this.cachedTileSize || dpr !== this.cachedDpr) {
+    if (this.glyphAtlas.length === 0 || (targetTileSize !== this.cachedTileSize || dpr !== this.cachedDpr)) {
+      // Only build if not pre-loaded
       this.cachedDpr = dpr;
       this.cachedTileSize = targetTileSize;
       this.glyphAtlas = buildGlyphAtlas(targetTileSize);
