@@ -14,10 +14,12 @@ interface AsciiCloudsProps {
   className?: string;
   isReady?: boolean;
   preloadedAssets?: PreloadedAssets | null;
+  /** Fired once when the intro zoom/slide animation completes */
+  onIntroComplete?: () => void;
 }
 
-export default function AsciiClouds({ className = "", isReady, preloadedAssets }: AsciiCloudsProps) {
-  const canvasRef = useAsciiClouds({ isReady, preloadedAssets });
+export default function AsciiClouds({ className = "", isReady, preloadedAssets, onIntroComplete }: AsciiCloudsProps) {
+  const canvasRef = useAsciiClouds({ isReady, preloadedAssets, onIntroComplete });
 
   return (
     <canvas

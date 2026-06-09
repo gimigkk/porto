@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { usePreloader } from "@/hooks/usePreloader";
 import LoadingScreen from "@/components/home/LoadingScreen";
@@ -27,9 +27,23 @@ interface HomeClientProps {
 export default function HomeClient({ projects }: HomeClientProps) {
   const { isReady, assets } = usePreloader();
   const [loadingComplete, setLoadingComplete] = useState(false);
+  const [cloudIntroComplete, setCloudIntroComplete] = useState(false);
 
-  // Animation starts as soon as preloader is ready (during loading screen fade-out)
+  // Detect mobile once on mount
+  const isMobile = useMemo(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches,
+  []);
+
+  // Cloud intro starts as soon as preloader is ready
   const animationReady = isReady;
+
+  // Hero animations: on mobile, wait for cloud intro to finish first.
+  // On desktop, fire immediately (desktop handles concurrent load fine).
+  const heroAnimationReady = isMobile ? cloudIntroComplete : isReady;
+
+  const handleIntroComplete = useCallback(() => {
+    setCloudIntroComplete(true);
+  }, []);
 
   // Trigger Navbar uncollapse as soon as preloader is ready
   useEffect(() => {
@@ -57,13 +71,13 @@ export default function HomeClient({ projects }: HomeClientProps) {
   return (
     <>
 
-      <main className="w-full min-h-[100dvh] bg-[#141416]">
+      <main className="w-full min-h-[100svh] bg-[#141416]">
         <div className="relative z-20 w-full">
           {/* Section 1 */}
           <section
             id="home"
-            className="h-[95dvh] w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
-            style={{ top: "calc(136px - 95dvh)" }}
+            className="h-[95svh] w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
+            style={{ top: "calc(136px - 95svh)" }}
           >
             {/* Sky blue gradient bg */}
             <div className="absolute inset-0 bg-linear-to-b from-[#0c3888] to-[#50aaff]" />
@@ -74,6 +88,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
                 className="w-full h-full"
                 isReady={animationReady}
                 preloadedAssets={assets}
+                onIntroComplete={handleIntroComplete}
               />
             </div>
 
@@ -81,8 +96,8 @@ export default function HomeClient({ projects }: HomeClientProps) {
             <div className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#00000081] to-transparent z-0" />
             <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-[#000000b2] to-transparent z-11" />
 
-            {/* PROGRESSIVE BLUR STACK (2 Layers) */}
-            <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none select-none z-15 overflow-hidden">
+            {/* PROGRESSIVE BLUR STACK — hidden on mobile to avoid GPU compositing jank during scroll */}
+            <div className="hidden md:block absolute bottom-0 left-0 right-0 h-24 pointer-events-none select-none z-15 overflow-hidden">
               {/* Layer 1 */}
               <div
                 className="absolute inset-0"
@@ -107,7 +122,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
             </div>
 
             {/* Content */}
-            <HeroContent isReady={animationReady} />
+            <HeroContent isReady={heroAnimationReady} sequenced={isMobile} />
             {/* <div className="absolute bottom-6 left-0 right-0 z-20 select-none pointer-events-none">
               <div className="max-w-7xl mx-auto px-6 md:px-8 text-right">
                 <p className="text-white/80 text-lg md:text-xs tracking-wider font-mono font-medium ">
@@ -134,7 +149,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
         </div>
 
         {/* Section 5 */}
-        <section className="h-[100dvh] w-full flex flex-col items-center justify-center bg-zinc-950 text-white relative z-30">
+        <section className="h-[100svh] w-full flex flex-col items-center justify-center bg-zinc-950 text-white relative z-30">
           <h2 className="text-5xl font-bold mb-6 text-amber-500">Section 5</h2>
           <div className="text-xl opacity-80 max-w-xl text-center">
             CTA Kerja Sama

@@ -85,7 +85,10 @@ export class AsciiRenderer {
 
   getEffectiveDpr(): number {
     const vvScale = window.visualViewport?.scale ?? 1;
-    return (window.devicePixelRatio || 1) * vvScale;
+    // Cap DPR at 1.5. ASCII doesn't need 3x retina resolution,
+    // and 3x DPR requires 9x more JS pixel array writes per frame.
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    return dpr * vvScale;
   }
 
   buildGustMap(state: CloudState, rows: number, cols: number, t: number): Float32Array {

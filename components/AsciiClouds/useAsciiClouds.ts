@@ -16,12 +16,15 @@ interface UseAsciiCloudsOptions {
   isReady?: boolean;
   /** Pre-extracted cloud image data from the preloader */
   preloadedAssets?: PreloadedAssets | null;
+  /** Fired once when the intro zoom/slide animation completes */
+  onIntroComplete?: () => void;
 }
 
 export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
-  const { isReady = true, preloadedAssets = null } = options;
+  const { isReady = true, preloadedAssets = null, onIntroComplete } = options;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
+  const introCompleteRef = useRef(false);
 
   useEffect(() => {
     // Don't start until preloader signals ready
@@ -94,6 +97,13 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       if (W === 0 || H === 0) return;
 
       const isIntro = t < CONFIG.introDuration;
+
+      // Fire intro complete callback very early (at 0.5s) for heavy overlap
+      const overlapStart = 0.5;
+      if (t >= overlapStart && !introCompleteRef.current) {
+        introCompleteRef.current = true;
+        onIntroComplete?.();
+      }
 
       let currentCellSize = CONFIG.cellSize;
       let introOffsetNorm = 0;

@@ -18,9 +18,11 @@ const ibmPlexSerif = IBM_Plex_Serif({
 
 interface HeroContentProps {
   isReady?: boolean;
+  /** When true, use compressed animation timing (for sequencing after cloud intro on mobile) */
+  sequenced?: boolean;
 }
 
-export default function HeroContent({ isReady = true }: HeroContentProps) {
+export default function HeroContent({ isReady = true, sequenced = false }: HeroContentProps) {
   const words = ['Digitalisasi', 'dimulai', 'dari', 'hati,'];
   const mobileHeadlineRef = useRef<HTMLHeadingElement>(null);
   const mobileContactRef = useRef<HTMLParagraphElement>(null);
@@ -60,37 +62,43 @@ export default function HeroContent({ isReady = true }: HeroContentProps) {
   useEffect(() => {
     if (!isReady) return;
 
+    // Sequenced mode (mobile): triggered 0.5s into the intro. 
+    // Shifted desktop timings back by 0.5s to match exact visual pacing.
+    const d = sequenced
+      ? { words: [0, 0.25], contact: [1.5, 2.5, 2.7], sub: 3.5 }
+      : { words: [0.5, 0.25], contact: [2, 3, 3.2], sub: 4 };
+
     // Words: staggered spring with rotateX
     wordControls.forEach((ctrl, i) => {
       ctrl.start({
         opacity: 1,
         rotateX: 0,
-        transition: { type: "spring", bounce: 0.6, duration: 1.2, delay: 0.5 + i * 0.25 },
+        transition: { type: "spring", bounce: 0.6, duration: 1.2, delay: d.words[0] + i * d.words[1] },
       });
     });
 
     // Contact text
     contactControls[0].start({
       opacity: 1, rotateX: 0,
-      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: 2 },
+      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: d.contact[0] },
     });
     contactControls[1].start({
       opacity: 1, rotateX: 0,
-      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: 3 },
+      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: d.contact[1] },
     });
     contactControls[2].start({
       opacity: 1, rotateX: 0,
-      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: 3.2 },
+      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: d.contact[2] },
     });
 
     // Subtext + CTA
     subtextControls.start({
       opacity: 1, y: 0,
-      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 4 },
+      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: d.sub },
     });
     ctaControls.start({
       opacity: 1, y: 0,
-      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 4 },
+      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: d.sub },
     });
   }, [isReady]);
 

@@ -111,7 +111,7 @@ export default function FolderSection({
           >
             {children}
             {/* Infinite Downward Extension to prevent peeking during parallax */}
-            <div className={`absolute top-full left-0 w-full h-[100dvh] ${bgClass}`} />
+            <div className={`absolute top-full left-0 w-full h-[100svh] ${bgClass}`} />
           </div>
         </div>
       </motion.div>
