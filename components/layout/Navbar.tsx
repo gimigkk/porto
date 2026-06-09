@@ -128,12 +128,10 @@ export default function Navbar() {
   // Derive which accordion index matches current route: 1=Home, 2=Project Archive
   const currentPageAccordion = pathname === "/projects" ? 2 : 1;
 
-  // Lock body scroll when any panel is open
+  // Deriving panel open state
   const anyPanelOpen = mobileMenuOpen || gimigkkPanelOpen;
-  useEffect(() => {
-    document.body.style.overflow = anyPanelOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [anyPanelOpen]);
+  // Removed body scroll lock: setting overflow='hidden' on body triggers a massive
+  // global layout recalculation on iOS Safari and causes massive jank when opening menus.
 
   // Hide-on-scroll: hide navbar when scrolling down, show when scrolling up or at top.
   // Keep visible when panels (mobile/menu) or desktop dropdown is open to avoid jank.
@@ -425,9 +423,9 @@ export default function Navbar() {
         />
 
         <div
-          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl transition-all duration-200 ease-out ${gimigkkPanelOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
+          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl ${gimigkkPanelOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
             }`}
-          style={{ willChange: "transform, opacity" }}
+          style={{ transition: "opacity 200ms ease-out, transform 200ms ease-out", willChange: "transform, opacity" }}
         >
           <div className="px-4 py-4 flex flex-col gap-1">
             {/* @gimigkk accordion */}
@@ -486,9 +484,10 @@ export default function Navbar() {
         />
 
         <div
-          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1 transition-all duration-200 ease-out ${mobileMenuOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
-            }`}
-          style={{ willChange: "transform, opacity" }}
+          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1 ${
+            mobileMenuOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
+          }`}
+          style={{ transition: "opacity 200ms ease-out, transform 200ms ease-out", willChange: "transform, opacity" }}
         >
           {/* Home accordion + Project Archive accordion */}
           {NAV_ITEMS.slice(1).map((item, idx) => {
