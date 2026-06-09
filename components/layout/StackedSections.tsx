@@ -69,7 +69,7 @@ export default function StackedSections({ projects }: { projects: ProjectMeta[] 
 				tabPosition="left"
 				bgClass="bg-[#141416]"
 				fillClass="fill-[#141416]"
-				stickyClass="h-[calc(100vh-5rem)] sticky top-20"
+				stickyClass="h-[calc(100dvh-5rem)] sticky top-20"
 				scrollYProgress={effectiveProgress}
 				parallaxOffset={-40}
 				scrollOffset={-80}
@@ -84,7 +84,7 @@ export default function StackedSections({ projects }: { projects: ProjectMeta[] 
 				tabPosition="center"
 				bgClass="bg-[#0e0e10]"
 				fillClass="fill-[#0e0e10]"
-				stickyClass="h-[calc(100vh-120px)] sticky top-[120px]"
+				stickyClass="h-[calc(100dvh-120px)] sticky top-[120px]"
 				scrollYProgress={effectiveProgress}
 				parallaxOffset={-60}
 				scrollOffset={-120}
@@ -99,7 +99,7 @@ export default function StackedSections({ projects }: { projects: ProjectMeta[] 
 				tabPosition="right"
 				bgClass="bg-zinc-950"
 				fillClass="fill-zinc-950"
-				stickyClass="min-h-[calc(100vh-160px)] z-30 relative"
+				stickyClass="min-h-[calc(100dvh-160px)] z-30 relative"
 				scrollYProgress={effectiveProgress}
 				parallaxOffset={-80}
 				scrollOffset={-160}

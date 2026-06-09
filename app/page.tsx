@@ -18,13 +18,13 @@ export default function Home() {
   const projects = getAllProjects();
 
   return (
-    <main className="w-full min-h-screen bg-[#CBE5FF]">
+    <main className="w-full min-h-[100dvh] bg-[#CBE5FF]">
       <div className="relative w-full">
         {/* Section 1 */}
         <section
           id="home"
-          className="h-[95vh] w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
-          style={{ top: "calc(136px - 95vh)" }}
+          className="h-[95dvh] w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
+          style={{ top: "calc(136px - 95dvh)" }}
         >
           {/* Sky blue gradient bg */}
           <div className="absolute inset-0 bg-linear-to-b from-[#0c3888] to-[#50aaff]" />
@@ -84,7 +84,7 @@ export default function Home() {
       </div>
 
       {/* Section 5 */}
-      <section className="h-screen w-full flex flex-col items-center justify-center bg-zinc-950 text-white relative z-30">
+      <section className="h-[100dvh] w-full flex flex-col items-center justify-center bg-zinc-950 text-white relative z-30">
         <h2 className="text-5xl font-bold mb-6 text-amber-500">Section 5</h2>
         <div className="text-xl opacity-80 max-w-xl text-center">
           CTA Kerja Sama
