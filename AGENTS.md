@@ -52,3 +52,17 @@ Use `cavement status` in terminal to check wiring.
 Use `cavement viewer` in terminal to browse memory UI (HTTP).
 
 Memory writes happen automatically on session start, prompts, tool uses, and session end.
+
+# Design Flow Skills — ALWAYS ON FOR UI/UX
+
+When tasked with designing a new frontend component, UI feature, or layout, DO NOT jump straight to code. You MUST run the `/design-flow` or invoke individual design skills to structure the process:
+
+1. Use `grill-me` skill to clarify the feature if it is vague.
+2. Use `design-brief` skill to generate a formal brief.
+3. Use `information-architecture` skill to map out the structure.
+4. Use `design-tokens` skill to define the styling.
+5. Use `frontend-design` skill to finally build the code.
+6. Use `design-review` skill to check your work.
+
+Or just trigger `design-flow` skill to run the whole sequence.
+No vibe coding.

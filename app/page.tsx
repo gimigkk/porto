@@ -2,8 +2,9 @@ import { getAllProjects } from "@/lib/projects";
 import StackedSections from "@/components/layout/StackedSections";
 import ClientProjectModal from "@/components/projects/ClientProjectModal";
 import AsciiClouds from "@/components/AsciiClouds/AsciiClouds";
+import HeroContent from "@/components/home/HeroContent";
 
-// IMPORT: Loading Cormorant Garamond for the stylish italic accent
+// IMPORT: Loading Cormorant Garamond for the stylish accent
 import { Cormorant_Garamond } from 'next/font/google';
 
 const cormorant = Cormorant_Garamond({
@@ -63,8 +64,7 @@ export default function Home() {
           </div>
 
           {/* Content */}
-
-
+          <HeroContent />
           {/* pamer note */}
           <div className="absolute bottom-6 left-0 right-0 z-20 select-none pointer-events-none">
             <div className="max-w-7xl mx-auto px-6 md:px-8 text-right">
