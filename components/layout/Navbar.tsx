@@ -424,7 +424,7 @@ export default function Navbar() {
       {/* @gimigkk mobile panel */}
       <>
         <div
-          className={`md:hidden fixed inset-0 z-40 bg-black/40 ${gimigkkPanelOpen ? "block" : "hidden"}`}
+          className={`md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm ${gimigkkPanelOpen ? "block" : "hidden"}`}
           onClick={closeGimigkkPanel}
         />
 
@@ -481,7 +481,7 @@ export default function Navbar() {
       {/* Hamburger mobile panel */}
       <>
         <div
-          className={`md:hidden fixed inset-0 z-40 bg-black/40 ${mobileMenuOpen ? "block" : "hidden"}`}
+          className={`md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm ${mobileMenuOpen ? "block" : "hidden"}`}
           onClick={closeMobileMenu}
         />
 

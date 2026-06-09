@@ -25,7 +25,7 @@ export default function AsciiClouds({ className = "", isReady, preloadedAssets, 
     <canvas
       ref={canvasRef}
       className={className}
-      style={{ display: "block", width: "100%", height: "100%", touchAction: "none", imageRendering: "pixelated" }}
+      style={{ display: "block", width: "100%", height: "100%", touchAction: "none" }}
     />
   );
 }
