@@ -325,14 +325,23 @@ export class AsciiRenderer {
     const gridPW = Math.max(1, (cols * activeTileSize) | 0);
     const gridPH = Math.max(1, (rows * activeTileSize) | 0);
 
-    if (gridPW !== this.lastPW || gridPH !== this.lastPH || dpr !== this.lastDpr) {
-      this.offOut.width  = gridPW;
-      this.offOut.height = gridPH;
-      this.outImageData  = this.offOutCtx.createImageData(gridPW, gridPH);
+    // Allocate at the MAXIMUM possible grid size (steady-state post-intro).
+    // During intro, cols/rows change every frame — we must NOT reallocate.
+    const maxCols = Math.max(1, Math.floor(W / CONFIG.cellSize));
+    const maxRows = Math.max(1, Math.floor(H / CONFIG.cellSize));
+    const maxGridPW = Math.max(1, (maxCols * activeTileSize) | 0);
+    const maxGridPH = Math.max(1, (maxRows * activeTileSize) | 0);
+
+    if (maxGridPW > this.lastPW || maxGridPH > this.lastPH || dpr !== this.lastDpr) {
+      const allocW = Math.max(maxGridPW, this.lastPW);
+      const allocH = Math.max(maxGridPH, this.lastPH);
+      this.offOut.width  = allocW;
+      this.offOut.height = allocH;
+      this.outImageData  = this.offOutCtx.createImageData(allocW, allocH);
       this.outBuf        = this.outImageData.data;
       this.outBuf32      = new Uint32Array(this.outBuf.buffer);
       this.outBuf.fill(255);
-      this.lastPW = gridPW; this.lastPH = gridPH; this.lastDpr = dpr;
+      this.lastPW = allocW; this.lastPH = allocH; this.lastDpr = dpr;
     }
 
     const buf   = this.outBuf!;
@@ -355,6 +364,8 @@ export class AsciiRenderer {
     }
 
     buf32.fill(0x00FFFFFF);
+
+    const bufStride = this.lastPW; // allocated width, not grid width
 
     for (let row = 0; row < rows; row++) {
       const rowBase = row * cols;
@@ -435,8 +446,8 @@ export class AsciiRenderer {
         const alphaIdx = Math.min(ALPHA_STEPS - 1, Math.floor(Math.min(1, combinedAlpha / thresholdD2) * ALPHA_STEPS));
         const tile = this.glyphAtlas[charIdx][alphaIdx];
 
-        const rowStride = gridPW * 4;
-        const dstBase   = (row * activeTileSize * gridPW + col * activeTileSize) * 4;
+        const rowStride = bufStride * 4;
+        const dstBase   = (row * activeTileSize * bufStride + col * activeTileSize) * 4;
 
         for (let ty = 0; ty < activeTileSize; ty++) {
           const tileRowOff = ty * activeTileSize;
@@ -458,7 +469,8 @@ export class AsciiRenderer {
     }
     
     this.ctx.clearRect(0, 0, PW, PH);
-    this.ctx.imageSmoothingEnabled = false; // Nearest neighbor GPU scaling
-    this.ctx.drawImage(this.offOut, 0, 0, PW, PH);
+    this.ctx.imageSmoothingEnabled = false;
+    // Source rect: only the used portion. Dest: full screen. GPU scales.
+    this.ctx.drawImage(this.offOut, 0, 0, gridPW, gridPH, 0, 0, PW, PH);
   }
 }
