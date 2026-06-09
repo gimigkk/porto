@@ -174,11 +174,17 @@ export class AsciiRenderer {
       if (this.pxCols.length < cols) this.pxCols = new Int32Array(cols);
       if (this.pxRows.length < rows) this.pxRows = new Int32Array(rows);
       
+      const displayAR = W / H;
+      const zoom = displayAR < 1 ? 1 / displayAR : 1;
+
       for (let c = 0; c < cols; c++) {
-        this.pxCols[c] = Math.min(this.imgW - 1, Math.floor(((c + 0.5) / cols) * this.imgW));
+        const u = (c + 0.5) / cols;
+        const mappedU = 0.5 + (u - 0.5) / zoom; // center-crop horizontally
+        this.pxCols[c] = Math.max(0, Math.min(this.imgW - 1, Math.floor(mappedU * this.imgW)));
       }
       for (let r = 0; r < rows; r++) {
         const normY = (r + 0.5) / rows - introOffsetNorm;
+        
         if (normY < 0 || normY >= 1) {
           this.pxRows[r] = -1;
         } else {
@@ -200,6 +206,9 @@ export class AsciiRenderer {
       blobAlphaGrid = this.blobGridCache;
       blobAlphaGrid.fill(0);
 
+      const displayAR = W / H;
+      const zoom = displayAR < 1 ? 1 / displayAR : 1;
+
       for (const b of state.blobs) {
         const pct = b.life / b.maxLife;
         const opacity = pct > 0.8 ? (1.0 - pct) / 0.2 : pct / 0.8;
@@ -208,10 +217,11 @@ export class AsciiRenderer {
         const scaleProg = Math.pow(1.0 - pct, b.growthExp);
         const currentRadius = b.maxRadius * (0.45 + 0.75 * scaleProg);
 
-        const g_cx = (b.px / this.imgW) * cols;
+        // Reverse-map blob image coords to grid coords (horizontal zoom, vertical identity)
+        const g_cx = (0.5 + (b.px / this.imgW - 0.5) * zoom) * cols;
         const g_cy = ((b.py / this.imgH) + introOffsetNorm) * rows;
 
-        const g_rx = (currentRadius / this.imgW) * cols;
+        const g_rx = (currentRadius / this.imgW) * zoom * cols;
         const g_ry = (currentRadius / this.imgH) * rows;
 
         const radiusX = g_rx * b.aspectRatio;

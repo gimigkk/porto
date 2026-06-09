@@ -205,11 +205,20 @@ export default function Navbar() {
   const scrollTo = useCallback(
     (target: string) => {
       const sectionId = TARGET_ID_MAP[target] || target;
-      if (lenis) {
-        lenis.scrollTo(`#${sectionId}`, { offset: -48 });
+      
+      if (sectionId === "home") {
+        if (lenis) {
+          lenis.scrollTo(0, { offset: 0 });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
       } else {
-        const el = document.getElementById(sectionId);
-        if (el) el.scrollIntoView({ behavior: "smooth" });
+        if (lenis) {
+          lenis.scrollTo(`#${sectionId}`, { offset: -48 });
+        } else {
+          const el = document.getElementById(sectionId);
+          if (el) el.scrollIntoView({ behavior: "smooth" });
+        }
       }
       closeAll();
     },

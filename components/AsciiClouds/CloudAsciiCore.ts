@@ -10,7 +10,7 @@
 // ============================================================================
 export const CONFIG = {
   cellSize: 8,
-  
+
   // -- Intro Sequence --
   introStartSize: 200,
   introDuration: 3.5,  // 600ms to allow the Expo tail to glide smoothly
@@ -58,7 +58,7 @@ export const CONFIG = {
     trailFling: 0.28,           // Speed multiplier transferred to trail drift
     pushRadius: 180,            // Physical push radius for smoke blobs (in image pixels)
     pushStrength: 0.65,         // Scaling factor for force applied to the particles
-    
+
     // -- Tune limits below to adjust responsiveness vs. constraints --
     maxWarpDisplacement: 14.0,  // Max grid cells allowed to warp. Lower = stiffer, Higher = looser warp.
     maxBlobSpeed: 320.0,        // Max drift speed of smoke puffs to keep them elegant.
@@ -133,7 +133,9 @@ export interface MouseState {
 // ============================================================================
 // UTILITIES
 // ============================================================================
-export const CHARS = ".:/%#G";
+// export const CHARS = ".:/%#G@"; <- lama
+export const CHARS = ".:-=+*#%G";
+
 
 export function mulberry32(seed: number) {
   return function () {

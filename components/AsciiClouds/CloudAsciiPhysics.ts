@@ -66,7 +66,11 @@ export function updateBlobs(
     }
 
     if (CONFIG.cursorDisruptor.enabled && mouse.active) {
-      const mImgX = (mouse.x / safeW) * imgW;
+      const screenAR = safeW / safeH;
+      const zoom = screenAR < 1 ? 1 / screenAR : 1;
+      
+      const normX = mouse.x / safeW;
+      const mImgX = (0.5 + (normX - 0.5) / zoom) * imgW;
       const mImgY = (mouse.y / safeH) * imgH;
       const mSpeed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
 
@@ -111,7 +115,11 @@ export function updateBlobs(
 
   if (imgData && imgW > 0 && imgH > 0 && state.blobs.length < CONFIG.blobCount) {
     if (rng() < dt * CONFIG.blobSpawnChance * 45) {
-      const px = Math.floor(rng() * imgW);
+      const screenAR = safeW / safeH;
+      const zoom = screenAR < 1 ? 1 / screenAR : 1;
+      // Spawn in visible horizontal region only
+      const u = 0.5 + (rng() - 0.5) / zoom;
+      const px = Math.max(0, Math.min(imgW - 1, Math.floor(u * imgW)));
       
       let pyTop = -1;
       let pyBottom = -1;
