@@ -36,9 +36,9 @@ export const CONFIG = {
   gustMaxTilt: 0.45,
 
   // -- Blobs (Smoke puffs) --
-  blobCount: 30,             // Maximum active particles on screen
-  blobSpawnChance: 0.2,     // Spawn rate factor
-  blobLife: [3.5, 6.0],      // Lifetime in seconds
+  blobCount: 40,             // Maximum active particles on screen
+  blobSpawnChance: 0.3,     // Spawn rate factor
+  blobLife: [5.5, 9.0],      // Lifetime in seconds
   blobRadius: [12, 92],      // Refined puff size for elegant smoke contours
   blobSpeedY: [-65, -20],    // Graceful, slower vertical speed (negative = upwards)
   blobAmbientWind: 12.0,     // Gentle background horizontal breeze

@@ -41,7 +41,7 @@ export default function Home() {
           {/* PROGRESSIVE BLUR STACK (2 Layers) */}
           <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none select-none z-15 overflow-hidden">
             {/* Layer 1 */}
-            <div 
+            <div
               className="absolute inset-0"
               style={{
                 backdropFilter: 'blur(2px)',
@@ -52,7 +52,7 @@ export default function Home() {
             />
 
             {/* Layer 2 */}
-            <div 
+            <div
               className="absolute inset-0"
               style={{
                 backdropFilter: 'blur(4px)',
@@ -65,8 +65,8 @@ export default function Home() {
 
           {/* Content */}
           <HeroContent />
-          {/* pamer note */}
-          <div className="absolute bottom-6 left-0 right-0 z-20 select-none pointer-events-none">
+          pamer note
+          {/* <div className="absolute bottom-6 left-0 right-0 z-20 select-none pointer-events-none">
             <div className="max-w-7xl mx-auto px-6 md:px-8 text-right">
               <p className="text-white/80 text-lg md:text-xs tracking-wider font-mono font-medium ">
                 It's a real{" "}
@@ -76,7 +76,7 @@ export default function Home() {
                 btw
               </p>
             </div>
-          </div>
+          </div> */}
         </section>
 
         {/* Sections 2, 3, 4 (Stacked Folders) */}
