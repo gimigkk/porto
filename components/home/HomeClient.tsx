@@ -128,10 +128,10 @@ export default function HomeClient({ projects }: HomeClientProps) {
               onComplete={handleLoadingComplete}
             />
           )}
-        </div>
 
-        {/* Sections 2, 3, 4 (Stacked Folders) — outside z-20 so it sits above the loading screen */}
-        <StackedSections projects={projects} isReady={animationReady} />
+          {/* Sections 2, 3, 4 (Stacked Folders) */}
+          <StackedSections projects={projects} isReady={animationReady} />
+        </div>
 
         {/* Section 5 */}
         <section className="h-[100dvh] w-full flex flex-col items-center justify-center bg-zinc-950 text-white relative z-30">
