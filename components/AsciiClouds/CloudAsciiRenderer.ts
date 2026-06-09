@@ -91,10 +91,14 @@ export class AsciiRenderer {
     this.cachedDpr = this.getEffectiveDpr();
   }
 
-  getEffectiveDpr(): number {
+  getEffectiveDpr(isIntro = false): number {
     const vvScale = window.visualViewport?.scale ?? 1;
-    // Use native devicePixelRatio to render 1:1 with physical device pixels for maximum crispness
-    const dpr = window.devicePixelRatio || 1;
+    // During intro animation, cap at 1.5 — high motion makes individual glyph
+    // resolution imperceptible, and the lower pixel count keeps frames smooth.
+    // After intro completes, render 1:1 with physical pixels for maximum crispness.
+    const dpr = isIntro
+      ? Math.min(window.devicePixelRatio || 1, 1.5)
+      : (window.devicePixelRatio || 1);
     return dpr * vvScale;
   }
 
@@ -168,7 +172,7 @@ export class AsciiRenderer {
     if (W === 0 || H === 0) return;
 
     const t   = (now - startTime) / 1000;
-    const dpr = this.getEffectiveDpr();
+    const dpr = this.getEffectiveDpr(isIntro);
 
     const PW   = Math.round(W * dpr);
     const PH   = Math.round(H * dpr);
