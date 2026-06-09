@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import { useScroll, useMotionValue } from "framer-motion";
 import type { MotionValue } from "framer-motion";
-import { useLenis } from "@studio-freight/react-lenis";
+import { useLenis } from "lenis/react";
 import type { ProjectMeta } from "@/lib/projects";
 import FolderSection from "@/components/ui/FolderSection";
 import AboutSection from "@/components/sections/AboutSection";

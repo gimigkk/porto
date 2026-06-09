@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useLenis } from "@studio-freight/react-lenis";
+import { useLenis } from "lenis/react";
 
 export default function AutoScroller({ target }: { target: string }) {
   const lenis = useLenis();

@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useCallback, useState, Suspense, useRef } from "react";
-import { useLenis } from "@studio-freight/react-lenis";
+import { useLenis } from "lenis/react";
 import type { ProjectMeta } from "@/lib/projects";
 import BackToTop from "@/components/ui/BackToTop";
 import TechIcon from "@/components/ui/TechIcon";

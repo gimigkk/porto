@@ -2,7 +2,7 @@
 
 import { motion, MotionValue, useTransform, useMotionValue, useMotionTemplate } from "framer-motion";
 import { ReactNode } from "react";
-import { useLenis } from "@studio-freight/react-lenis";
+import { useLenis } from "lenis/react";
 
 interface FolderSectionProps {
   tabPosition: "left" | "center" | "right";

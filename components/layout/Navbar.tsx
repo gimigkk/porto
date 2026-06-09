@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useLayoutEffect, useEffect } from "react
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download, ChevronDown, Menu, X } from "lucide-react";
-import { useLenis } from "@studio-freight/react-lenis";
+import { useLenis } from "lenis/react";
 
 interface SubLink {
   label: string;

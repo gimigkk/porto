@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useCallback } from "react";
-import { useLenis } from "@studio-freight/react-lenis";
+import { useLenis } from "lenis/react";
 
 export default function ProjectModal({ children }: { children: ReactNode }) {
   const router = useRouter();
