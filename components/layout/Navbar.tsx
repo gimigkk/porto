@@ -434,7 +434,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: easeOut }}
-              className="md:hidden fixed top-12 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl"
+              className="md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl"
             >
               <div className="px-4 py-4 flex flex-col gap-1">
                 {/* @gimigkk accordion */}
@@ -454,41 +454,31 @@ export default function Navbar() {
                     />
                   </button>
 
-                  <AnimatePresence initial={false}>
-                    {activeAccordion === 0 && (
-                      <motion.div
-                        key={`accordion-container-0`}
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: easeOut }}
-                        className="overflow-hidden"
-                      >
-                        <motion.div
-                          variants={parentVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          className="pb-3 pl-2 flex flex-col gap-2"
-                        >
-                          {NAV_ITEMS[0].sublinks.map((sublink) => (
-                            <motion.button
-                              key={sublink.label}
-                              variants={itemVariants}
-                              type="button"
-                              onClick={() => {
-                                handleSublinkClick(sublink);
-                                closeGimigkkPanel();
-                              }}
-                              className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
-                            >
-                              {sublink.label}
-                            </motion.button>
-                          ))}
-                        </motion.div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <div
+                    className="grid transition-all duration-300 ease-out overflow-hidden"
+                    style={{
+                      gridTemplateRows: activeAccordion === 0 ? "1fr" : "0fr",
+                      opacity: activeAccordion === 0 ? 1 : 0,
+                    }}
+                  >
+                    <div className="min-h-0">
+                      <div className="pb-3 pl-2 flex flex-col gap-2 pt-1">
+                        {NAV_ITEMS[0].sublinks.map((sublink) => (
+                          <button
+                            key={sublink.label}
+                            type="button"
+                            onClick={() => {
+                              handleSublinkClick(sublink);
+                              closeGimigkkPanel();
+                            }}
+                            className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
+                          >
+                            {sublink.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -514,7 +504,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: easeOut }}
-              className="md:hidden fixed top-12 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1"
+              className="md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1"
             >
               {/* Home accordion + Project Archive accordion */}
               {NAV_ITEMS.slice(1).map((item, idx) => {
@@ -548,41 +538,31 @@ export default function Navbar() {
                       />
                     </button>
 
-                    <AnimatePresence initial={false}>
-                      {isOpen && (
-                        <motion.div
-                          key={`accordion-container-${i}`}
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: easeOut }}
-                          className="overflow-hidden"
-                        >
-                          <motion.div
-                            variants={parentVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            className="pb-3 pl-2 flex flex-col gap-2"
-                          >
-                            {item.sublinks.map((sublink) => (
-                              <motion.button
-                                key={sublink.label}
-                                variants={itemVariants}
-                                type="button"
-                                onClick={() => {
-                                  handleSublinkClick(sublink);
-                                  closeMobileMenu();
-                                }}
-                                className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
-                              >
-                                {sublink.label}
-                              </motion.button>
-                            ))}
-                          </motion.div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                    <div
+                      className="grid transition-all duration-300 ease-out overflow-hidden"
+                      style={{
+                        gridTemplateRows: isOpen ? "1fr" : "0fr",
+                        opacity: isOpen ? 1 : 0,
+                      }}
+                    >
+                      <div className="min-h-0">
+                        <div className="pb-3 pl-2 flex flex-col gap-2 pt-1">
+                          {item.sublinks.map((sublink) => (
+                            <button
+                              key={sublink.label}
+                              type="button"
+                              onClick={() => {
+                                handleSublinkClick(sublink);
+                                closeMobileMenu();
+                              }}
+                              className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
+                            >
+                              {sublink.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </motion.div>
                 );
               })}

@@ -13,7 +13,7 @@ export const CONFIG = {
 
   // -- Intro Sequence --
   introStartSize: 200,
-  introDuration: 3.5,  // 600ms to allow the Expo tail to glide smoothly
+  introDuration: 2.0,  // Sped up from 3.5s to 2.0s for snappier entry
   introSlideY: 0.3,    // Slide up translation (20% of screen height)
 
   threshold: 0,

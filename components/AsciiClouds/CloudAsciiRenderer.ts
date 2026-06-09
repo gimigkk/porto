@@ -93,9 +93,9 @@ export class AsciiRenderer {
 
   getEffectiveDpr(): number {
     const vvScale = window.visualViewport?.scale ?? 1;
-    // Cap DPR at 1.5. ASCII doesn't need 3x retina resolution,
-    // and 3x DPR requires 9x more JS pixel array writes per frame.
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    // Native DPR restored for maximum crispness. The inner loop fast-path
+    // and trig cache optimizations make this survivable now.
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
     return dpr * vvScale;
   }
 
