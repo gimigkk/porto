@@ -218,7 +218,7 @@ export default function Navbar() {
   const scrollTo = useCallback(
     (target: string) => {
       const sectionId = TARGET_ID_MAP[target] || target;
-      
+
       if (sectionId === "home") {
         if (lenis) {
           lenis.scrollTo(0, { offset: 0 });
@@ -330,9 +330,8 @@ export default function Navbar() {
                         {item.label}
                       </span>
                       <ChevronDown
-                        className={`w-4 h-4 transition-transform duration-300 ease-out ${
-                          isHovered ? "rotate-180" : "rotate-0"
-                        }`}
+                        className={`w-4 h-4 transition-transform duration-300 ease-out ${isHovered ? "rotate-180" : "rotate-0"
+                          }`}
                       />
                     </button>
                   );
@@ -417,173 +416,151 @@ export default function Navbar() {
       </nav>
 
       {/* @gimigkk mobile panel */}
-      <AnimatePresence>
-        {gimigkkPanelOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden fixed inset-0 z-40 bg-black/10"
-              onClick={closeGimigkkPanel}
-            />
+      <>
+        {/* Backdrop */}
+        <div
+          className={`md:hidden fixed inset-0 z-40 bg-black/10 transition-opacity duration-200 ${gimigkkPanelOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
+          onClick={closeGimigkkPanel}
+        />
 
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25, ease: easeOut }}
-              className="md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl"
-            >
-              <div className="px-4 py-4 flex flex-col gap-1">
-                {/* @gimigkk accordion */}
-                <div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setActiveAccordion(activeAccordion === 0 ? null : 0)
+        <div
+          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl transition-all duration-200 ease-out ${gimigkkPanelOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
+            }`}
+          style={{ willChange: "transform, opacity" }}
+        >
+          <div className="px-4 py-4 flex flex-col gap-1">
+            {/* @gimigkk accordion */}
+            <div>
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveAccordion(activeAccordion === 0 ? null : 0)
+                }
+                className="flex items-center justify-between w-full py-3 text-sm font-medium text-zinc-800 hover:text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none"
+              >
+                <span>Socials</span>
+                <ChevronDown
+                  className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ease-out ${activeAccordion === 0 ? "rotate-180" : "rotate-0"
+                    }`}
+                />
+              </button>
+
+              <div
+                className="grid transition-all duration-300 ease-out overflow-hidden"
+                style={{
+                  gridTemplateRows: activeAccordion === 0 ? "1fr" : "0fr",
+                  opacity: activeAccordion === 0 ? 1 : 0,
+                }}
+              >
+                <div className="min-h-0">
+                  <div className="pb-3 pl-2 flex flex-col gap-2 pt-1">
+                    {NAV_ITEMS[0].sublinks.map((sublink) => (
+                      <button
+                        key={sublink.label}
+                        type="button"
+                        onClick={() => {
+                          handleSublinkClick(sublink);
+                          closeGimigkkPanel();
+                        }}
+                        className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
+                      >
+                        {sublink.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+
+      {/* Hamburger mobile panel */}
+      <>
+        {/* Backdrop */}
+        <div
+          className={`md:hidden fixed inset-0 z-40 bg-black/10 transition-opacity duration-200 ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
+          onClick={closeMobileMenu}
+        />
+
+        <div
+          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1 transition-all duration-200 ease-out ${mobileMenuOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
+            }`}
+          style={{ willChange: "transform, opacity" }}
+        >
+          {/* Home accordion + Project Archive accordion */}
+          {NAV_ITEMS.slice(1).map((item, idx) => {
+            const i = idx + 1;
+            const isOpen = activeAccordion === i;
+
+            return (
+              <div key={item.label} className="flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Navigate to route + expand this accordion
+                    if (item.target === "projects") {
+                      router.push("/projects");
+                    } else {
+                      router.push("/");
                     }
-                    className="flex items-center justify-between w-full py-3 text-sm font-medium text-zinc-800 hover:text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none"
-                  >
-                    <span>@gimigkk</span>
-                    <ChevronDown
-                      className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ease-out ${
-                        activeAccordion === 0 ? "rotate-180" : "rotate-0"
+                    setActiveAccordion(i);
+                  }}
+                  className="flex items-center justify-between w-full py-3 text-sm font-medium text-zinc-800 hover:text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none"
+                >
+                  <span>{item.label}</span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ease-out ${isOpen ? "rotate-180" : "rotate-0"
                       }`}
-                    />
-                  </button>
+                  />
+                </button>
 
-                  <div
-                    className="grid transition-all duration-300 ease-out overflow-hidden"
-                    style={{
-                      gridTemplateRows: activeAccordion === 0 ? "1fr" : "0fr",
-                      opacity: activeAccordion === 0 ? 1 : 0,
-                    }}
-                  >
-                    <div className="min-h-0">
-                      <div className="pb-3 pl-2 flex flex-col gap-2 pt-1">
-                        {NAV_ITEMS[0].sublinks.map((sublink) => (
-                          <button
-                            key={sublink.label}
-                            type="button"
-                            onClick={() => {
-                              handleSublinkClick(sublink);
-                              closeGimigkkPanel();
-                            }}
-                            className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
-                          >
-                            {sublink.label}
-                          </button>
-                        ))}
-                      </div>
+                <div
+                  className="grid transition-all duration-300 ease-out overflow-hidden"
+                  style={{
+                    gridTemplateRows: isOpen ? "1fr" : "0fr",
+                    opacity: isOpen ? 1 : 0,
+                  }}
+                >
+                  <div className="min-h-0">
+                    <div className="pb-3 pl-2 flex flex-col gap-2 pt-1">
+                      {item.sublinks.map((sublink) => (
+                        <button
+                          key={sublink.label}
+                          type="button"
+                          onClick={() => {
+                            handleSublinkClick(sublink);
+                            closeMobileMenu();
+                          }}
+                          className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
+                        >
+                          {sublink.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+            );
+          })}
 
-      {/* Hamburger mobile panel */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden fixed inset-0 z-40 bg-black/10"
+          {/* CV button for mobile */}
+          <div className="mt-3 pt-3 border-t border-zinc-100">
+            <a
+              href="/cv.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={closeMobileMenu}
-            />
-
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25, ease: easeOut }}
-              className="md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1"
+              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors duration-200"
             >
-              {/* Home accordion + Project Archive accordion */}
-              {NAV_ITEMS.slice(1).map((item, idx) => {
-                const i = idx + 1;
-                const isOpen = activeAccordion === i;
-
-                return (
-                  <motion.div
-                    key={item.label}
-                    variants={itemVariants}
-                    className="flex flex-col gap-1"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // Navigate to route + expand this accordion
-                        if (item.target === "projects") {
-                          router.push("/projects");
-                        } else {
-                          router.push("/");
-                        }
-                        setActiveAccordion(i);
-                      }}
-                      className="flex items-center justify-between w-full py-3 text-sm font-medium text-zinc-800 hover:text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none"
-                    >
-                      <span>{item.label}</span>
-                      <ChevronDown
-                        className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ease-out ${
-                          isOpen ? "rotate-180" : "rotate-0"
-                        }`}
-                      />
-                    </button>
-
-                    <div
-                      className="grid transition-all duration-300 ease-out overflow-hidden"
-                      style={{
-                        gridTemplateRows: isOpen ? "1fr" : "0fr",
-                        opacity: isOpen ? 1 : 0,
-                      }}
-                    >
-                      <div className="min-h-0">
-                        <div className="pb-3 pl-2 flex flex-col gap-2 pt-1">
-                          {item.sublinks.map((sublink) => (
-                            <button
-                              key={sublink.label}
-                              type="button"
-                              onClick={() => {
-                                handleSublinkClick(sublink);
-                                closeMobileMenu();
-                              }}
-                              className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
-                            >
-                              {sublink.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-
-              {/* CV button for mobile */}
-              <div className="mt-3 pt-3 border-t border-zinc-100">
-                <a
-                  href="/cv.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={closeMobileMenu}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors duration-200"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Curriculum Vitae</span>
-                </a>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              <Download className="w-4 h-4" />
+              <span>Curriculum Vitae</span>
+            </a>
+          </div>
+        </div>
+      </>
     </>
   );
 }
