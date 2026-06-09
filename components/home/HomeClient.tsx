@@ -32,7 +32,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
   // Detect mobile once on mount
   const isMobile = useMemo(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches,
-  []);
+    []);
 
   // Cloud intro starts as soon as preloader is ready
   const animationReady = isReady;
@@ -70,14 +70,26 @@ export default function HomeClient({ projects }: HomeClientProps) {
 
   return (
     <>
-
       <main className="w-full min-h-[100svh] bg-[#141416]">
+        {/* Responsive Hero Height Variable */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+          :root {
+            --hero-height: 650px;
+          }
+          @media (min-width: 768px) {
+            :root {
+              --hero-height: 95svh;
+            }
+          }
+        `}} />
+
         <div className="relative z-20 w-full">
           {/* Section 1 */}
           <section
             id="home"
-            className="h-[95svh] w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
-            style={{ top: "calc(136px - 95svh)" }}
+            className="h-[var(--hero-height)] w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
+            style={{ top: "calc(136px - var(--hero-height))" }}
           >
             {/* Sky blue gradient bg */}
             <div className="absolute inset-0 bg-linear-to-b from-[#0c3888] to-[#50aaff]" />

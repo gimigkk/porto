@@ -434,7 +434,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: easeOut }}
-              className="md:hidden fixed top-12 inset-x-0 z-45 max-h-[calc(100dvh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl"
+              className="md:hidden fixed top-12 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl"
             >
               <div className="px-4 py-4 flex flex-col gap-1">
                 {/* @gimigkk accordion */}
@@ -514,7 +514,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: easeOut }}
-              className="md:hidden fixed top-12 inset-x-0 z-45 max-h-[calc(100dvh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1"
+              className="md:hidden fixed top-12 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1"
             >
               {/* Home accordion + Project Archive accordion */}
               {NAV_ITEMS.slice(1).map((item, idx) => {

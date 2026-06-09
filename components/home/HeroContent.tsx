@@ -197,7 +197,7 @@ export default function HeroContent({ isReady = true, sequenced = false }: HeroC
       </div>
 
       {/* --- MOBILE VERSION --- */}
-      <div className="relative z-20 flex md:hidden flex-col items-center text-center text-white px-4 w-full mx-auto -translate-y-36">
+      <div className="relative z-20 flex md:hidden flex-col items-center text-center text-white px-4 w-full mx-auto -translate-y-16 pointer-events-auto">
         {/* 1. Big Text */}
         <h1 ref={mobileHeadlineRef} className={`${plusJakartaSans.className} text-[7vw] font-[700] tracking-tight drop-shadow-sm flex flex-nowrap justify-center gap-1 whitespace-nowrap`}>
           {words.map((word, i) => (
