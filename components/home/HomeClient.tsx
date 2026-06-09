@@ -75,7 +75,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
         <style dangerouslySetInnerHTML={{
           __html: `
           :root {
-            --hero-height: 650px;
+            --hero-height: 600px;
           }
           @media (min-width: 768px) {
             :root {

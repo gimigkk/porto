@@ -93,9 +93,10 @@ export class AsciiRenderer {
 
   getEffectiveDpr(): number {
     const vvScale = window.visualViewport?.scale ?? 1;
-    // Native DPR restored for maximum crispness. The inner loop fast-path
-    // and trig cache optimizations make this survivable now.
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    // Cap DPR at 1.5. Writing 3 million pixels in JS per frame on mobile
+    // destroys the framerate. Since we now use CSS image-rendering: pixelated,
+    // the GPU upscale will keep the text perfectly sharp even at lower render resolutions.
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     return dpr * vvScale;
   }
 
