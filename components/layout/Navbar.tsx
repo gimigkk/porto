@@ -424,15 +424,12 @@ export default function Navbar() {
       {/* @gimigkk mobile panel */}
       <>
         <div
-          className={`md:hidden fixed inset-0 z-40 bg-black/10 backdrop-blur-sm transition-opacity duration-200 ${gimigkkPanelOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-            }`}
+          className={`md:hidden fixed inset-0 z-40 bg-black/40 ${gimigkkPanelOpen ? "block" : "hidden"}`}
           onClick={closeGimigkkPanel}
         />
 
         <div
-          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl ${gimigkkPanelOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
-            }`}
-          style={{ transition: "opacity 200ms ease-out, transform 200ms ease-out", willChange: "transform, opacity" }}
+          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl ${gimigkkPanelOpen ? "block" : "hidden"}`}
         >
           <div className="px-4 py-4 flex flex-col gap-1">
             {/* @gimigkk accordion */}
@@ -452,7 +449,7 @@ export default function Navbar() {
               </button>
 
               <div
-                className="grid transition-all duration-300 ease-out overflow-hidden"
+                className="grid overflow-hidden"
                 style={{
                   gridTemplateRows: activeAccordion === 0 ? "1fr" : "0fr",
                   opacity: activeAccordion === 0 ? 1 : 0,
@@ -484,16 +481,12 @@ export default function Navbar() {
       {/* Hamburger mobile panel */}
       <>
         <div
-          className={`md:hidden fixed inset-0 z-40 bg-black/10 backdrop-blur-sm transition-opacity duration-200 ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-            }`}
+          className={`md:hidden fixed inset-0 z-40 bg-black/40 ${mobileMenuOpen ? "block" : "hidden"}`}
           onClick={closeMobileMenu}
         />
 
         <div
-          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1 ${
-            mobileMenuOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
-          }`}
-          style={{ transition: "opacity 200ms ease-out, transform 200ms ease-out", willChange: "transform, opacity" }}
+          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1 ${mobileMenuOpen ? "block" : "hidden"}`}
         >
           {/* Home accordion + Project Archive accordion */}
           {NAV_ITEMS.slice(1).map((item, idx) => {
@@ -523,7 +516,7 @@ export default function Navbar() {
                 </button>
 
                 <div
-                  className="grid transition-all duration-300 ease-out overflow-hidden"
+                  className="grid overflow-hidden"
                   style={{
                     gridTemplateRows: isOpen ? "1fr" : "0fr",
                     opacity: isOpen ? 1 : 0,
