@@ -44,6 +44,8 @@ export class AsciiRenderer {
   gustRowCache: Float32Array | null = null;
   blobGridCache: Float32Array | null = null;
   disruptionGridCache: Float32Array | null = null;
+  noiseDispCache = new Float32Array(NOISE_W * NOISE_H);
+  noiseWaveCache = new Float32Array(NOISE_W * NOISE_H);
   wasIntro = true;
 
   lastPW = 0;
@@ -319,27 +321,18 @@ export class AsciiRenderer {
       gustMap = this.buildGustMap(state, rows, cols, t);
     }
 
-    if (cols !== this.cachedGridCols || PW !== this.cachedGridPW) {
-      if (this.colPx.length < cols + 1) this.colPx = new Int32Array(cols + 1);
-      for (let c = 0; c <= cols; c++) this.colPx[c] = Math.round(c * PW / cols);
-      this.cachedGridCols = cols;
-      this.cachedGridPW   = PW;
-    }
-    if (rows !== this.cachedGridRows || PH !== this.cachedGridPH) {
-      if (this.rowPx.length < rows + 1) this.rowPx = new Int32Array(rows + 1);
-      for (let r = 0; r <= rows; r++) this.rowPx[r] = Math.round(r * PH / rows);
-      this.cachedGridRows = rows;
-      this.cachedGridPH   = PH;
-    }
+    const activeTileSize = this.cachedTileSize;
+    const gridPW = Math.max(1, (cols * activeTileSize) | 0);
+    const gridPH = Math.max(1, (rows * activeTileSize) | 0);
 
-    if (PW !== this.lastPW || PH !== this.lastPH || dpr !== this.lastDpr) {
-      this.offOut.width  = PW;
-      this.offOut.height = PH;
-      this.outImageData  = this.offOutCtx.createImageData(PW, PH);
+    if (gridPW !== this.lastPW || gridPH !== this.lastPH || dpr !== this.lastDpr) {
+      this.offOut.width  = gridPW;
+      this.offOut.height = gridPH;
+      this.outImageData  = this.offOutCtx.createImageData(gridPW, gridPH);
       this.outBuf        = this.outImageData.data;
       this.outBuf32      = new Uint32Array(this.outBuf.buffer);
       this.outBuf.fill(255);
-      this.lastPW = PW; this.lastPH = PH; this.lastDpr = dpr;
+      this.lastPW = gridPW; this.lastPH = gridPH; this.lastDpr = dpr;
     }
 
     const buf   = this.outBuf!;
@@ -351,8 +344,17 @@ export class AsciiRenderer {
     const thresholdD2 = threshold * 0.5 + 0.05;
     const ceilMinThr  = ceiling - threshold;
 
+    // Precompute noise trigonometry for this frame
+    for (let i = 0; i < NOISE_W * NOISE_H; i++) {
+      const ni = i * 5;
+      const bPhase = NOISE[ni], bSpeed = NOISE[ni + 1];
+      const dPhase = NOISE[ni + 2], dDir = NOISE[ni + 3], dSpeed = NOISE[ni + 4];
+      
+      this.noiseDispCache[i] = Math.sin(t * s * dSpeed + dPhase) * dAmp * dDir;
+      this.noiseWaveCache[i] = Math.sin(t * s * bSpeed * 1.3 + bPhase) * wAmp + Math.sin(t * s * bSpeed * 0.6 + bPhase * 1.9) * wAmp * 0.4;
+    }
+
     buf32.fill(0x00FFFFFF);
-    const activeTileSize = this.cachedTileSize;
 
     for (let row = 0; row < rows; row++) {
       const rowBase = row * cols;
@@ -388,10 +390,8 @@ export class AsciiRenderer {
         if (dispRow > maxWarp) dispRow = maxWarp;
         else if (dispRow < -maxWarp) dispRow = -maxWarp;
 
-        const ni = ((row % NOISE_H) * NOISE_W + (col % NOISE_W)) * 5;
-
-        const dPhase = NOISE[ni + 2], dDir = NOISE[ni + 3], dSpeed = NOISE[ni + 4];
-        const disp   = Math.sin(t * s * dSpeed + dPhase) * dAmp * dDir;
+        const noiseIdx = (row % NOISE_H) * NOISE_W + (col % NOISE_W);
+        const disp = this.noiseDispCache[noiseIdx];
         
         const srcCol = (col - dispCol + 0.5) | 0;
         const srcRow = (row - dispRow + disp + 0.5) | 0;
@@ -403,17 +403,14 @@ export class AsciiRenderer {
         const isInside = srcCol >= 0 && srcCol < cols && srcRow >= 0 && srcRow < rows;
 
         if (isInside) {
-          const pYMask = this.pxRows[srcRow];
-          if (pYMask >= 0) {
-            imgMaskAlpha = this.imgData[(pYMask * this.imgW + this.pxCols[srcCol]) * 4 + 3];
+          const pyMap = this.pxRows[srcRow];
+          if (pyMap >= 0) {
+            const alphaVal = this.imgData[(pyMap * this.imgW + this.pxCols[srcCol]) * 4 + 3];
+            imgMaskAlpha = alphaVal;
+            imgAlpha = alphaVal / 255;
           }
 
           blobVal = blobAlphaGrid ? blobAlphaGrid[srcRow * cols + srcCol] : 0;
-
-          const pYRaw = this.pxRows[srcRow];
-          if (pYRaw >= 0) {
-            imgAlpha = this.imgData[(pYRaw * this.imgW + this.pxCols[srcCol]) * 4 + 3] / 255;
-          }
         }
 
         const blobAlpha255 = Math.floor(blobVal * 255);
@@ -430,8 +427,7 @@ export class AsciiRenderer {
         combinedAlpha = Math.min(1.0, combinedAlpha * disruptionFactor);
         if (combinedAlpha < threshold) continue;
 
-        const bPhase = NOISE[ni], bSpeed = NOISE[ni + 1];
-        const wave   = Math.sin(t * s * bSpeed * 1.3 + bPhase) * wAmp + Math.sin(t * s * bSpeed * 0.6 + bPhase * 1.9) * wAmp * 0.4;
+        const wave = this.noiseWaveCache[noiseIdx];
         
         const gVal = gustMap ? gustMap[rowBase + col] : 0;
         const modulated = Math.min(1, Math.max(0.05, (combinedAlpha - threshold) / ceilMinThr + wave + gVal));
@@ -439,29 +435,17 @@ export class AsciiRenderer {
         const alphaIdx = Math.min(ALPHA_STEPS - 1, Math.floor(Math.min(1, combinedAlpha / thresholdD2) * ALPHA_STEPS));
         const tile = this.glyphAtlas[charIdx][alphaIdx];
 
-        const pxStart   = this.colPx[col];
-        const cellW     = this.colPx[col + 1] - pxStart;
-        const cellH     = this.rowPx[row + 1] - pyStart;
+        const rowStride = gridPW * 4;
+        const dstBase   = (row * activeTileSize * gridPW + col * activeTileSize) * 4;
 
-        const rowStride = PW * 4;
-        const dstBase   = (pyStart * PW + pxStart) * 4;
-
-        const scaleX = activeTileSize / cellW;
-        const scaleY = activeTileSize / cellH;
-
-        for (let ty = 0; ty < cellH; ty++) {
-          let srcY = (ty * scaleY) | 0;
-          if (srcY >= activeTileSize) srcY = activeTileSize - 1;
-          const tileRowOff = srcY * activeTileSize;
+        for (let ty = 0; ty < activeTileSize; ty++) {
+          const tileRowOff = ty * activeTileSize;
           const dstRowOff  = dstBase + ty * rowStride;
-          
-          for (let tx = 0; tx < cellW; tx++) {
-            let srcX = (tx * scaleX) | 0;
-            if (srcX >= activeTileSize) srcX = activeTileSize - 1;
-            const glyphA = tile[tileRowOff + srcX];
-            if (glyphA === 0) continue;
-            
-            buf[dstRowOff + tx * 4 + 3] = (glyphA * combinedMaskAlpha) >> 8;
+          for (let tx = 0; tx < activeTileSize; tx++) {
+            const glyphA = tile[tileRowOff + tx];
+            if (glyphA !== 0) {
+              buf[dstRowOff + tx * 4 + 3] = (glyphA * combinedMaskAlpha) >> 8;
+            }
           }
         }
       }
@@ -473,7 +457,8 @@ export class AsciiRenderer {
       this.cvs.height = PH;
     }
     
-    this.ctx.clearRect(0, 0, PW, PH); 
-    this.ctx.drawImage(this.offOut, 0, 0);
+    this.ctx.clearRect(0, 0, PW, PH);
+    this.ctx.imageSmoothingEnabled = false; // Nearest neighbor GPU scaling
+    this.ctx.drawImage(this.offOut, 0, 0, PW, PH);
   }
 }

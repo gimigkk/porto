@@ -127,8 +127,11 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
         updateGusts(state, t, cols);
       }
 
-      // FPS cap: 30fps for mobile intro, 60fps for desktop, normal 60fps post-intro
-      const targetFps = (isIntro && isMobile) ? 30 : CONFIG.fps;
+      // FPS cap: 15fps during overlap to prioritize hero animations, 30fps for early intro, 60fps desktop
+      let targetFps = CONFIG.fps;
+      if (isIntro && isMobile) {
+        targetFps = t >= overlapStart ? 15 : 30; // Drop FPS to give framer-motion main thread priority
+      }
       const interval = 1000 / targetFps;
       if (isIntro || (now - lastRenderTime >= interval)) {
         if (!isIntro) {

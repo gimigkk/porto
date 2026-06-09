@@ -38,30 +38,48 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 	// Mobile: Lenis-driven scroll progress (useScroll goes stale with sticky + Lenis)
 	const lenis = useLenis();
 
-	useEffect(() => {
-		if (!lenis || !isMobile) return;
+  useEffect(() => {
+    if (!lenis || !isMobile) return;
 
-		const onScroll = () => {
-			const el = containerRef.current;
-			if (!el) return;
-			const rect = el.getBoundingClientRect();
-			const elHeight = rect.height;
-			const vh = window.innerHeight;
-			const distance = elHeight - vh;
-			if (distance <= 0) {
-				mobileProgress.set(0);
-				return;
-			}
-			mobileProgress.set(Math.max(0, Math.min(1, -rect.top / distance)));
-		};
+    let cachedTop = 0;
+    let cachedHeight = 0;
+    let cachedVh = 0;
+    const el = containerRef.current;
 
-		lenis.on("scroll", onScroll);
-		onScroll(); // set initial value
+    const updateMetrics = () => {
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      cachedTop = rect.top + window.scrollY;
+      cachedHeight = rect.height;
+      cachedVh = window.innerHeight;
+    };
 
-		return () => {
-			lenis.off("scroll", onScroll);
-		};
-	}, [lenis, isMobile, mobileProgress]);
+    // Initialize metrics
+    updateMetrics();
+    window.addEventListener("resize", updateMetrics);
+
+    const onScroll = () => {
+      if (!el) return;
+      const distance = cachedHeight - cachedVh;
+      if (distance <= 0) {
+        mobileProgress.set(0);
+        return;
+      }
+      
+      const currentScrollY = window.scrollY || lenis.scroll || 0;
+      const currentTop = cachedTop - currentScrollY;
+      
+      mobileProgress.set(Math.max(0, Math.min(1, -currentTop / distance)));
+    };
+
+    lenis.on("scroll", onScroll);
+    onScroll(); // set initial value
+
+    return () => {
+      lenis.off("scroll", onScroll);
+      window.removeEventListener("resize", updateMetrics);
+    };
+  }, [lenis, isMobile, mobileProgress]);
 
 	// Pick right source — mobile gets Lenis-based, desktop gets framer-motion
 	const effectiveProgress: MotionValue<number> = isMobile ? mobileProgress : scrollYProgress;
