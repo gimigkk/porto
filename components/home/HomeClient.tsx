@@ -8,6 +8,7 @@ import SkyBackground from "@/components/layout/SkyBackground";
 import HeroContent from "@/components/home/HeroContent";
 import StackedSections from "@/components/layout/StackedSections";
 import ClientProjectModal from "@/components/projects/ClientProjectModal";
+import BackToTop from "@/components/ui/BackToTop";
 import type { ProjectMeta } from "@/lib/projects";
 
 // IMPORT: Loading Cormorant Garamond for the stylish accent
@@ -163,6 +164,11 @@ export default function HomeClient({ projects }: HomeClientProps) {
         </section>
 
         <ClientProjectModal projects={projects} />
+
+        {/* Back to Top — fixed bottom-center */}
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+          <BackToTop />
+        </div>
       </main>
     </>
   );

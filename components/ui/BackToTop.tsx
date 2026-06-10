@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import "./BackToTop.css";
 
 interface BackToTopProps {
-  scrollRef: RefObject<HTMLElement | null>;
+  scrollRef?: RefObject<HTMLElement | null>;
   threshold?: number;
 }
 
@@ -13,16 +13,25 @@ export default function BackToTop({ scrollRef, threshold = 200 }: BackToTopProps
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const handleScroll = () => setVisible(el.scrollTop > threshold);
-    el.addEventListener("scroll", handleScroll, { passive: true });
-    return () => el.removeEventListener("scroll", handleScroll);
+    // If scrollRef given, listen on that element. Otherwise, listen on window.
+    if (scrollRef?.current) {
+      const el = scrollRef.current;
+      const handleScroll = () => setVisible(el.scrollTop > threshold);
+      el.addEventListener("scroll", handleScroll, { passive: true });
+      return () => el.removeEventListener("scroll", handleScroll);
+    } else {
+      const handleScroll = () => setVisible(window.scrollY > threshold);
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
   }, [scrollRef, threshold]);
 
   const scrollToTop = () => {
-    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    if (scrollRef?.current) {
+      scrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (
