@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import type { ProjectMeta } from "@/lib/projects";
 import { FileText, ChevronRight } from "lucide-react";
 import TechIcon from "@/components/ui/TechIcon";
@@ -16,29 +15,22 @@ export default function ProjectCards({
   const featured = projects.slice(0, MAX_FEATURED);
   const hasMore = projects.length > MAX_FEATURED;
 
-  /* -- Track which card is hovered (null = none) -------------- */
-  const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
-
   return (
     <>
       {/* -- Cards Grid (3-column) ---------------- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-[1400px] mx-auto px-4 md:px-12">
-        {featured.map((project, i) => (
+        {featured.map((project) => (
           <div
             key={project.slug}
-            className="group relative w-full h-full transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:hover:z-50"
+            className="group relative w-full h-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:hover:z-50"
             style={{
               perspective: "1000px",
-              opacity: hoveredSlug === null || hoveredSlug === project.slug ? 1 : 0.8,
-              filter: hoveredSlug === null || hoveredSlug === project.slug ? "none" : "saturate(0.8h)",
             }}
-            onMouseEnter={() => setHoveredSlug(project.slug)}
-            onMouseLeave={() => setHoveredSlug(null)}
           >
             {/* Background Documents (Pop-up effect) — hidden on mobile */}
             <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
               {/* File 1 (Back, goes highest) */}
-              <div 
+              <div
                 className="absolute top-10 left-[12%] right-[12%] bottom-16 rounded-xl border border-zinc-700/50 bg-zinc-800 shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-24 group-hover:-rotate-3 origin-bottom"
               >
                 <div className="p-5 flex flex-col gap-3">
@@ -49,7 +41,7 @@ export default function ProjectCards({
                 </div>
               </div>
               {/* File 2 (Middle) */}
-              <div 
+              <div
                 className="absolute top-8 left-[8%] right-[8%] bottom-12 rounded-xl border border-black/20 shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-12 group-hover:rotate-3 origin-bottom delay-75"
                 style={{ backgroundColor: project.accent }}
               >
@@ -81,7 +73,7 @@ export default function ProjectCards({
                 e.currentTarget.style.boxShadow = "";
               }}
             >
-              {/* -- Thumbnail -------------------------------------- */}
+              {/* -- Thumbnail -- */}
               <div className="relative w-full aspect-[2.6/1] bg-zinc-900 overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -91,9 +83,9 @@ export default function ProjectCards({
                 />
               </div>
 
-              {/* -- Card body ----------------------------------------- */}
+              {/* -- Card body -- */}
               <div className="flex flex-col flex-1 p-3">
-                {/* Category + Year row */}
+                {/* Category + Year */}
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
                     {project.category}
@@ -122,7 +114,7 @@ export default function ProjectCards({
                   >
                     {project.title}
                   </h3>
-                  <ChevronRight 
+                  <ChevronRight
                     className="w-4 h-4 ml-auto shrink-0 text-zinc-600 md:opacity-0 md:-translate-x-1 md:group-hover:opacity-100 md:group-hover:translate-x-0"
                     style={{ transition: "opacity 0.3s, transform 0.3s" }}
                     strokeWidth={2}
@@ -134,7 +126,7 @@ export default function ProjectCards({
                   {project.description}
                 </p>
 
-                {/* Tech stack & Links */}
+                {/* Tech stack */}
                 <div className="flex items-center gap-2 mt-auto pt-2 border-t border-zinc-700/40">
                   <div className="flex flex-wrap items-center gap-2">
                     {project.stack.map((tech) => (
@@ -160,30 +152,20 @@ export default function ProjectCards({
                   </a>
                 </div>
               </div>
+
             </div>
           </div>
         ))}
       </div>
 
-      {/* -- View All link ---------------------------------------- */}
       {hasMore && (
         <a
           href="/projects"
           className="mt-6 inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
         >
           View all {projects.length} projects
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 8l4 4m0 0l-4 4m4-4H3"
-            />
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </a>
       )}

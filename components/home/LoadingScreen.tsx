@@ -34,13 +34,13 @@ export default function LoadingScreen({
       return;
     }
 
-    // Fade out
+    // Fade out — keep element in DOM for React reconciler
     el.style.opacity = "0";
     el.style.pointerEvents = "none";
 
-    // Remove from DOM after transition
+    // Signal complete after transition — keep element in DOM
+    // (removing it confuses React hydration reconciler)
     setTimeout(() => {
-      el.remove();
       onComplete();
     }, fadeOutMs);
   }, [fadeOutMs, onComplete]);

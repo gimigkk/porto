@@ -155,8 +155,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
         updateGusts(state, t, cols);
       }
 
+      // Firefox: cap at 30fps post-intro — Canvas2D is slower
+      const isFirefox = navigator.userAgent.includes("Firefox");
       // FPS cap: 15fps during overlap to prioritize hero animations, 30fps for early intro, 60fps desktop
-      let targetFps = CONFIG.fps;
+      let targetFps = isFirefox ? 30 : CONFIG.fps;
       if (isIntro && isMobile) {
         targetFps = t >= overlapStart ? 15 : 30; // Drop FPS to give framer-motion main thread priority
       }

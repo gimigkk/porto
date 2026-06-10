@@ -13,6 +13,41 @@ import type { ProjectMeta } from "@/lib/projects";
 // IMPORT: Loading Cormorant Garamond for the stylish accent
 import { Cormorant_Garamond } from 'next/font/google';
 
+/** Firefox has CPU-backed backdrop-filter — skip to avoid jank */
+function BlurStack() {
+  const [isClient, setIsClient] = useState(false);
+  const [isFirefox, setIsFirefox] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+    setIsFirefox(navigator.userAgent.includes("Firefox"));
+  }, []);
+  // Server & client first paint: render blur (match hydration).
+  // After mount: hide on Firefox.
+  const hidden = isClient && isFirefox;
+  return (
+    <div className={`hidden md:block absolute bottom-0 left-0 right-0 h-24 pointer-events-none select-none z-15 overflow-hidden ${hidden ? 'opacity-0' : ''}`}>
+      <div
+        className="absolute inset-0"
+        style={{
+          backdropFilter: 'blur(2px)',
+          WebkitBackdropFilter: 'blur(2px)',
+          WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 75%)',
+          maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 75%)',
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
+          maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
+        }}
+      />
+    </div>
+  );
+}
+
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
   style: ['italic'],
@@ -108,30 +143,9 @@ export default function HomeClient({ projects }: HomeClientProps) {
             <div className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#00000081] to-transparent z-0" />
             <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-[#000000b2] to-transparent z-11" />
 
-            {/* PROGRESSIVE BLUR STACK — hidden on mobile to avoid GPU compositing jank during scroll */}
-            <div className="hidden md:block absolute bottom-0 left-0 right-0 h-24 pointer-events-none select-none z-15 overflow-hidden">
-              {/* Layer 1 */}
-              <div
-                className="absolute inset-0"
-                style={{
-                  backdropFilter: 'blur(2px)',
-                  WebkitBackdropFilter: 'blur(2px)',
-                  WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 75%)',
-                  maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 75%)',
-                }}
-              />
-
-              {/* Layer 2 */}
-              <div
-                className="absolute inset-0"
-                style={{
-                  backdropFilter: 'blur(4px)',
-                  WebkitBackdropFilter: 'blur(4px)',
-                  WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
-                  maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
-                }}
-              />
-            </div>
+            {/* PROGRESSIVE BLUR STACK — hidden on mobile & Firefox to avoid compositing jank */}
+            {/* Firefox has CPU-backed backdrop-filter → destroys frame rate */}
+            <BlurStack />
 
             {/* Content */}
             <HeroContent isReady={heroAnimationReady} sequenced={isMobile} />
@@ -161,7 +175,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
         </div>
 
         {/* Section 5 */}
-        <section className="h-[100svh] w-full flex flex-col items-center justify-center bg-zinc-950 text-white relative z-30">
+        <section className="h-svh w-full flex flex-col items-center justify-center bg-zinc-950 text-white relative z-30">
           <h2 className="text-5xl font-bold mb-6 text-amber-500">Section 5</h2>
           <div className="text-xl opacity-80 max-w-xl text-center">
             CTA Kerja Sama

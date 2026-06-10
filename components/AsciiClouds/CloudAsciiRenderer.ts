@@ -93,13 +93,15 @@ export class AsciiRenderer {
 
   getEffectiveDpr(isIntro = false): number {
     const vvScale = window.visualViewport?.scale ?? 1;
-    // During intro animation, cap at 1.5 — high motion makes individual glyph
-    // resolution imperceptible, and the lower pixel count keeps frames smooth.
-    // After intro completes, render 1:1 with physical pixels for maximum crispness.
+    const isFirefox = navigator.userAgent.includes("Firefox");
+    // Firefox Canvas2D is ~2x slower → cap DPR to save pixels
+    const maxDpr = (isIntro || isFirefox) ? 1.5 : (window.devicePixelRatio || 1);
     const dpr = isIntro
-      ? Math.min(window.devicePixelRatio || 1, 1.5)
+      ? Math.min(window.devicePixelRatio || 1, maxDpr)
       : (window.devicePixelRatio || 1);
-    return dpr * vvScale;
+    // Firefox: always cap — even after intro
+    const capped = isFirefox ? Math.min(dpr, 1.5) : dpr;
+    return capped * vvScale;
   }
 
   buildGustMap(state: CloudState, rows: number, cols: number, t: number): Float32Array {

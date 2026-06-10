@@ -1,52 +1,52 @@
 "use client";
 
-import * as si from "simple-icons";
+import {
+  siNextdotjs, siReact, siTypescript, siTailwindcss, siCss, siNodedotjs,
+  siPostgresql, siPrisma, siFirebase, siPython, siFigma, siDocker, siGit,
+  siRust, siSupabase, siRedis, siGraphql, siMongodb, siExpress, siVite,
+  siSvelte, siVuedotjs, siAstro, siGo, siWhatsapp, siGooglegemini,
+  siSocketdotio, siVercel, siGithub, siLinux, siNginx,
+} from "simple-icons";
 
-/**
- * Maps our tech slug keys → simple-icons export names (si<TitleCase>).
- * Add new entries here when you add a new stack item.
- */
-const slugToSiKey: Record<string, keyof typeof si> = {
-  nextjs:     "siNextdotjs",
-  react:      "siReact",
-  ts:         "siTypescript",
-  tailwind:   "siTailwindcss",
-  css:        "siCss",
-  nodejs:     "siNodedotjs",
-  postgres:   "siPostgresql",
-  prisma:     "siPrisma",
-  firebase:   "siFirebase",
-  python:     "siPython",
-  figma:      "siFigma",
-  docker:     "siDocker",
-  git:        "siGit",
-  rust:       "siRust",
-  supabase:   "siSupabase",
-  redis:      "siRedis",
-  graphql:    "siGraphql",
-  mongodb:    "siMongodb",
-  express:    "siExpress",
-  vite:       "siVite",
-  svelte:     "siSvelte",
-  vue:        "siVuedotjs",
-  astro:      "siAstro",
-  go:         "siGo",
-  whatsapp:   "siWhatsapp",
-  gemini:     "siGooglegemini",
-
-  socketio:   "siSocketdotio",
-  vercel:     "siVercel",
-  github:     "siGithub",
-  linux:      "siLinux",
-  nginx:      "siNginx",
-  axum:       "siRust",       // no axum icon → fallback Rust
-  sqlx:       "siPostgresql", // no sqlx icon → fallback Postgres
+/** Maps our tech slug → simple-icons icon data */
+const iconMap: Record<string, { title: string; svg: string }> = {
+  nextjs:     siNextdotjs,
+  react:      siReact,
+  ts:         siTypescript,
+  tailwind:   siTailwindcss,
+  css:        siCss,
+  nodejs:     siNodedotjs,
+  postgres:   siPostgresql,
+  prisma:     siPrisma,
+  firebase:   siFirebase,
+  python:     siPython,
+  figma:      siFigma,
+  docker:     siDocker,
+  git:        siGit,
+  rust:       siRust,
+  supabase:   siSupabase,
+  redis:      siRedis,
+  graphql:    siGraphql,
+  mongodb:    siMongodb,
+  express:    siExpress,
+  vite:       siVite,
+  svelte:     siSvelte,
+  vue:        siVuedotjs,
+  astro:      siAstro,
+  go:         siGo,
+  whatsapp:   siWhatsapp,
+  gemini:     siGooglegemini,
+  socketio:   siSocketdotio,
+  vercel:     siVercel,
+  github:     siGithub,
+  linux:      siLinux,
+  nginx:      siNginx,
+  axum:       siRust,
+  sqlx:       siPostgresql,
 };
 
 /** Extract inner SVG path string from a simple-icons SVG string */
 function extractSvgInner(svgStr: string): string {
-  // simple-icons .svg property is the full <svg ...>...</svg>
-  // We extract everything between the first > and last </svg>
   const start = svgStr.indexOf(">") + 1;
   const end = svgStr.lastIndexOf("</svg>");
   return svgStr.slice(start, end);
@@ -65,8 +65,7 @@ export default function TechIcon({
   className = "text-zinc-400",
   title,
 }: TechIconProps) {
-  const key = slugToSiKey[tech.toLowerCase()];
-  const icon = key ? (si[key] as si.SimpleIcon) : null;
+  const icon = iconMap[tech.toLowerCase()];
 
   if (!icon) {
     // Fallback: 2-char text badge

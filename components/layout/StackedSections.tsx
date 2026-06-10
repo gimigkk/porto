@@ -19,6 +19,7 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [isMobile, setIsMobile] = useState(false);
 	const mobileProgress = useMotionValue(0);
+	const pausedRef = useRef(false);
 
 	// Detect mobile viewport — never touch desktop path
 	useEffect(() => {
@@ -34,6 +35,22 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 		target: containerRef,
 		offset: ["start start", "end end"],
 	});
+
+	// Pause ASCII clouds when first folder docks (progress > 0), resume when at top
+	const effectiveProgress: MotionValue<number> = isMobile ? mobileProgress : scrollYProgress;
+	useEffect(() => {
+		const unsub = effectiveProgress.on("change", (v) => {
+			const shouldPause = v > 0;
+			if (shouldPause && !pausedRef.current) {
+				pausedRef.current = true;
+				window.dispatchEvent(new Event("ascii-pause"));
+			} else if (!shouldPause && pausedRef.current) {
+				pausedRef.current = false;
+				window.dispatchEvent(new Event("ascii-resume"));
+			}
+		});
+		return unsub;
+	}, [effectiveProgress]);
 
 	// Mobile: Lenis-driven scroll progress (useScroll goes stale with sticky + Lenis)
 	const lenis = useLenis();
@@ -81,14 +98,11 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
     };
   }, [lenis, isMobile, mobileProgress]);
 
-	// Pick right source — mobile gets Lenis-based, desktop gets framer-motion
-	const effectiveProgress: MotionValue<number> = isMobile ? mobileProgress : scrollYProgress;
-
 	return (
 		/* FIXED: Pulled up by -mt-[56px] to hide the light blue behind the rounded corners */
 		<motion.div 
 			ref={containerRef} 
-			className="relative z-[9999] w-full -mt-[56px] -mb-[80px]"
+			className="relative z-9999 w-full -mt-[56px] -mb-[80px]"
 			initial={{ y: 200 }}
 			animate={isReady ? { y: 0 } : { y: 200 }}
 			transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0 }}
@@ -102,8 +116,9 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 				scrollYProgress={effectiveProgress}
 				parallaxOffset={-40}
 				scrollOffset={-80}
-				fadeRange={[0, 0.5]}
-				fadeAmount={1.2}
+				fadeRange={[0, 0.6]}
+				bgBase="#141416"
+				bgFaded="#1c2029"
 			>
 				<AboutSection />
 			</FolderSection>
@@ -117,8 +132,9 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 				scrollYProgress={effectiveProgress}
 				parallaxOffset={-60}
 				scrollOffset={-120}
-				fadeRange={[0.5, 1]}
-				fadeAmount={1.2}
+				fadeRange={[0.4, 1]}
+				bgBase="#0e0e10"
+				bgFaded="#0f1117"
 			>
 				<ExperienceSection />
 			</FolderSection>

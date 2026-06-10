@@ -128,18 +128,7 @@ export default function Navbar() {
   // Derive which accordion index matches current route: 1=Home, 2=Project Archive
   const currentPageAccordion = pathname === "/projects" ? 2 : 1;
 
-  // Deriving panel open state
-  const anyPanelOpen = mobileMenuOpen || gimigkkPanelOpen;
-
-  // Pause the ASCII canvas animation loop while mobile menu is open.
-  // This frees the entire main thread (~30ms/frame) for smooth CSS transitions.
-  useEffect(() => {
-    if (anyPanelOpen) {
-      window.dispatchEvent(new Event("ascii-pause"));
-    } else {
-      window.dispatchEvent(new Event("ascii-resume"));
-    }
-  }, [anyPanelOpen]);
+  // ASCII clouds pause/resume is handled by StackedSections on dock/undock.
 
   // Hide-on-scroll: hide navbar when scrolling down, show when scrolling up or at top.
   // Keep visible when panels (mobile/menu) or desktop dropdown is open to avoid jank.

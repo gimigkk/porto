@@ -15,7 +15,8 @@ interface FolderSectionProps {
   parallaxOffset?: number;
   scrollOffset?: number;
   fadeRange?: [number, number];
-  fadeAmount?: number;
+  bgBase?: string;
+  bgFaded?: string;
 }
 
 export default function FolderSection({
@@ -29,24 +30,36 @@ export default function FolderSection({
   parallaxOffset = 0,
   scrollOffset = 0,
   fadeRange,
-  fadeAmount = 1,
+  bgBase,
+  bgFaded,
 }: FolderSectionProps) {
   const fallbackProgress = useMotionValue(0);
-  // If scrollYProgress is provided, map 0->1 to 0->parallaxOffset
-  const y = useTransform(
-    scrollYProgress || fallbackProgress,
-    [0, 1],
-    [0, parallaxOffset]
-  );
+  const source = scrollYProgress || fallbackProgress;
 
-  // Progressive fade effect: adjust brightness based on the specified amount
-  const brightnessVal = useTransform(
-    scrollYProgress || fallbackProgress,
-    fadeRange || [0, 0],
-    [1, fadeAmount]
-  );
+  const y = useTransform(source, [0, 1], [0, parallaxOffset]);
 
-  const filter = useMotionTemplate`brightness(${brightnessVal})`;
+  // Lerp progress mapped through fadeRange
+  const progress = useTransform(source, fadeRange || [0, 0], [0, 1]);
+
+  // Parse hex helpers
+  const hexToR = (hex: string) => parseInt(hex.slice(1, 3), 16);
+  const hexToG = (hex: string) => parseInt(hex.slice(3, 5), 16);
+  const hexToB = (hex: string) => parseInt(hex.slice(5, 7), 16);
+
+  // Always create transforms — fallback to 0,0,0 if no faded color
+  const toR = bgBase && bgFaded ? hexToR(bgFaded) : 0;
+  const toG = bgBase && bgFaded ? hexToG(bgFaded) : 0;
+  const toB = bgBase && bgFaded ? hexToB(bgFaded) : 0;
+  const fromR = bgBase ? hexToR(bgBase) : 0;
+  const fromG = bgBase ? hexToG(bgBase) : 0;
+  const fromB = bgBase ? hexToB(bgBase) : 0;
+
+  const r = useTransform(progress, [0, 1], [fromR, toR]);
+  const g = useTransform(progress, [0, 1], [fromG, toG]);
+  const b = useTransform(progress, [0, 1], [fromB, toB]);
+
+  const bodyBg = useMotionTemplate`rgb(${r}, ${g}, ${b})`;
+  const tabFill = bodyBg;
 
   // All folders just have rounded-t-2xl at the far edges, the tabs seamlessly merge into them.
   const bodyRadius = "rounded-t-lg sm:rounded-t-xl md:rounded-t-2xl";
@@ -67,9 +80,9 @@ export default function FolderSection({
     >
       <svg
         viewBox="0 0 320 64"
-        className={`absolute inset-0 w-full h-full ${fillClass}`}
+        className="absolute inset-0 w-full h-full"
       >
-        <path d="M 0 64 L 12 64 Q 32 64, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64, 308 64 L 320 64 Z" />
+        <motion.path d="M 0 64 L 12 64 Q 32 64, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64, 308 64 L 320 64 Z" fill={bgFaded ? tabFill : fillClass} />
       </svg>
       <span className="text-white/80 font-semibold tracking-wide text-[12px] sm:text-sm md:text-lg relative z-10 pb-0.5 md:pb-1">
         {tabTitle}
@@ -82,7 +95,7 @@ export default function FolderSection({
       <div id={sectionId} className="w-full h-0 invisible" aria-hidden="true" />
       <motion.div
         className={`${stickyClass} w-full`}
-        style={{ y, filter: fadeRange ? filter : undefined }}
+        style={{ y }}
       >
         <div className="w-full h-full flex flex-col">
           {/* Tab Row */}
@@ -107,11 +120,21 @@ export default function FolderSection({
 
           {/* Main Body */}
           <div
-            className={`flex-1 w-full ${bgClass} ${bodyRadius} py-8 flex flex-col items-center justify-center relative z-20`}
+            className={`flex-1 w-full ${bodyRadius} py-8 flex flex-col items-center justify-center relative z-20 overflow-hidden`}
           >
-            {children}
+            {/* Background with interpolation */}
+            <motion.div
+              className="absolute inset-0 z-0"
+              style={{ background: bodyBg }}
+            />
+            <div className="relative z-10 w-full h-full">
+              {children}
+            </div>
             {/* Infinite Downward Extension to prevent peeking during parallax */}
-            <div className={`absolute top-full left-0 w-full h-[100svh] ${bgClass}`} />
+            <motion.div
+              className="absolute top-full left-0 w-full h-svh z-0"
+              style={{ background: bodyBg }}
+            />
           </div>
         </div>
       </motion.div>
