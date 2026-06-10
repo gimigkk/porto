@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { motion, useScroll, useMotionValue } from "framer-motion";
-import type { MotionValue } from "framer-motion";
+import { motion, useScroll, useMotionValue, type MotionValue } from "framer-motion";
 import { useLenis } from "lenis/react";
 import type { ProjectMeta } from "@/lib/projects";
 import FolderSection from "@/components/ui/FolderSection";
@@ -19,7 +18,6 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [isMobile, setIsMobile] = useState(false);
 	const mobileProgress = useMotionValue(0);
-	const pausedRef = useRef(false);
 
 	// Detect mobile viewport — never touch desktop path
 	useEffect(() => {
@@ -36,21 +34,9 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 		offset: ["start start", "end end"],
 	});
 
-	// Pause ASCII clouds when first folder docks (progress > 0), resume when at top
+	// ASCII clouds are now persistent bg (SkyBackground) — pause/resume removed.
+	// They animate freely behind opaque folders for parallax effect.
 	const effectiveProgress: MotionValue<number> = isMobile ? mobileProgress : scrollYProgress;
-	useEffect(() => {
-		const unsub = effectiveProgress.on("change", (v) => {
-			const shouldPause = v > 0;
-			if (shouldPause && !pausedRef.current) {
-				pausedRef.current = true;
-				window.dispatchEvent(new Event("ascii-pause"));
-			} else if (!shouldPause && pausedRef.current) {
-				pausedRef.current = false;
-				window.dispatchEvent(new Event("ascii-resume"));
-			}
-		});
-		return unsub;
-	}, [effectiveProgress]);
 
 	// Mobile: Lenis-driven scroll progress (useScroll goes stale with sticky + Lenis)
 	const lenis = useLenis();
@@ -102,6 +88,7 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 		/* FIXED: Pulled up by -mt-[56px] to hide the light blue behind the rounded corners */
 		<motion.div 
 			ref={containerRef} 
+			id="stacked-sections"
 			className="relative z-9999 w-full -mt-14 -mb-20"
 			initial={{ y: 200 }}
 			animate={isReady ? { y: 0 } : { y: 200 }}

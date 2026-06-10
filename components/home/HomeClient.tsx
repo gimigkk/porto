@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { usePreloader } from "@/hooks/usePreloader";
 import LoadingScreen from "@/components/home/LoadingScreen";
-import AsciiClouds from "@/components/AsciiClouds/AsciiClouds";
+import SkyBackground from "@/components/layout/SkyBackground";
 import HeroContent from "@/components/home/HeroContent";
 import StackedSections from "@/components/layout/StackedSections";
 import ClientProjectModal from "@/components/projects/ClientProjectModal";
@@ -104,6 +104,13 @@ export default function HomeClient({ projects }: HomeClientProps) {
   return (
     <>
       <main className="w-full min-h-svh bg-[#141416]">
+        {/* Fixed sky + clouds layer — parallax 0.5x, docks at end of 3rd folder */}
+        <SkyBackground
+          isReady={animationReady}
+          preloadedAssets={assets}
+          onIntroComplete={handleIntroComplete}
+        />
+
         {/* Responsive Hero Height Variable */}
         <style dangerouslySetInnerHTML={{
           __html: `
@@ -124,40 +131,15 @@ export default function HomeClient({ projects }: HomeClientProps) {
             className="h-(--hero-height) w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
             style={{ top: "calc(136px - var(--hero-height))" }}
           >
-            {/* Sky blue gradient bg */}
-            <div className="absolute inset-0 bg-linear-to-b from-[#0c3888] to-[#50aaff]" />
-
-            {/* ASCII Clouds */}
-            <div className="absolute inset-0 pointer-events-none select-none z-10">
-              <AsciiClouds
-                className="w-full h-full"
-                isReady={animationReady}
-                preloadedAssets={assets}
-                onIntroComplete={handleIntroComplete}
-              />
-            </div>
-
-            {/* dark gradient */}
-            <div className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#00000081] to-transparent z-0" />
+            {/* dark gradient overlay — blends hero bottom into folders */}
+            <div className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#00000081] to-transparent z-10" />
             <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-[#000000b2] to-transparent z-11" />
 
             {/* PROGRESSIVE BLUR STACK — hidden on mobile & Firefox to avoid compositing jank */}
-            {/* Firefox has CPU-backed backdrop-filter → destroys frame rate */}
             <BlurStack />
 
             {/* Content */}
             <HeroContent isReady={heroAnimationReady} sequenced={isMobile} />
-            {/* <div className="absolute bottom-6 left-0 right-0 z-20 select-none pointer-events-none">
-              <div className="max-w-7xl mx-auto px-6 md:px-8 text-right">
-                <p className="text-white/80 text-lg md:text-xs tracking-wider font-mono font-medium ">
-                  It's a real{" "}
-                  <span className={`${cormorant.className} italic text-white text-lg md:text-xl font-black px-1 tracking-tight`}>
-                    cloud sim ASCII
-                  </span>{" "}
-                  btw
-                </p>
-              </div>
-            </div> */}
           </section>
 
           {/* Loading screen — debounced, only shows if load takes >300ms */}
@@ -168,7 +150,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
             />
           )}
 
-          {/* Sections 2, 3, 4 (Stacked Folders) */}
+          {/* Sections 2, 3, 4 (Stacked Folders) — id used for dock measurement */}
           <StackedSections projects={projects} isReady={animationReady} />
         </div>
 
