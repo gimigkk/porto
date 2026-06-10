@@ -148,6 +148,7 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 				scrollYProgress={effectiveProgress}
 				parallaxOffset={-80}
 				scrollOffset={-160}
+				bgBase="#09090b"
 			>
 				<ProjectsSection projects={projects} />
 			</FolderSection>

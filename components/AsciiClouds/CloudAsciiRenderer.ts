@@ -93,9 +93,11 @@ export class AsciiRenderer {
 
   getEffectiveDpr(isIntro = false): number {
     const vvScale = window.visualViewport?.scale ?? 1;
-    // Cap DPR at 1.5 — ASCII glyphs at 1.5x look identical to 2x/3x
-    // but render 2-4x fewer pixels (biggest perf gain on Retina)
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    // Cap DPR at 2.0 — at cellSize=8, 2x renders 16px glyphs
+    // vs 12px at 1.5x. 2x is enough for retina crispness without
+    // paying 3x+ fill rate cost.
+    const maxDpr = 2.0;
+    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     return dpr * vvScale;
   }
 

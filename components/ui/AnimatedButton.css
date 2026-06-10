@@ -87,31 +87,53 @@
   opacity: 1;
 }
 
+/* Inverted (no interaction) */
+.animated-button.inverted {
+  box-shadow: 0 0 0 1.5px #e4e4e7;
+  color: #18181b;
+  background-color: #fff;
+  font-weight: 700;
+  pointer-events: none;
+}
+.animated-button.inverted svg {
+  fill: #18181b;
+}
+.animated-button.inverted svg,
+.animated-button.inverted .circle,
+.animated-button.inverted .arr-1,
+.animated-button.inverted .arr-2 {
+  display: none;
+}
+.animated-button.inverted .text {
+  transform: none !important;
+}
+
 /* Small Variant */
 .animated-button.sm {
-  padding: 10px 24px;
-  font-size: 13px;
-  border-width: 2px;
+  padding: 6px 16px;
+  font-size: 12px;
+  border-width: 1.5px;
+  gap: 2px;
 }
 .animated-button.sm svg {
-  width: 16px;
+  width: 14px;
 }
 .animated-button.sm .arr-1 {
-  right: 12px;
+  right: 8px;
 }
 .animated-button.sm .text {
-  transform: translateX(-8px);
+  transform: translateX(-6px);
 }
 .animated-button.sm:hover .text {
-  transform: translateX(8px);
+  transform: translateX(6px);
 }
 .animated-button.sm:hover .arr-2 {
-  left: 12px;
+  left: 8px;
 }
 .animated-button.sm:hover .arr-1 {
   right: -25%;
 }
 .animated-button.sm:hover .circle {
-  width: 140px;
-  height: 140px;
+  width: 120px;
+  height: 120px;
 }
