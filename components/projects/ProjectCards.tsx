@@ -66,9 +66,11 @@ export default function ProjectCards({
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = "rgba(161,161,170,0.45)";
+                e.currentTarget.style.boxShadow = `0 20px 50px -12px rgba(0,0,0,0.8)`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = "";
+                e.currentTarget.style.boxShadow = "";
               }}
             >
               {/* -- Full-cover thumbnail -- */}
@@ -82,7 +84,10 @@ export default function ProjectCards({
 
               {/* -- Gradient + blur overlay at bottom -- */}
               <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 h-2/3 backdrop-blur-[2px] [mask-image:linear-gradient(to_top,black_40%,transparent_100%)]" />
+              {/* isolate needed so backdrop-filter survives parent's 3D transform + overflow:hidden */}
+              <div className="absolute bottom-0 left-0 right-0 h-2/3 isolate">
+                <div className="absolute inset-0 backdrop-blur-[2px] [mask-image:linear-gradient(to_top,black_40%,transparent_100%)]" />
+              </div>
 
               {/* -- Year badge — top right -- */}
               <span

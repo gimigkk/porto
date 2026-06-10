@@ -17,7 +17,7 @@ export default function ProjectsSection({ projects }: { projects: ProjectMeta[] 
             Projects
           </h2>
           <p className="text-zinc-400 text-sm max-w-md hidden md:block">
-            A selection of things I&apos;ve built — from platforms to pixels.
+            Gloat-worthy projects, experiments, and highlights from my development journey. Click a card to read more about it.
           </p>
         </div>
         <AnimatedButton href="/projects" className="shrink-0 sm">
