@@ -72,6 +72,12 @@
       "sourceType": "local",
       "skillPath": ".agents/skills/think-first/SKILL.md",
       "computedHash": "manual"
+    },
+    "perf-opt": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/perf-opt/SKILL.md",
+      "computedHash": "manual"
     }
   }
 }

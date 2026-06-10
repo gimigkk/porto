@@ -13,19 +13,17 @@ import type { ProjectMeta } from "@/lib/projects";
 // IMPORT: Loading Cormorant Garamond for the stylish accent
 import { Cormorant_Garamond } from 'next/font/google';
 
-/** Firefox has CPU-backed backdrop-filter — skip to avoid jank */
+/** Firefox CPU-backend backdrop-filter — remove from DOM entirely */
 function BlurStack() {
-  const [isClient, setIsClient] = useState(false);
-  const [isFirefox, setIsFirefox] = useState(false);
+  const [isFirefox, setIsFirefox] = useState<boolean | null>(null);
   useEffect(() => {
-    setIsClient(true);
     setIsFirefox(navigator.userAgent.includes("Firefox"));
   }, []);
-  // Server & client first paint: render blur (match hydration).
-  // After mount: hide on Firefox.
-  const hidden = isClient && isFirefox;
+  // Hydration: SSR renders blur, first client paint shows it.
+  // After mount: Firefox gets null (no blur DOM at all).
+  if (isFirefox) return null;
   return (
-    <div className={`hidden md:block absolute bottom-0 left-0 right-0 h-24 pointer-events-none select-none z-15 overflow-hidden ${hidden ? 'opacity-0' : ''}`}>
+    <div className="hidden md:block absolute bottom-0 left-0 right-0 h-24 pointer-events-none select-none z-15 overflow-hidden">
       <div
         className="absolute inset-0"
         style={{
@@ -105,7 +103,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
 
   return (
     <>
-      <main className="w-full min-h-[100svh] bg-[#141416]">
+      <main className="w-full min-h-svh bg-[#141416]">
         {/* Responsive Hero Height Variable */}
         <style dangerouslySetInnerHTML={{
           __html: `
@@ -123,7 +121,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
           {/* Section 1 */}
           <section
             id="home"
-            className="h-[var(--hero-height)] w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
+            className="h-(--hero-height) w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
             style={{ top: "calc(136px - var(--hero-height))" }}
           >
             {/* Sky blue gradient bg */}

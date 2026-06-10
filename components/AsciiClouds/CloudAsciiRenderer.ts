@@ -93,15 +93,10 @@ export class AsciiRenderer {
 
   getEffectiveDpr(isIntro = false): number {
     const vvScale = window.visualViewport?.scale ?? 1;
-    const isFirefox = navigator.userAgent.includes("Firefox");
-    // Firefox Canvas2D is ~2x slower → cap DPR to save pixels
-    const maxDpr = (isIntro || isFirefox) ? 1.5 : (window.devicePixelRatio || 1);
-    const dpr = isIntro
-      ? Math.min(window.devicePixelRatio || 1, maxDpr)
-      : (window.devicePixelRatio || 1);
-    // Firefox: always cap — even after intro
-    const capped = isFirefox ? Math.min(dpr, 1.5) : dpr;
-    return capped * vvScale;
+    // Cap DPR at 1.5 — ASCII glyphs at 1.5x look identical to 2x/3x
+    // but render 2-4x fewer pixels (biggest perf gain on Retina)
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    return dpr * vvScale;
   }
 
   buildGustMap(state: CloudState, rows: number, cols: number, t: number): Float32Array {
@@ -365,14 +360,20 @@ export class AsciiRenderer {
     const thresholdD2 = threshold * 0.5 + 0.05;
     const ceilMinThr  = ceiling - threshold;
 
-    // Precompute noise trigonometry for this frame
-    for (let i = 0; i < NOISE_W * NOISE_H; i++) {
-      const ni = i * 5;
-      const bPhase = NOISE[ni], bSpeed = NOISE[ni + 1];
-      const dPhase = NOISE[ni + 2], dDir = NOISE[ni + 3], dSpeed = NOISE[ni + 4];
-      
-      this.noiseDispCache[i] = Math.sin(t * s * dSpeed + dPhase) * dAmp * dDir;
-      this.noiseWaveCache[i] = Math.sin(t * s * bSpeed * 1.3 + bPhase) * wAmp + Math.sin(t * s * bSpeed * 0.6 + bPhase * 1.9) * wAmp * 0.4;
+    // Precompute noise for grid region actually rendered.
+    // Old: all 45K entries (NOISE_W×NOISE_H). New: only rows×cols entries.
+    // noiseIdx = (row % NOISE_H)*NOISE_W + (col % NOISE_W). rows ≤ NOISE_H, cols ≤ NOISE_W.
+    for (let r = 0; r < rows; r++) {
+      const rowBase = (r % NOISE_H) * NOISE_W;
+      for (let c = 0; c < cols; c++) {
+        const i = rowBase + (c % NOISE_W);
+        const ni = i * 5;
+        const bPhase = NOISE[ni], bSpeed = NOISE[ni + 1];
+        const dPhase = NOISE[ni + 2], dDir = NOISE[ni + 3], dSpeed = NOISE[ni + 4];
+        
+        this.noiseDispCache[i] = Math.sin(t * s * dSpeed + dPhase) * dAmp * dDir;
+        this.noiseWaveCache[i] = Math.sin(t * s * bSpeed * 1.3 + bPhase) * wAmp + Math.sin(t * s * bSpeed * 0.6 + bPhase * 1.9) * wAmp * 0.4;
+      }
     }
 
     buf32.fill(0x00FFFFFF);

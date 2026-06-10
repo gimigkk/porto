@@ -102,7 +102,7 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 		/* FIXED: Pulled up by -mt-[56px] to hide the light blue behind the rounded corners */
 		<motion.div 
 			ref={containerRef} 
-			className="relative z-9999 w-full -mt-[56px] -mb-[80px]"
+			className="relative z-9999 w-full -mt-14 -mb-20"
 			initial={{ y: 200 }}
 			animate={isReady ? { y: 0 } : { y: 200 }}
 			transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0 }}

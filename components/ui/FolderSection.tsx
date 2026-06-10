@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, MotionValue, useTransform, useMotionValue, useMotionTemplate } from "framer-motion";
+import { motion, MotionValue, useTransform, useMotionValue } from "framer-motion";
 import { ReactNode } from "react";
 import { useLenis } from "lenis/react";
 
@@ -37,31 +37,9 @@ export default function FolderSection({
   const source = scrollYProgress || fallbackProgress;
 
   const y = useTransform(source, [0, 1], [0, parallaxOffset]);
-
-  // Lerp progress mapped through fadeRange
   const progress = useTransform(source, fadeRange || [0, 0], [0, 1]);
+  const overlayOpacity = useTransform(progress, [0, 1], [0, 1]);
 
-  // Parse hex helpers
-  const hexToR = (hex: string) => parseInt(hex.slice(1, 3), 16);
-  const hexToG = (hex: string) => parseInt(hex.slice(3, 5), 16);
-  const hexToB = (hex: string) => parseInt(hex.slice(5, 7), 16);
-
-  // Always create transforms — fallback to 0,0,0 if no faded color
-  const toR = bgBase && bgFaded ? hexToR(bgFaded) : 0;
-  const toG = bgBase && bgFaded ? hexToG(bgFaded) : 0;
-  const toB = bgBase && bgFaded ? hexToB(bgFaded) : 0;
-  const fromR = bgBase ? hexToR(bgBase) : 0;
-  const fromG = bgBase ? hexToG(bgBase) : 0;
-  const fromB = bgBase ? hexToB(bgBase) : 0;
-
-  const r = useTransform(progress, [0, 1], [fromR, toR]);
-  const g = useTransform(progress, [0, 1], [fromG, toG]);
-  const b = useTransform(progress, [0, 1], [fromB, toB]);
-
-  const bodyBg = useMotionTemplate`rgb(${r}, ${g}, ${b})`;
-  const tabFill = bodyBg;
-
-  // All folders just have rounded-t-2xl at the far edges, the tabs seamlessly merge into them.
   const bodyRadius = "rounded-t-lg sm:rounded-t-xl md:rounded-t-2xl";
 
   const sectionId = `section-${tabTitle.toLowerCase().replace(/\s+/g, "-")}`;
@@ -76,13 +54,18 @@ export default function FolderSection({
   const TabContent = () => (
     <button
       onClick={handleTabClick}
-      className="relative w-[160px] h-[32px] sm:w-[220px] sm:h-[44px] md:w-[320px] md:h-[64px] -mt-[12px] sm:-mt-[16px] md:-mt-[24px] flex items-center justify-center z-10 focus:outline-none cursor-pointer"
+      className="relative w-40 h-8 sm:w-55 sm:h-11 md:w-80 md:h-16 -mt-3 sm:-mt-4 md:-mt-6 flex items-center justify-center z-10 focus:outline-none cursor-pointer"
     >
       <svg
         viewBox="0 0 320 64"
         className="absolute inset-0 w-full h-full"
       >
-        <motion.path d="M 0 64 L 12 64 Q 32 64, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64, 308 64 L 320 64 Z" fill={bgFaded ? tabFill : fillClass} />
+        {/* Base fill — bgBase is real hex color */}
+        <path d="M 0 64 L 12 64 Q 32 64, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64, 308 64 L 320 64 Z" fill={bgBase || fillClass} />
+        {/* Faded overlay — same opacity as body bg */}
+        {bgFaded && (
+          <motion.path d="M 0 64 L 12 64 Q 32 64, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64, 308 64 L 320 64 Z" fill={bgFaded} style={{ opacity: overlayOpacity }} />
+        )}
       </svg>
       <span className="text-white/80 font-semibold tracking-wide text-[12px] sm:text-sm md:text-lg relative z-10 pb-0.5 md:pb-1">
         {tabTitle}
@@ -95,12 +78,12 @@ export default function FolderSection({
       <div id={sectionId} className="w-full h-0 invisible" aria-hidden="true" />
       <motion.div
         className={`${stickyClass} w-full`}
-        style={{ y }}
+        style={{ y, willChange: "transform" }}
       >
         <div className="w-full h-full flex flex-col">
           {/* Tab Row */}
-          <div className="w-full relative z-10 translate-y-[1px]">
-            <div className="flex w-full max-w-[1400px] mx-auto h-[20px] sm:h-[28px] md:h-[40px] px-0 sm:px-2 md:px-[5px]">
+          <div className="w-full relative z-10 translate-y-px">
+            <div className="flex w-full max-w-350 mx-auto h-5 sm:h-7 md:h-10 px-0 sm:px-2 md:px-1.25">
               {/* Left Tab Slot */}
               <div className="flex-1 flex items-end">
                 {tabPosition === "left" && <TabContent />}
@@ -122,19 +105,35 @@ export default function FolderSection({
           <div
             className={`flex-1 w-full ${bodyRadius} py-8 flex flex-col items-center justify-center relative z-20 overflow-hidden`}
           >
-            {/* Background with interpolation */}
-            <motion.div
-              className="absolute inset-0 z-0"
-              style={{ background: bodyBg }}
-            />
+            {/* Background: Tailwind class or hex */}
+            {bgBase ? (
+              <>
+                <div
+                  className="absolute inset-0 z-0"
+                  style={{ background: bgBase }}
+                />
+                {bgFaded && (
+                  <motion.div
+                    className="absolute inset-0 z-0"
+                    style={{ background: bgFaded, opacity: overlayOpacity, willChange: "opacity" }}
+                  />
+                )}
+              </>
+            ) : (
+              <div className={`absolute inset-0 z-0 ${bgClass}`} />
+            )}
             <div className="relative z-10 w-full h-full">
               {children}
             </div>
-            {/* Infinite Downward Extension to prevent peeking during parallax */}
-            <motion.div
-              className="absolute top-full left-0 w-full h-svh z-0"
-              style={{ background: bodyBg }}
-            />
+            {/* Infinite Downward Extension */}
+            {bgFaded ? (
+              <motion.div
+                className="absolute top-full left-0 w-full h-svh z-0"
+                style={{ background: bgFaded, opacity: overlayOpacity, willChange: "opacity" }}
+              />
+            ) : bgClass ? (
+              <div className={`absolute top-full left-0 w-full h-svh z-0 ${bgClass}`} />
+            ) : null}
           </div>
         </div>
       </motion.div>

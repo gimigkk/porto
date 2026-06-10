@@ -66,3 +66,17 @@ When tasked with designing a new frontend component, UI feature, or layout, DO N
 
 Or just trigger `design-flow` skill to run the whole sequence.
 No vibe coding.
+
+# Perf-Opt — ALWAYS ON FOR PERFORMANCE WORK
+
+When asked to optimize performance, profile, fix jank, reduce bundle size, or improve render speed, `perf-opt` skill activates automatically.
+
+Key areas:
+1. **Render** — React.memo, useMemo, useCallback, context splitting, state colocation
+2. **Animation** — composited-only props, RAF tab visibility, reduce animated element count
+3. **Layout** — CSS containment, content-visibility, batch DOM read/write
+4. **Bundle** — next/dynamic, image optimization, font subsetting, tree-shaking
+5. **Scroll** — passive listeners, IntersectionObserver, throttle/debounce
+6. **Memory** — cleanup subscriptions, release GPU resources, AbortController
+
+See `.agents/skills/perf-opt/SKILL.md` for full reference and checklist.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 export interface PreloadedAssets {
   cloudImageData: Uint8ClampedArray;
@@ -20,7 +20,6 @@ export function usePreloader(): {
   assets: PreloadedAssets | null;
 } {
   const [isReady, setIsReady] = useState(false);
-  const assetsRef = useRef<PreloadedAssets | null>(null);
   const [assets, setAssets] = useState<PreloadedAssets | null>(null);
 
   useEffect(() => {
@@ -68,7 +67,6 @@ export function usePreloader(): {
             glyphAtlas: atlas,
             glyphTileSize: tileSize,
           };
-          assetsRef.current = imageAssets;
           setAssets(imageAssets);
           setIsReady(true);
         }

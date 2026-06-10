@@ -18,7 +18,7 @@ export default function ProjectCards({
   return (
     <>
       {/* -- Cards Grid (3-column) ---------------- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-[1400px] mx-auto px-4 md:px-12">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-350 mx-auto px-4 md:px-12">
         {featured.map((project) => (
           <div
             key={project.slug}
@@ -60,7 +60,7 @@ export default function ProjectCards({
                 window.history.pushState(null, "", `?project=${project.slug}`);
                 window.dispatchEvent(new PopStateEvent("popstate"));
               }}
-              className="relative z-10 flex flex-col h-full rounded-xl border border-zinc-700/60 bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-bottom md:group-hover:[transform:translateY(16px)_rotateX(-6deg)]"
+              className="relative z-10 flex flex-col h-full rounded-xl border border-zinc-700/60 bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-bottom md:group-hover:transform-[translateY(16px)_rotateX(-6deg)]"
               style={{
                 willChange: "transform"
               }}
@@ -79,6 +79,7 @@ export default function ProjectCards({
                 <img
                   src={project.thumbnail}
                   alt={`${project.title} preview`}
+                  loading="lazy"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -144,7 +145,7 @@ export default function ProjectCards({
                     href={project.github ?? `https://github.com/gimigkk/${project.slug}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="ml-auto flex items-center justify-center w-[22px] h-[22px] rounded-[5px] border border-zinc-600 text-zinc-400 hover:text-white hover:border-zinc-400 transition-colors z-20 shrink-0"
+                    className="ml-auto flex items-center justify-center w-5.5 h-5.5 rounded-[5px] border border-zinc-600 text-zinc-400 hover:text-white hover:border-zinc-400 transition-colors z-20 shrink-0"
                     onClick={(e) => e.stopPropagation()}
                     title="View Source"
                   >

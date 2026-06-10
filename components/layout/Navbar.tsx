@@ -134,40 +134,45 @@ export default function Navbar() {
   // Keep visible when panels (mobile/menu) or desktop dropdown is open to avoid jank.
   const [navVisible, setNavVisible] = useState(true);
   const lastScrollYRef = useRef<number>(0);
+  const menuStateRef = useRef({ mobileMenuOpen, gimigkkPanelOpen, hoveredIndex });
+  menuStateRef.current = { mobileMenuOpen, gimigkkPanelOpen, hoveredIndex };
 
   useEffect(() => {
-    const THRESHOLD = 10; // minimal delta to consider
-    const TOP_THRESHOLD = 50; // always show when near top
+    const THRESHOLD = 10;
+    const TOP_THRESHOLD = 50;
+    let rafId = 0;
 
     function onScroll() {
-      const current = window.scrollY || window.pageYOffset || 0;
-      const last = lastScrollYRef.current;
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const current = window.scrollY || window.pageYOffset || 0;
+        const last = lastScrollYRef.current;
 
-      // small movements ignored
-      if (Math.abs(current - last) < THRESHOLD) return;
+        if (Math.abs(current - last) < THRESHOLD) return;
 
-      const isExpandedLocal = hoveredIndex !== null;
+        const { mobileMenuOpen: mmo, gimigkkPanelOpen: gpo, hoveredIndex: hi } = menuStateRef.current;
+        const isExpanded = hi !== null;
 
-      // always show at top
-      if (current <= TOP_THRESHOLD) {
-        setNavVisible(true);
-      } else if (mobileMenuOpen || gimigkkPanelOpen || isExpandedLocal) {
-        // keep visible when menus/panels/dropdown open
-        setNavVisible(true);
-      } else if (current > last) {
-        // scrolling down -> hide
-        setNavVisible(false);
-      } else {
-        // scrolling up -> show
-        setNavVisible(true);
-      }
+        if (current <= TOP_THRESHOLD) {
+          setNavVisible(true);
+        } else if (mmo || gpo || isExpanded) {
+          setNavVisible(true);
+        } else if (current > last) {
+          setNavVisible(false);
+        } else {
+          setNavVisible(true);
+        }
 
-      lastScrollYRef.current = current;
+        lastScrollYRef.current = current;
+      });
     }
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [mobileMenuOpen, gimigkkPanelOpen, hoveredIndex]);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(rafId);
+    };
+  }, []); // no deps — menu state read from ref
 
   const closeAll = useCallback(() => {
     setHoveredIndex(null);
@@ -282,7 +287,7 @@ export default function Navbar() {
       />
 
       <nav
-        className="fixed top-0 inset-x-0 z-[10000]"
+        className="fixed top-0 inset-x-0 z-10000"
         onMouseLeave={handleNavMouseLeave}
         style={{
           transform: (navVisible && !introCollapsed) ? "translateY(0)" : "translateY(-100%)",
@@ -294,7 +299,7 @@ export default function Navbar() {
         <div className="w-full bg-white">
           <div
             ref={innerNavRef}
-            className="h-12 flex items-center justify-between max-w-[1400px] mx-auto px-4 md:px-12"
+            className="h-12 flex items-center justify-between max-w-350 mx-auto px-4 md:px-12"
           >
             {/* Left: @gimigkk always visible + desktop-only nav items */}
             <div className="flex items-center gap-8">
@@ -378,7 +383,7 @@ export default function Navbar() {
           >
             <div
               ref={contentRef}
-              className="max-w-[1400px] mx-auto px-4 md:px-12 py-6"
+              className="max-w-350 mx-auto px-4 md:px-12 py-6"
               style={{ paddingLeft: `${hoveredOffset + 16}px`, paddingRight: "1rem" }}
             >
               <AnimatePresence mode="popLayout">
@@ -418,7 +423,7 @@ export default function Navbar() {
         />
 
         <div
-          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl ${gimigkkPanelOpen ? "block" : "hidden"}`}
+          className={`md:hidden fixed top-11.75 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl ${gimigkkPanelOpen ? "block" : "hidden"}`}
         >
           <div className="px-4 py-4 flex flex-col gap-1">
             {/* @gimigkk accordion */}
@@ -475,7 +480,7 @@ export default function Navbar() {
         />
 
         <div
-          className={`md:hidden fixed top-[47px] inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1 ${mobileMenuOpen ? "block" : "hidden"}`}
+          className={`md:hidden fixed top-11.75 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1 ${mobileMenuOpen ? "block" : "hidden"}`}
         >
           {/* Home accordion + Project Archive accordion */}
           {NAV_ITEMS.slice(1).map((item, idx) => {

@@ -84,22 +84,26 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       mouse.vy = 0;
     };
 
-    // Pause/resume handlers — called by Navbar when mobile menu opens/closes
-    const handlePause = () => {
-      if (pausedRef.current) return;
-      pausedRef.current = true;
-      pauseStart = performance.now();
-      cancelAnimationFrame(rafRef.current);
-    };
+    // Pause sources — unified flag check
+    const pauseFlags = { ascii: false, visible: true, tab: false };
 
-    const handleResume = () => {
-      if (!pausedRef.current) return;
-      pausedRef.current = false;
-      pauseAccum += performance.now() - pauseStart;
-      lastPhysicsTime = performance.now();
-      lastRenderTime = performance.now();
-      rafRef.current = requestAnimationFrame(loop);
-    };
+    function checkShouldPause() {
+      const shouldPause = !pauseFlags.visible || pauseFlags.tab || pauseFlags.ascii;
+      if (shouldPause && !pausedRef.current) {
+        pausedRef.current = true;
+        pauseStart = performance.now();
+        cancelAnimationFrame(rafRef.current);
+      } else if (!shouldPause && pausedRef.current) {
+        pausedRef.current = false;
+        pauseAccum += performance.now() - pauseStart;
+        lastPhysicsTime = performance.now() - (1000 / 30);
+        lastRenderTime = performance.now() - (1000 / 60);
+        rafRef.current = requestAnimationFrame(loop);
+      }
+    }
+
+    const handlePause = () => { pauseFlags.ascii = true; checkShouldPause(); };
+    const handleResume = () => { pauseFlags.ascii = false; checkShouldPause(); };
 
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerdown", handlePointerMove);
@@ -109,16 +113,23 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     window.addEventListener("ascii-pause", handlePause);
     window.addEventListener("ascii-resume", handleResume);
 
+    // Pause canvas when hero scrolls off-screen
+    const io = new IntersectionObserver(
+      ([entry]) => { pauseFlags.visible = entry.isIntersecting; checkShouldPause(); },
+      { threshold: 0 }
+    );
+    io.observe(canvas);
+
+    // Pause when tab hidden (saves battery on background tabs)
+    const onVisibility = () => { pauseFlags.tab = document.hidden; checkShouldPause(); };
+    document.addEventListener("visibilitychange", onVisibility);
+
     function loop(now: number) {
       rafRef.current = requestAnimationFrame(loop);
 
       // Subtract accumulated pause time so animation doesn't jump
       const adjustedNow = now - pauseAccum;
       const t = (adjustedNow - startTime) / 1000;
-      let dt = (now - lastPhysicsTime) / 1000;
-      if (dt < 0) dt = 0;
-      if (dt > 0.1) dt = 0.1;
-      lastPhysicsTime = now;
 
       const W = renderer.currentW;
       const H = renderer.currentH;
@@ -149,40 +160,37 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       const cols = Math.max(1, Math.floor(W / currentCellSize));
       const rows = Math.max(1, Math.floor(H / currentCellSize));
 
-      updateDisruptions(state, mouse, dt, cols, rows, W, H);
-      updateBlobs(state, mouse, dt, t, cols, isIntro, W, H, renderer.imgData, renderer.imgW, renderer.imgH);
-      if (!isIntro) {
-        updateGusts(state, t, cols);
+      // Physics at 30fps max, render at target. Decoupled so expensive frames don't stack.
+      const physicsInterval = 1000 / 30;
+      if (now - lastPhysicsTime >= physicsInterval) {
+        const physDt = Math.min((now - lastPhysicsTime) / 1000, 0.05);
+        lastPhysicsTime = now - ((now - lastPhysicsTime) % physicsInterval);
+
+        updateDisruptions(state, mouse, physDt, cols, rows, W, H);
+        updateBlobs(state, mouse, physDt, t, cols, isIntro, W, H, renderer.imgData, renderer.imgW, renderer.imgH);
+        if (!isIntro) {
+          updateGusts(state, t, cols);
+        }
       }
 
-      // Firefox: cap at 30fps post-intro — Canvas2D is slower
+      // Render FPS: Firefox 30, desktop 60, mobile intro lower
       const isFirefox = navigator.userAgent.includes("Firefox");
-      // FPS cap: 15fps during overlap to prioritize hero animations, 30fps for early intro, 60fps desktop
-      let targetFps = isFirefox ? 30 : CONFIG.fps;
+      let renderFps = isFirefox ? 30 : CONFIG.fps;
       if (isIntro && isMobile) {
-        targetFps = t >= overlapStart ? 15 : 30; // Drop FPS to give framer-motion main thread priority
+        renderFps = t >= overlapStart ? 15 : 30;
       }
-      const interval = 1000 / targetFps;
-      if (isIntro || (now - lastRenderTime >= interval)) {
-        if (!isIntro) {
-          lastRenderTime = now - ((now - lastRenderTime) % interval);
-        } else {
-          // Mobile intro: enforce interval. Desktop intro: uncapped (original behavior)
-          if (isMobile) {
-            if (now - lastRenderTime < interval) return;
-            lastRenderTime = now - ((now - lastRenderTime) % interval);
-          } else {
-            lastRenderTime = now;
-          }
-        }
+      const renderInterval = 1000 / renderFps;
+      if (now - lastRenderTime >= renderInterval) {
+        lastRenderTime = now - ((now - lastRenderTime) % renderInterval);
         renderer.render(state, now, startTime, isIntro, introOffsetNorm, cols, rows);
       }
     }
 
     function startLoop() {
       startTime = performance.now();
-      lastPhysicsTime = startTime;
-      lastRenderTime = startTime;
+      // Offset so physics + render fire on first frame
+      lastPhysicsTime = startTime - (1000 / 30);
+      lastRenderTime = startTime - (1000 / 60);
       rafRef.current = requestAnimationFrame(loop);
     }
 
@@ -224,6 +232,8 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       window.removeEventListener("scroll", handleScroll, { capture: true });
       window.removeEventListener("ascii-pause", handlePause);
       window.removeEventListener("ascii-resume", handleResume);
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [isReady, preloadedAssets]);
 
