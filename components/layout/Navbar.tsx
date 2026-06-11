@@ -121,8 +121,8 @@ export default function Navbar() {
       return;
     }
     const onReady = () => setIntroCollapsed(false);
-    window.addEventListener("hero-ready", onReady);
-    return () => window.removeEventListener("hero-ready", onReady);
+    window.addEventListener("hero-phase2", onReady);
+    return () => window.removeEventListener("hero-phase2", onReady);
   }, [pathname]);
 
   // Derive which accordion index matches current route: 1=Home, 2=Project Archive

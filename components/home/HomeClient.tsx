@@ -61,30 +61,47 @@ interface HomeClientProps {
 export default function HomeClient({ projects }: HomeClientProps) {
   const { isReady, assets } = usePreloader();
   const [loadingComplete, setLoadingComplete] = useState(false);
-  const [cloudIntroComplete, setCloudIntroComplete] = useState(false);
+  const [phase2Ready, setPhase2Ready] = useState(false);
 
   // Detect mobile once on mount
   const isMobile = useMemo(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches,
     []);
 
-  // Cloud intro starts as soon as preloader is ready
-  const animationReady = isReady;
+  // Phase 1: words + contact text animate immediately when preloader done
+  const heroAnimationReady = isReady;
 
-  // Hero animations: on mobile, wait for cloud intro to finish first.
-  // On desktop, fire immediately (desktop handles concurrent load fine).
-  const heroAnimationReady = isMobile ? cloudIntroComplete : isReady;
+  // Clouds + stacked sections start at Phase 2 (together with navbar, subtext, CTA)
+  const animationReady = phase2Ready;
+
+  // Phase 2: clouds, navbar, subtext + CTA all start together after delay
+  useEffect(() => {
+    if (!isReady) return;
+    // 500ms after Phase 1's last trigger (contact[2] at 2.4s mobile / 2.5s desktop)
+    const delay = isMobile ? 2900 : 3000;
+    const timer = setTimeout(() => setPhase2Ready(true), delay);
+    return () => clearTimeout(timer);
+  }, [isReady, isMobile]);
+
+  // Fire event for navbar phase2 uncollapse
+  useEffect(() => {
+    if (phase2Ready) {
+      window.dispatchEvent(new Event("hero-phase2"));
+    }
+  }, [phase2Ready]);
+
+  // Transition hero height: 100svh → 95svh on Phase 2
+  const [heroHeight, setHeroHeight] = useState("100svh");
+  useEffect(() => {
+    if (phase2Ready) {
+      // Slight delay so CSS transition kicks after layout
+      requestAnimationFrame(() => setHeroHeight("95svh"));
+    }
+  }, [phase2Ready]);
 
   const handleIntroComplete = useCallback(() => {
-    setCloudIntroComplete(true);
+    // no-op — kept for clouds callback compatibility
   }, []);
-
-  // Trigger Navbar uncollapse as soon as preloader is ready
-  useEffect(() => {
-    if (isReady) {
-      window.dispatchEvent(new Event("hero-ready"));
-    }
-  }, [isReady]);
 
   // Prevent browser scroll restoration on refresh and start at top
   useEffect(() => {
@@ -110,37 +127,43 @@ export default function HomeClient({ projects }: HomeClientProps) {
           isReady={animationReady}
           preloadedAssets={assets}
           onIntroComplete={handleIntroComplete}
+          heroHeight={heroHeight}
         />
 
         {/* Responsive Hero Height Variable */}
-        <style dangerouslySetInnerHTML={{
-          __html: `
-          :root {
-            --hero-height: 600px;
-          }
-          @media (min-width: 768px) {
-            :root {
-              --hero-height: 95svh;
-            }
-          }
-        `}} />
-
+        {/* Hero height via CSS transition — starts 100svh, shrinks to 95svh on Phase 2 */}
         <div className="relative z-20 w-full">
           {/* Section 1 */}
           <section
             id="home"
-            className="h-(--hero-height) w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
-            style={{ top: "calc(136px - var(--hero-height))" }}
+            className="w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
+            style={{
+              height: heroHeight,
+              transition: "height 600ms cubic-bezier(0.22,1,0.36,1), top 600ms cubic-bezier(0.22,1,0.36,1)",
+              top: `calc(136px - ${heroHeight})`,
+            }}
           >
-            {/* dark gradient overlay — blends hero bottom into folders */}
-            <div className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#00000081] to-transparent z-10" />
-            <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-[#000000b2] to-transparent z-11" />
+            {/* dark gradient overlay — fades in on Phase 2 */}
+            <div
+              className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#00000081] to-transparent z-10"
+              style={{
+                opacity: phase2Ready ? 1 : 0,
+                transition: "opacity 600ms cubic-bezier(0.22,1,0.36,1)",
+              }}
+            />
+            <div
+              className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-[#000000b2] to-transparent z-11"
+              style={{
+                opacity: phase2Ready ? 1 : 0,
+                transition: "opacity 600ms cubic-bezier(0.22,1,0.36,1)",
+              }}
+            />
 
             {/* PROGRESSIVE BLUR STACK — hidden on mobile & Firefox to avoid compositing jank */}
             <BlurStack />
 
             {/* Content */}
-            <HeroContent isReady={heroAnimationReady} sequenced={isMobile} />
+            <HeroContent isReady={heroAnimationReady} ctaReady={phase2Ready} sequenced={isMobile} />
           </section>
 
           {/* Loading screen — debounced, only shows if load takes >300ms */}

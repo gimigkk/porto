@@ -18,11 +18,13 @@ const ibmPlexSerif = IBM_Plex_Serif({
 
 interface HeroContentProps {
   isReady?: boolean;
+  /** When true, subtext + CTA start their animation */
+  ctaReady?: boolean;
   /** When true, use compressed animation timing (for sequencing after cloud intro on mobile) */
   sequenced?: boolean;
 }
 
-export default function HeroContent({ isReady = true, sequenced = false }: HeroContentProps) {
+export default function HeroContent({ isReady = true, ctaReady = false, sequenced = false }: HeroContentProps) {
   const words = ['Digitalisasi', 'dimulai', 'dari', 'hati,'];
   const mobileHeadlineRef = useRef<HTMLHeadingElement>(null);
   const mobileContactRef = useRef<HTMLParagraphElement>(null);
@@ -58,15 +60,13 @@ export default function HeroContent({ isReady = true, sequenced = false }: HeroC
     return () => window.removeEventListener('resize', matchWidths);
   }, []);
 
-  // Trigger animations only when isReady flips to true
+  // Phase 1: Words + Contact text animate when isReady flips
   useEffect(() => {
     if (!isReady) return;
 
-    // Sequenced mode (mobile): triggered 0.5s into the intro. 
-    // Shifted desktop timings back by 0.5s to match exact visual pacing.
     const d = sequenced
-      ? { words: [0, 0.25], contact: [1.5, 2.5, 2.7], sub: 3.5 }
-      : { words: [0.5, 0.25], contact: [2, 3, 3.2], sub: 4 };
+      ? { words: [0, 0.3], contact: [1.5, 2.2, 2.4] }
+      : { words: [0.1, 0.3], contact: [1.6, 2.3, 2.5] };
 
     // Words: staggered spring with rotateX
     wordControls.forEach((ctrl, i) => {
@@ -90,17 +90,21 @@ export default function HeroContent({ isReady = true, sequenced = false }: HeroC
       opacity: 1, rotateX: 0,
       transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: d.contact[2] },
     });
+  }, [isReady]);
 
-    // Subtext + CTA
+  // Phase 2: Subtext + CTA animate when ctaReady flips (together with navbar + clouds)
+  useEffect(() => {
+    if (!ctaReady) return;
+
     subtextControls.start({
       opacity: 1, y: 0,
-      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: d.sub },
+      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
     });
     ctaControls.start({
       opacity: 1, y: 0,
-      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: d.sub },
+      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
     });
-  }, [isReady]);
+  }, [ctaReady]);
 
   return (
     <>
