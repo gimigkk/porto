@@ -5,11 +5,12 @@ interface SkipIntroButtonProps {
   onClick: () => void;
   label?: string;
   className?: string;
+  isActive?: boolean;
 }
 
-export default function SkipIntroButton({ onClick, label = 'SPACE to SKIP', className = '' }: SkipIntroButtonProps) {
+export default function SkipIntroButton({ onClick, label = 'SPACE to SKIP', className = '', isActive = false }: SkipIntroButtonProps) {
   return (
-    <button className={`${styles.pushable} ${className}`} onClick={onClick} aria-label="Skip Intro">
+    <button className={`${styles.pushable} ${isActive ? styles.simulateActive : ''} ${className}`} onClick={onClick} aria-label="Skip Intro">
       <span className={styles.shadow}></span>
       <span className={styles.edge}></span>
       <span className={styles.front}>

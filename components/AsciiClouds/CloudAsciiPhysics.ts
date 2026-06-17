@@ -44,7 +44,8 @@ export function updateBlobs(
       continue;
     }
 
-    b.vx += (CONFIG.blobAmbientWind - b.vx) * dt * 1.5;
+    // Gracefully align to ambient wind instead of random jumps
+    b.vx += (CONFIG.blobAmbientWind - b.vx) * dt * 0.8;
 
     for (const g of state.gusts) {
       const age = t - g.born;
@@ -108,9 +109,6 @@ export function updateBlobs(
 
     b.px += b.vx * dt;
     b.py += b.vy * dt;
-
-    b.vx += (rng() - 0.5) * 18 * dt;
-    b.vy += (rng() - 0.5) * 10 * dt;
   }
 
   if (imgData && imgW > 0 && imgH > 0 && state.blobs.length < CONFIG.blobCount) {
@@ -143,25 +141,41 @@ export function updateBlobs(
       if (pyTop !== -1 && pyBottom !== -1) {
         const cloudHeight = pyBottom - pyTop;
         
-        const fractionUp = 0.6 + rng() * 0.3; 
-        const py = Math.floor(pyBottom - (cloudHeight * fractionUp));
+        let py = -1;
+        let foundDense = false;
+        
+        // Try up to 5 times to find a dense spot
+        for (let tries = 0; tries < 5; tries++) {
+            const fractionUp = 0.2 + rng() * 0.7; // Spawn anywhere from near bottom to near top
+            const testPy = Math.floor(pyBottom - (cloudHeight * fractionUp));
+            const idx = (testPy * imgW + px) * 4;
+            // Check if the underlying cloud image is dense here (alpha > 120 instead of 200 to allow more spawns)
+            if (imgData[idx + 3] > 120) {
+                py = testPy;
+                foundDense = true;
+                break;
+            }
+        }
+        
+        // If we didn't find a dense spot, skip spawning this frame to avoid empty area blobs
+        if (foundDense) {
+          const maxLife = CONFIG.blobLife[0] + rng() * (CONFIG.blobLife[1] - CONFIG.blobLife[0]);
+          const vx = CONFIG.blobAmbientWind + (rng() - 0.5) * 20;
+          const vy = CONFIG.blobSpeedY[0] + rng() * (CONFIG.blobSpeedY[1] - CONFIG.blobSpeedY[0]);
+          // Increase base radius and add more variance so they aren't too small
+          const maxRadius = (CONFIG.blobRadius[0] + rng() * (CONFIG.blobRadius[1] - CONFIG.blobRadius[0])) * 1.5;
 
-        const maxLife = CONFIG.blobLife[0] + rng() * (CONFIG.blobLife[1] - CONFIG.blobLife[0]);
-        const vx = CONFIG.blobAmbientWind + (rng() - 0.5) * 20;
-        const vy = CONFIG.blobSpeedY[0] + rng() * (CONFIG.blobSpeedY[1] - CONFIG.blobSpeedY[0]);
-        const maxRadius = CONFIG.blobRadius[0] + rng() * (CONFIG.blobRadius[1] - CONFIG.blobRadius[0]);
+          // Less oblong, more organic shapes (0.8 to 1.3)
+          const aspectRatio = 0.8 + rng() * 0.5; 
+          const roughness = 0.4 + rng() * 0.6; // High roughness for organic shape
+          const growthExp = 0.8 + rng() * 1.0;
+          const seed = rng() * Math.PI * 2;
 
-        const aspectRatio = 0.6 + rng() * 0.8;
-        const roughness = 0.1 + rng() * 0.3;
-        const lobes = 3 + Math.floor(rng() * 4);
-        const rollSpeed = (rng() - 0.5) * 4.0;
-        const growthExp = 0.5 + rng() * 1.5;
-        const seed = rng() * Math.PI * 2;
-
-        state.blobs.push({
-          px, py, vx, vy, maxRadius, aspectRatio, roughness, lobes, rollSpeed, growthExp, seed,
-          life: maxLife, maxLife
-        });
+          state.blobs.push({
+            px, py, vx, vy, maxRadius, aspectRatio, roughness, growthExp, seed,
+            life: maxLife, maxLife, generation: 0
+          });
+        }
       }
     }
   }

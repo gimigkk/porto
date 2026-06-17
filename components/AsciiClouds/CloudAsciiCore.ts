@@ -36,14 +36,14 @@ export const CONFIG = {
   gustMaxTilt: 0.45,
 
   // -- Blobs (Smoke puffs) --
-  blobCount: 30,             // Maximum active particles on screen
-  blobSpawnChance: 0.3,     // Spawn rate factor
+  blobCount: 45,             // Increased from 30 to make it denser
+  blobSpawnChance: 0.5,      // Faster spawn rate
   blobLife: [5.5, 9.0],      // Lifetime in seconds
   blobRadius: [12, 92],      // Refined puff size for elegant smoke contours
   blobSpeedY: [-65, -20],    // Graceful, slower vertical speed (negative = upwards)
   blobAmbientWind: 12.0,     // Gentle background horizontal breeze
   blobWindPush: 10.0,        // Strength of gust wind blowing particles sideways
-  blobStrength: 0.95,        // Opacity/density strength of puffs (0.0 to 1.0+. Higher = bolder ASCII glyphs)
+  blobStrength: 0.85,        // Increased back to 0.85 because Gaussian falloff made them too faint
 
   // -- Cursor Disruptor --
   cursorDisruptor: {
@@ -78,6 +78,8 @@ export interface Gust {
   wobbleFreq: number;
   wobblePhase: number;
   tilt: number;
+  yCenter: number; // Vertical center of the gust (0.0 to 1.0)
+  yHeight: number; // Vertical thickness/span of the gust (0.0 to 1.0)
   edgeNoise: Float32Array;
   born: number;
   fadeIn: number;
@@ -92,13 +94,12 @@ export interface Blob {
   vy: number;          // Y velocity (pixels/sec)
   maxRadius: number;   // Maximum radius in pixels
   aspectRatio: number; // Horizontal/Vertical stretch ratio
-  roughness: number;   // Boundary edge deformation intensity
-  lobes: number;       // Number of cloud-bump features on the edge
-  rollSpeed: number;   // Churn rotation speed (radians/sec)
+  roughness: number;   // Noise distortion intensity
   growthExp: number;   // Exponent controlling the scaling speed
-  seed: number;        // Random rotational starting phase
+  seed: number;        // Random noise offset
   life: number;        // Lifetime remaining (seconds)
   maxLife: number;     // Starting lifetime (seconds)
+  generation: number;  // Splitting generation (0 = parent, 1 = child)
 }
 
 export interface DisruptionParticle {
@@ -198,6 +199,8 @@ export function spawnGust(t: number, cols: number): Gust {
   const fadeOut = 0.4 + r() * 0.8;
   const tiltSign = r() > 0.5 ? 1 : -1;
   const tilt = tiltSign * (CONFIG.gustMinTilt + r() * (CONFIG.gustMaxTilt - CONFIG.gustMinTilt));
+  const yCenter = 0.2 + r() * 0.6; // Spawn mostly in the central 60% of the screen
+  const yHeight = 0.3 + r() * 0.4; // Height spans 30% to 70% of the screen
 
   const EDGE_SAMPLES = 32;
   const ctrlPts = new Float32Array(EDGE_SAMPLES + 1);
@@ -214,6 +217,7 @@ export function spawnGust(t: number, cols: number): Gust {
 
   return {
     id: ++gustIdCounter, center: startCenter, speed, halfWidthFrac, tilt,
+    yCenter, yHeight,
     boost: 0.08 + r() * 0.14, wobble: 0.05 + r() * 0.25,
     wobbleFreq: 1.5 + r() * 3.0, wobblePhase: r() * Math.PI * 2,
     edgeNoise, born: t, fadeIn, fadeOut, life

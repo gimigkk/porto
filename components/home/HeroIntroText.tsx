@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { IBM_Plex_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import { motion, useAnimationControls } from "framer-motion";
 import SkipIntroButton from "./SkipIntroButton";
@@ -28,6 +28,7 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const contactRef = useRef<HTMLParagraphElement>(null);
   const skippedRef = useRef(false);
+  const [isSpaceDown, setIsSpaceDown] = useState(false);
 
   // Animation controls for imperative triggering
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -95,13 +96,24 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !e.repeat) {
+        e.preventDefault();
+        setIsSpaceDown(true);
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
       if (e.code === 'Space') {
         e.preventDefault();
+        setIsSpaceDown(false);
         handleSkip();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [handleSkip]);
 
   // Intro → delay → outro → onComplete
@@ -197,7 +209,7 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
         animate={skipButtonControl}
         className="pointer-events-auto mt-8 md:mt-12 scale-[0.55] md:scale-[0.65] origin-top"
       >
-        <SkipIntroButton onClick={handleSkip} label={sequenced ? 'SKIP INTRO' : undefined} />
+        <SkipIntroButton onClick={handleSkip} label={sequenced ? 'SKIP INTRO' : undefined} isActive={isSpaceDown} />
       </motion.div>
     </div>
   );

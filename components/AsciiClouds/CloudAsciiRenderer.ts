@@ -129,6 +129,15 @@ export class AsciiRenderer {
 
       for (let row = 0; row < rows; row++) {
         const rowFrac   = row / Math.max(1, rows - 1);
+        
+        // Vertical envelope so gust doesn't span from edge to edge
+        const yDist = Math.abs(rowFrac - g.yCenter) / (g.yHeight * 0.5);
+        if (yDist >= 1) continue; // Skip rows outside the vertical bounds of this gust
+        
+        // Smooth falloff vertically
+        const yFade = Math.pow(Math.cos(yDist * Math.PI / 2), 2);
+        const rowBoostFade = boostFade * yFade;
+
         const tiltShift = g.tilt * (rowFrac - 0.5) * rows;
         const rfPi          = rowFrac * Math.PI;
         const sin2_unscaled = Math.sin(rfPi * mt2 + tS2);
@@ -154,10 +163,30 @@ export class AsciiRenderer {
           const no1 = (sin1_r        * cosCn  + cos1_r * sinCn);
           const no2 = (sin2_unscaled * cosCn2 + cos2_r * sinCn2) * 0.45;
           const no3 = (sin3_r        * cosCn3 + cos3_r * sinCn3) * 0.25;
-          const dist = Math.abs(col - (center + tiltShift + (no1 + no2 + no3) * wobbleScale));
+          const offsetFromCenter = col - (center + tiltShift + (no1 + no2 + no3) * wobbleScale);
+          const dist = Math.abs(offsetFromCenter);
           if (dist < halfW) {
-            const x = Math.sin((1 - dist * halfWInv) * (Math.PI * 0.5));
-            map[rowBase + col] += x * x * x * x * boostFade;
+            const u = offsetFromCenter * halfWInv; // -1 to 1
+            const direction = g.speed > 0 ? 1 : -1;
+            const directedU = u * direction; // -1 (back of wave) to 1 (front of wave)
+
+            // Perturb the wave profile with existing organic noise so it's not a perfect consistent stripe
+            const noisyU = directedU + (no1 * 0.4 + no2 * 0.2);
+            const clampedU = Math.max(-1, Math.min(1, noisyU));
+
+            // A pure sine wave provides a bright leading peak and dark trailing trough
+            const baseWave = Math.sin(clampedU * Math.PI);
+            
+            // Sharpen the peaks
+            let sharpWave = Math.sign(baseWave) * Math.pow(Math.abs(baseWave), 1.5);
+            
+            // Reduce the darkening effect so it's not too harsh
+            if (sharpWave < 0) {
+              sharpWave *= 0.4;
+            }
+            
+            // Multiply by 1.5 to compensate for the sharper peak so it remains highly visible
+            map[rowBase + col] += sharpWave * rowBoostFade * 1.5;
           }
         }
       }
@@ -229,7 +258,8 @@ export class AsciiRenderer {
 
       for (const b of state.blobs) {
         const pct = b.life / b.maxLife;
-        const opacity = pct > 0.8 ? (1.0 - pct) / 0.2 : pct / 0.8;
+        // Slower fade-in (first 30% of life) and fade-out
+        const opacity = pct > 0.7 ? (1.0 - pct) / 0.3 : pct / 0.7;
         const alphaClamp = Math.min(1.0, Math.max(0.0, opacity)) * CONFIG.blobStrength;
 
         const scaleProg = Math.pow(1.0 - pct, b.growthExp);
@@ -266,23 +296,33 @@ export class AsciiRenderer {
 
           for (let c = cMin; c <= cMax; c++) {
             const dx = (c - g_cx) / radiusX;
+            
+            // Organic noise distortion based on grid coordinates and angle
             const angle = Math.atan2(dy, dx);
-            const rotationOffset = t * b.rollSpeed + b.seed;
+            const noisePhase = b.seed + t * 0.15; // Slowed down from 0.5
             
-            const wave1 = Math.sin(angle * b.lobes + rotationOffset);
-            const wave2 = Math.cos(angle * (b.lobes * 1.9) - rotationOffset * 1.4) * 0.4;
-            const wave3 = Math.sin(angle * 0.8 + rotationOffset * 0.3) * 0.5;
+            // Cartesian noise - lower frequencies for slower billowing
+            const noise1 = Math.sin(dx * 1.5 + noisePhase) * Math.cos(dy * 1.5 - noisePhase * 0.8);
+            const noise2 = Math.sin(dx * 2.5 - noisePhase * 1.2) * Math.cos(dy * 2.0 + noisePhase);
             
-            const radiusPerturbation = Math.max(0.2, 1.0 + (wave1 + wave2 + wave3) * b.roughness * 0.5);
+            // Radial wobble - smoother
+            const angleWobble = Math.sin(angle * 2.0 + noisePhase * 0.7) * 0.5 + Math.cos(angle * 1.0 - noisePhase) * 0.5;
+            
+            // Combine them for a much more organic, less oblong shape
+            const radiusPerturbation = Math.max(0.2, 1.0 + (noise1 * 0.6 + noise2 * 0.3 + angleWobble * 0.5) * b.roughness * 0.7);
             
             const distSq = (dx * dx + dy * dy) / (radiusPerturbation * radiusPerturbation);
             if (distSq >= 1.0) continue;
 
-            const val = (1.0 - distSq) * alphaClamp;
+            // Soft Gaussian-like falloff for volumetric look
+            const falloff = Math.exp(-distSq * 2.5);
+            const edgeFade = 1.0 - distSq; // Ensures it goes completely to 0 at the edge
+            
+            const val = falloff * edgeFade * alphaClamp;
             const idx = rowBase + c;
-            if (val > blobAlphaGrid[idx]) {
-              blobAlphaGrid[idx] = val;
-            }
+            
+            // Constructive Additive Blending
+            blobAlphaGrid[idx] = Math.min(1.0, blobAlphaGrid[idx] + val);
           }
         }
       }
