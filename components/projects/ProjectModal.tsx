@@ -35,14 +35,14 @@ export default function ProjectModal({ children }: { children: ReactNode }) {
   }, [close]);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:px-6">
+    <div className="fixed inset-0 z-[20000] flex items-end justify-center sm:px-6">
       {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={close}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
       />
 
       {/* Modal Container */}

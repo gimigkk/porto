@@ -154,7 +154,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center sm:px-6"
+      className="fixed inset-0 z-[20000] flex items-end justify-center"
       style={{ pointerEvents: isAnimating ? "auto" : "none" }}
     >
       <style>{`
@@ -195,7 +195,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
       {/* Backdrop */}
       <div
         onClick={close}
-        className="absolute inset-0 bg-black/80 transition-opacity"
+        className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity"
         style={{
           opacity: isAnimating ? 1 : 0,
           transitionDuration: isAnimating ? "300ms" : "200ms",
@@ -203,9 +203,11 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
         }}
       />
 
+      {/* Page-aligned centering wrapper — edge-to-edge on mobile, guttered on desktop */}
+      <div className="w-full md:max-w-350 md:mx-auto md:px-12 flex items-end h-full">
       {/* Modal Container — Pure CSS animation */}
       <div
-        className="relative w-full h-[95dvh] sm:h-[92dvh] max-w-6xl flex flex-col transition-all pointer-events-none"
+        className="relative w-full h-[95dvh] sm:h-[92dvh] flex flex-col transition-all pointer-events-none md:rounded-t-none"
         style={{
           transform: isAnimating ? "translateY(0)" : "translateY(120px)",
           opacity: isAnimating ? 1 : 0,
@@ -263,7 +265,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
             <article key={project.slug} className="min-h-full bg-zinc-900 text-zinc-200 flex flex-col">
               {/* Header: Text Left, Video Right */}
               <header 
-                className="w-full max-w-5xl mx-auto px-6 pt-12 sm:pt-16 pb-10 border-b border-zinc-800/50 animate-slide-up-fade"
+                className="w-full px-4 sm:px-8 md:px-12 pt-12 sm:pt-16 pb-10 border-b border-zinc-800/50 animate-slide-up-fade"
                 style={{ opacity: 0, animationDelay: "100ms" }}
               >
                 <div className="flex flex-col md:flex-row md:items-start gap-8">
@@ -282,7 +284,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
                       {project.title}
                     </h1>
 
-                    <p className="text-base text-zinc-400 leading-relaxed mb-6">
+                    <p className="text-sm md:text-base text-zinc-400 leading-relaxed mb-6">
                       {project.description}
                     </p>
 
@@ -300,7 +302,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
                   </div>
 
                   {/* Right: Video */}
-                  <div className="w-full md:w-80 lg:w-96 shrink-0">
+                  <div className="w-full md:w-80 lg:w-[440px] shrink-0">
                     <div className="w-full aspect-video bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center overflow-hidden relative group">
                       <div className="w-12 h-12 rounded-full bg-zinc-700/80 border border-zinc-600 flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:scale-110 transition-all cursor-pointer">
                         <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
@@ -314,7 +316,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
 
               {/* Article body */}
               <div
-                className="flex-1 w-full px-6 py-10 sm:py-12 prose prose-invert prose-zinc max-w-5xl mx-auto prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:bg-transparent hover:prose-a:opacity-80 animate-slide-up-fade"
+                className="flex-1 w-full px-4 sm:px-8 md:px-12 py-10 sm:py-12 prose prose-sm md:prose-base prose-invert prose-zinc max-w-3xl prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:bg-transparent hover:prose-a:opacity-80 animate-slide-up-fade"
                 style={{ 
                   "--theme-color": project.accent,
                   "--tw-prose-links": project.accent, 
@@ -333,6 +335,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
             <BackToTop scrollRef={scrollBodyRef} />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

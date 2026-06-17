@@ -209,7 +209,7 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
         animate={skipButtonControl}
         className="pointer-events-auto mt-8 md:mt-12 scale-[0.55] md:scale-[0.65] origin-top"
       >
-        <SkipIntroButton onClick={handleSkip} label={sequenced ? 'SKIP INTRO' : undefined} isActive={isSpaceDown} />
+        <SkipIntroButton onClick={handleSkip} label={sequenced ? 'SKIP INTRO' : undefined} isActive={isSpaceDown} isReady={isReady} />
       </motion.div>
     </div>
   );
