@@ -195,7 +195,7 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
       <motion.div
         initial={{ opacity: 0 }}
         animate={skipButtonControl}
-        className="pointer-events-auto mt-12 scale-[0.8] origin-top"
+        className="pointer-events-auto mt-8 md:mt-12 scale-[0.55] md:scale-[0.65] origin-top"
       >
         <SkipIntroButton onClick={handleSkip} />
       </motion.div>
