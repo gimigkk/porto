@@ -45,6 +45,13 @@ export const CONFIG = {
   blobWindPush: 10.0,        // Strength of gust wind blowing particles sideways
   blobStrength: 0.85,        // Increased back to 0.85 because Gaussian falloff made them too faint
 
+  bloom: {
+    enabled: true,
+    topGlyphs: 3,        // The top N brightest glyphs receive the bloom effect
+    blurSize: 10.0,       // CSS blur radius in pixels (scaled by DPR internally)
+    opacity: 1,       // Opacity of the bloom overlay
+  },
+
   // -- Cursor Disruptor --
   cursorDisruptor: {
     enabled: true,

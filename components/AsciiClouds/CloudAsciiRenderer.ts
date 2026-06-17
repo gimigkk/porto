@@ -29,6 +29,12 @@ export class AsciiRenderer {
   outBuf: Uint8ClampedArray | null = null;
   outBuf32: Uint32Array | null = null;
 
+  bloomOffOut: HTMLCanvasElement;
+  bloomOffOutCtx: CanvasRenderingContext2D;
+  bloomImageData: ImageData | null = null;
+  bloomBuf: Uint8ClampedArray | null = null;
+  bloomBuf32: Uint32Array | null = null;
+
   colPx = new Int32Array(0);
   rowPx = new Int32Array(0);
   pxCols = new Int32Array(0);
@@ -58,6 +64,9 @@ export class AsciiRenderer {
     
     this.offOut = document.createElement("canvas");
     this.offOutCtx = this.offOut.getContext("2d", { willReadFrequently: true })!;
+    
+    this.bloomOffOut = document.createElement("canvas");
+    this.bloomOffOutCtx = this.bloomOffOut.getContext("2d", { willReadFrequently: true })!;
 
     this.ro = new ResizeObserver((entries) => {
       const e = entries[0];
@@ -400,17 +409,28 @@ export class AsciiRenderer {
     if (maxGridPW > this.lastPW || maxGridPH > this.lastPH || dpr !== this.lastDpr) {
       const allocW = Math.max(maxGridPW, this.lastPW);
       const allocH = Math.max(maxGridPH, this.lastPH);
+      
       this.offOut.width  = allocW;
       this.offOut.height = allocH;
       this.outImageData  = this.offOutCtx.createImageData(allocW, allocH);
       this.outBuf        = this.outImageData.data;
       this.outBuf32      = new Uint32Array(this.outBuf.buffer);
       this.outBuf.fill(255);
+      
+      this.bloomOffOut.width = allocW;
+      this.bloomOffOut.height = allocH;
+      this.bloomImageData = this.bloomOffOutCtx.createImageData(allocW, allocH);
+      this.bloomBuf = this.bloomImageData.data;
+      this.bloomBuf32 = new Uint32Array(this.bloomBuf.buffer);
+      this.bloomBuf.fill(255);
+      
       this.lastPW = allocW; this.lastPH = allocH; this.lastDpr = dpr;
     }
 
     const buf   = this.outBuf!;
     const buf32 = this.outBuf32!;
+    const bloomBuf = this.bloomBuf!;
+    const bloomBuf32 = this.bloomBuf32!;
     const s     = CONFIG.speed * 0.018;
     const wAmp  = CONFIG.waveDepth * 0.3;
     const dAmp  = CONFIG.displacement * 2;
@@ -435,6 +455,9 @@ export class AsciiRenderer {
     }
 
     buf32.fill(0x00FFFFFF);
+    if (CONFIG.bloom.enabled) {
+      bloomBuf32.fill(0x00FFFFFF);
+    }
 
     const bufStride = this.lastPW; // allocated width, not grid width
 
@@ -519,14 +542,34 @@ export class AsciiRenderer {
 
         const rowStride = bufStride * 4;
         const dstBase   = (row * activeTileSize * bufStride + col * activeTileSize) * 4;
+        
+        const isBright = CONFIG.bloom.enabled && charIdx >= (CHARS.length - CONFIG.bloom.topGlyphs);
 
-        for (let ty = 0; ty < activeTileSize; ty++) {
-          const tileRowOff = ty * activeTileSize;
-          const dstRowOff  = dstBase + ty * rowStride;
-          for (let tx = 0; tx < activeTileSize; tx++) {
-            const glyphA = tile[tileRowOff + tx];
-            if (glyphA !== 0) {
-              buf[dstRowOff + tx * 4 + 3] = (glyphA * combinedMaskAlpha) >> 8;
+        if (isBright) {
+          const halfRows = rows / 2;
+          const bloomMask = row < halfRows ? 1.0 : Math.max(0, 1.0 - ((row - halfRows) / halfRows));
+          
+          for (let ty = 0; ty < activeTileSize; ty++) {
+            const tileRowOff = ty * activeTileSize;
+            const dstRowOff  = dstBase + ty * rowStride;
+            for (let tx = 0; tx < activeTileSize; tx++) {
+              const glyphA = tile[tileRowOff + tx];
+              if (glyphA !== 0) {
+                const alpha = (glyphA * combinedMaskAlpha) >> 8;
+                buf[dstRowOff + tx * 4 + 3] = alpha;
+                bloomBuf[dstRowOff + tx * 4 + 3] = (alpha * bloomMask) | 0;
+              }
+            }
+          }
+        } else {
+          for (let ty = 0; ty < activeTileSize; ty++) {
+            const tileRowOff = ty * activeTileSize;
+            const dstRowOff  = dstBase + ty * rowStride;
+            for (let tx = 0; tx < activeTileSize; tx++) {
+              const glyphA = tile[tileRowOff + tx];
+              if (glyphA !== 0) {
+                buf[dstRowOff + tx * 4 + 3] = (glyphA * combinedMaskAlpha) >> 8;
+              }
             }
           }
         }
@@ -534,6 +577,10 @@ export class AsciiRenderer {
     }
 
     this.offOutCtx.putImageData(this.outImageData!, 0, 0);
+    if (CONFIG.bloom.enabled) {
+      this.bloomOffOutCtx.putImageData(this.bloomImageData!, 0, 0);
+    }
+
     if (this.cvs.width !== PW || this.cvs.height !== PH) {
       this.cvs.width  = PW;
       this.cvs.height = PH;
@@ -543,5 +590,16 @@ export class AsciiRenderer {
     this.ctx.imageSmoothingEnabled = false;
     // Source rect: only the used portion. Dest: full screen. GPU scales.
     this.ctx.drawImage(this.offOut, 0, 0, gridPW, gridPH, 0, 0, PW, PH);
+    
+    if (CONFIG.bloom.enabled) {
+      this.ctx.globalCompositeOperation = "lighter";
+      this.ctx.filter = `blur(${CONFIG.bloom.blurSize * dpr}px)`;
+      this.ctx.globalAlpha = CONFIG.bloom.opacity;
+      this.ctx.drawImage(this.bloomOffOut, 0, 0, gridPW, gridPH, 0, 0, PW, PH);
+      
+      this.ctx.filter = "none";
+      this.ctx.globalAlpha = 1.0;
+      this.ctx.globalCompositeOperation = "source-over";
+    }
   }
 }

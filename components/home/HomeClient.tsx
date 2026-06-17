@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { usePreloader } from "@/hooks/usePreloader";
 import LoadingScreen from "@/components/home/LoadingScreen";
 import SkyBackground from "@/components/layout/SkyBackground";
@@ -75,6 +75,9 @@ export default function HomeClient({ projects }: HomeClientProps) {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const { scrollY } = useScroll();
+  const scrollOpacity = useTransform(scrollY, [0, 500], [1, 0.5]);
 
   // Phase 1: words + contact text animate immediately when preloader done
   const heroAnimationReady = isReady;
@@ -157,21 +160,26 @@ export default function HomeClient({ projects }: HomeClientProps) {
               top: `calc(136px - ${heroHeight})`,
             }}
           >
-            {/* dark gradient overlay — fades in with folders */}
-            <div
-              className="absolute bottom-0 left-0 right-0 h-60 bg-linear-to-t from-[#00000081] to-transparent z-10"
-              style={{
-                opacity: foldersReady ? 1 : 0,
-                transition: "opacity 600ms cubic-bezier(0.22,1,0.36,1)",
-              }}
-            />
-            <div
-              className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#000000b2] to-transparent z-11"
-              style={{
-                opacity: foldersReady ? 1 : 0,
-                transition: "opacity 600ms cubic-bezier(0.22,1,0.36,1)",
-              }}
-            />
+            {/* dark gradient overlay — fades in with folders and fades out on scroll */}
+            <motion.div 
+              className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none"
+              style={{ opacity: scrollOpacity }}
+            >
+              <div
+                className="absolute bottom-0 left-0 right-0 h-60 bg-linear-to-t from-[#00000081] to-transparent"
+                style={{
+                  opacity: foldersReady ? 1 : 0,
+                  transition: "opacity 600ms cubic-bezier(0.22,1,0.36,1)",
+                }}
+              />
+              <div
+                className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#000000b2] to-transparent z-11"
+                style={{
+                  opacity: foldersReady ? 1 : 0,
+                  transition: "opacity 600ms cubic-bezier(0.22,1,0.36,1)",
+                }}
+              />
+            </motion.div>
 
             {/* PROGRESSIVE BLUR STACK — hidden on mobile & Firefox to avoid compositing jank */}
             <BlurStack />
