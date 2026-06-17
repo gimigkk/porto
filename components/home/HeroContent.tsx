@@ -1,14 +1,9 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { IBM_Plex_Serif, Plus_Jakarta_Sans } from "next/font/google";
+import { useEffect } from "react";
+import { IBM_Plex_Serif } from "next/font/google";
 import { Download, Send, FolderOpen } from "lucide-react";
 import { motion, useAnimationControls } from "framer-motion";
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
 
 const ibmPlexSerif = IBM_Plex_Serif({
   subsets: ["latin"],
@@ -17,83 +12,17 @@ const ibmPlexSerif = IBM_Plex_Serif({
 });
 
 interface HeroContentProps {
-  isReady?: boolean;
+  /** When true, SVG title fades in */
+  showTitle?: boolean;
   /** When true, subtext + CTA start their animation */
   ctaReady?: boolean;
-  /** When true, use compressed animation timing (for sequencing after cloud intro on mobile) */
-  sequenced?: boolean;
 }
 
-export default function HeroContent({ isReady = true, ctaReady = false, sequenced = false }: HeroContentProps) {
-  const words = ['Digitalisasi', 'dimulai', 'dari', 'hati,'];
-  const desktopHeadlineRef = useRef<HTMLHeadingElement>(null);
-  const desktopContactRef = useRef<HTMLParagraphElement>(null);
-  const mobileHeadlineRef = useRef<HTMLHeadingElement>(null);
-  const mobileContactRef = useRef<HTMLParagraphElement>(null);
-
-  // Animation controls for imperative triggering
-  const wordControls = words.map(() => useAnimationControls());
-  const contactControls = [useAnimationControls(), useAnimationControls(), useAnimationControls()];
+export default function HeroContent({ showTitle = false, ctaReady = false }: HeroContentProps) {
   const subtextControls = useAnimationControls();
   const ctaControls = useAnimationControls();
 
-  // Word width matching for both desktop and mobile
-  useEffect(() => {
-    const matchWidths = () => {
-      const processRef = (hRef: HTMLHeadingElement | null, cRef: HTMLParagraphElement | null) => {
-        if (!hRef || !cRef) return;
-        cRef.style.fontSize = '';
-        void cRef.offsetWidth;
-        const hW = hRef.scrollWidth;
-        const cW = cRef.scrollWidth;
-        if (cW > 0) {
-          const baseFontSize = parseFloat(getComputedStyle(cRef).fontSize);
-          cRef.style.fontSize = `${baseFontSize * (hW / cW)}px`;
-        }
-      };
-
-      processRef(desktopHeadlineRef.current, desktopContactRef.current);
-      processRef(mobileHeadlineRef.current, mobileContactRef.current);
-    };
-
-    document.fonts.ready.then(matchWidths);
-    window.addEventListener('resize', matchWidths);
-    return () => window.removeEventListener('resize', matchWidths);
-  }, []);
-
-  // Phase 1: Words + Contact text animate when isReady flips
-  useEffect(() => {
-    if (!isReady) return;
-
-    const d = sequenced
-      ? { words: [0, 0.24], contact: [1.5, 2.2, 2.4] }
-      : { words: [0.08, 0.24], contact: [1.6, 2.3, 2.5] };
-
-    // Words: staggered spring with rotateX
-    wordControls.forEach((ctrl, i) => {
-      ctrl.start({
-        opacity: 1,
-        rotateX: 0,
-        transition: { type: "spring", bounce: 0.6, duration: 0.96, delay: d.words[0] + i * d.words[1] },
-      });
-    });
-
-    // Contact text
-    contactControls[0].start({
-      opacity: 1, rotateX: 0,
-      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: d.contact[0] },
-    });
-    contactControls[1].start({
-      opacity: 1, rotateX: 0,
-      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: d.contact[1] },
-    });
-    contactControls[2].start({
-      opacity: 1, rotateX: 0,
-      transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: d.contact[2] },
-    });
-  }, [isReady]);
-
-  // Phase 2: Subtext + CTA animate when ctaReady flips (together with navbar + clouds)
+  // Phase 2: Subtext + CTA animate when ctaReady flips
   useEffect(() => {
     if (!ctaReady) return;
 
@@ -111,41 +40,19 @@ export default function HeroContent({ isReady = true, ctaReady = false, sequence
     <>
       {/* --- DESKTOP VERSION --- */}
       <div className="relative z-20 hidden md:flex flex-col items-center text-center text-white px-6 w-full max-w-4xl mx-auto md:-mt-24 lg:-mt-28 xl:-mt-32 2xl:-mt-52">
-        {/* 1. Big Text - Plus Jakarta Sans */}
-        <h1 ref={desktopHeadlineRef} className={`${plusJakartaSans.className} text-5xl font-[700] tracking-tight mb-2 drop-shadow-xs flex flex-nowrap justify-center gap-x-2.5 whitespace-nowrap`}>
-          {words.map((word, i) => (
-            <span key={i} className="inline-block" style={{ perspective: "1000px" }}>
-              <motion.span
-                initial={{ opacity: 0, rotateX: -90 }}
-                animate={wordControls[i]}
-                className="inline-block origin-top"
-              >
-                {word}
-              </motion.span>
-            </span>
-          ))}
-        </h1>
+        {/* SVG Title */}
+        {showTitle && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full max-w-2xl mx-auto mb-4"
+          >
+            <img src="/gimigkk.svg" alt="gimigkk" className="w-full h-auto" />
+          </motion.div>
+        )}
 
-        {/* 2. Contact Text - IBM Plex Serif */}
-        <p ref={desktopContactRef} className={`${ibmPlexSerif.className} font-[400] text-4xl opacity-90 mb-[60px] whitespace-nowrap`}>
-          <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[0]} className="italic inline-block origin-top">
-              Contact me!
-            </motion.span>
-          </span>{" "}
-          <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[1]} className="inline-block origin-top">
-              Mari
-            </motion.span>
-          </span>{" "}
-          <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[2]} className="inline-block origin-top">
-              berkolaborasi.
-            </motion.span>
-          </span>
-        </p>
-
-        {/* 3. Subtext - IBM Plex Serif */}
+        {/* Subtext - IBM Plex Serif */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={subtextControls}
@@ -154,7 +61,7 @@ export default function HeroContent({ isReady = true, ctaReady = false, sequence
           Full-stack Dev &amp; Product Designer
         </motion.p>
 
-        {/* 4. CTA Buttons */}
+        {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={ctaControls}
@@ -203,41 +110,19 @@ export default function HeroContent({ isReady = true, ctaReady = false, sequence
 
       {/* --- MOBILE VERSION --- */}
       <div className="relative z-20 flex md:hidden flex-col items-center text-center text-white px-4 w-full mx-auto pointer-events-auto">
-        {/* 1. Big Text */}
-        <h1 ref={mobileHeadlineRef} className={`${plusJakartaSans.className} text-[7vw] font-[700] tracking-tight drop-shadow-sm flex flex-nowrap justify-center gap-1 whitespace-nowrap`}>
-          {words.map((word, i) => (
-            <span key={i} className="inline-block" style={{ perspective: "1000px" }}>
-              <motion.span
-                initial={{ opacity: 0, rotateX: -90 }}
-                animate={wordControls[i]}
-                className="inline-block origin-top"
-              >
-                {word}
-              </motion.span>
-            </span>
-          ))}
-        </h1>
+        {/* SVG Title */}
+        {showTitle && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full max-w-2xl mx-auto mb-2"
+          >
+            <img src="/gimigkk.svg" alt="gimigkk" className="w-full h-auto" />
+          </motion.div>
+        )}
 
-        {/* 2. Contact Text — font-size dynamically matched to headline width */}
-        <p ref={mobileContactRef} className={`${ibmPlexSerif.className} font-[400] text-[5vw] opacity-90 mb-8 whitespace-nowrap`}>
-          <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[0]} className="italic inline-block origin-top">
-              Contact me!
-            </motion.span>
-          </span>{" "}
-          <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[1]} className="inline-block origin-top">
-              Mari
-            </motion.span>
-          </span>{" "}
-          <span className="inline-block" style={{ perspective: "1000px" }}>
-            <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[2]} className="inline-block origin-top">
-              berkolaborasi.
-            </motion.span>
-          </span>
-        </p>
-
-        {/* 3. Subtext */}
+        {/* Subtext */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={subtextControls}
@@ -246,7 +131,7 @@ export default function HeroContent({ isReady = true, ctaReady = false, sequence
           Full-stack Dev &amp; Product Designer
         </motion.p>
 
-        {/* 4. CTA Buttons */}
+        {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={ctaControls}

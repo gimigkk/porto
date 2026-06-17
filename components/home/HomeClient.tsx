@@ -6,6 +6,7 @@ import { usePreloader } from "@/hooks/usePreloader";
 import LoadingScreen from "@/components/home/LoadingScreen";
 import SkyBackground from "@/components/layout/SkyBackground";
 import HeroContent from "@/components/home/HeroContent";
+import HeroIntroText from "@/components/home/HeroIntroText";
 import StackedSections from "@/components/layout/StackedSections";
 import ClientProjectModal from "@/components/projects/ClientProjectModal";
 import BackToTop from "@/components/ui/BackToTop";
@@ -61,6 +62,7 @@ interface HomeClientProps {
 export default function HomeClient({ projects }: HomeClientProps) {
   const { isReady, assets } = usePreloader();
   const [loadingComplete, setLoadingComplete] = useState(false);
+  const [introComplete, setIntroComplete] = useState(false);
   const [phase2Ready, setPhase2Ready] = useState(false);
 
   // Detect mobile and update on resize
@@ -78,14 +80,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
   // Clouds + stacked sections start at Phase 2 (together with navbar, subtext, CTA)
   const animationReady = phase2Ready;
 
-  // Phase 2: clouds, navbar, subtext + CTA all start together after delay
-  useEffect(() => {
-    if (!isReady) return;
-    // 500ms after Phase 1's last trigger (contact[2] at 2.4s mobile / 2.5s desktop)
-    const delay = isMobile ? 2900 : 3000;
-    const timer = setTimeout(() => setPhase2Ready(true), delay);
-    return () => clearTimeout(timer);
-  }, [isReady, isMobile]);
+
 
   // Fire event for navbar phase2 uncollapse
   useEffect(() => {
@@ -167,8 +162,23 @@ export default function HomeClient({ projects }: HomeClientProps) {
             {/* PROGRESSIVE BLUR STACK — hidden on mobile & Firefox to avoid compositing jank */}
             <BlurStack />
 
-            {/* Content */}
-            <HeroContent isReady={heroAnimationReady} ctaReady={phase2Ready} sequenced={isMobile} />
+            {/* Intro text overlay — centered, disappears after outro */}
+            {!introComplete && (
+              <HeroIntroText
+                isReady={heroAnimationReady}
+                sequenced={isMobile}
+                onComplete={() => {
+                  setIntroComplete(true);
+                  setPhase2Ready(true);
+                }}
+              />
+            )}
+
+            {/* Persistent content — SVG title fades in after intro, subtext+CTA on phase2 */}
+            <HeroContent
+              showTitle={introComplete}
+              ctaReady={phase2Ready}
+            />
           </section>
 
           {/* Loading screen — debounced, only shows if load takes >300ms */}
