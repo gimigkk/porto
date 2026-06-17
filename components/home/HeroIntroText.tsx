@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { IBM_Plex_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import { motion, useAnimationControls } from "framer-motion";
+import SkipIntroButton from "./SkipIntroButton";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -26,10 +27,13 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
 
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const contactRef = useRef<HTMLParagraphElement>(null);
+  const skippedRef = useRef(false);
 
   // Animation controls for imperative triggering
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const wordControls = words.map(() => useAnimationControls());
   const contactControls = [useAnimationControls(), useAnimationControls(), useAnimationControls()];
+  const skipButtonControl = useAnimationControls();
 
   // Width matching: scale contact text font-size to match headline width
   useEffect(() => {
@@ -51,6 +55,54 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
     window.addEventListener('resize', matchWidths);
     return () => window.removeEventListener('resize', matchWidths);
   }, []);
+
+  const triggerOutro = useCallback(async () => {
+    // Outro (rotate out, anchor bottom) — tween so promise resolves at exact end
+    const outroWords = wordControls.map((ctrl, i) =>
+      ctrl.start({
+        opacity: 0, rotateX: 90, transformOrigin: "bottom",
+        transition: { duration: 0.5, ease: [0.55, 0, 1, 0.45], delay: i * 0.08 },
+      })
+    );
+    const outroContact = contactControls.map((ctrl, i) =>
+      ctrl.start({
+        opacity: 0, rotateX: 90, transformOrigin: "bottom",
+        transition: { duration: 0.5, ease: [0.55, 0, 1, 0.45], delay: 0.32 + i * 0.08 },
+      })
+    );
+    const outroSkip = skipButtonControl.start({
+      opacity: 0,
+      transition: { duration: 0.15, ease: "easeIn" }
+    });
+
+    await Promise.all([...outroWords, ...outroContact, outroSkip]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSkip = useCallback(async () => {
+    if (skippedRef.current) return;
+    skippedRef.current = true;
+    
+    // Stop ongoing animations immediately
+    wordControls.forEach(ctrl => ctrl.stop());
+    contactControls.forEach(ctrl => ctrl.stop());
+    skipButtonControl.stop();
+
+    await triggerOutro();
+    onComplete?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [triggerOutro, onComplete]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        handleSkip();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleSkip]);
 
   // Intro → delay → outro → onComplete
   useEffect(() => {
@@ -74,31 +126,28 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
           transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: d.contact[i] },
         })
       );
+      // Start skip button fade in independently
+      skipButtonControl.start({
+        opacity: 1,
+        transition: { duration: 0.2, delay: 0.4, ease: "easeOut" }
+      });
+
       await Promise.all([...introWords, ...introContact]);
 
       // Pause
+      if (skippedRef.current) return;
       await new Promise((r) => setTimeout(r, 300));
 
-      // Outro (rotate out, anchor bottom) — tween so promise resolves at exact end
-      const outroWords = wordControls.map((ctrl, i) =>
-        ctrl.start({
-          opacity: 0, rotateX: 90, transformOrigin: "bottom",
-          transition: { duration: 0.5, ease: [0.55, 0, 1, 0.45], delay: i * 0.08 },
-        })
-      );
-      const outroContact = contactControls.map((ctrl, i) =>
-        ctrl.start({
-          opacity: 0, rotateX: 90, transformOrigin: "bottom",
-          transition: { duration: 0.5, ease: [0.55, 0, 1, 0.45], delay: 0.32 + i * 0.08 },
-        })
-      );
-      await Promise.all([...outroWords, ...outroContact]);
+      if (skippedRef.current) return;
+      await triggerOutro();
 
+      if (skippedRef.current) return;
       onComplete?.();
     };
 
     run();
-  }, [isReady]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReady, sequenced]);
 
   return (
     <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-white pointer-events-none">
@@ -141,6 +190,15 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
           </motion.span>
         </span>
       </p>
+
+      {/* Skip Button */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={skipButtonControl}
+        className="pointer-events-auto mt-12 scale-[0.8] origin-top"
+      >
+        <SkipIntroButton onClick={handleSkip} />
+      </motion.div>
     </div>
   );
 }
