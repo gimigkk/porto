@@ -310,7 +310,7 @@ export default function Navbar() {
                 onMouseEnter={(e) => handleNavEnter(0, e)}
                 className="flex items-center gap-1.5 text-sm font-semibold text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none md:px-3 md:py-1.5"
               >
-                <span>@gimigkk</span>
+                <img src="/gimigkk-black.svg" alt="@gimigkk" className="h-[22px] w-auto object-contain " />
               </button>
 
               {/* Other nav items - desktop only */}
