@@ -17,7 +17,7 @@ export default function LenisProvider({ children }: { children: any }) {
   if (isClient && isFirefox) return <>{children}</>;
 
   return (
-    <ReactLenis root options={{ lerp: 0.3, smoothWheel: true }}>
+    <ReactLenis root options={{ lerp: 0.3, smoothWheel: false }}>
       {children}
     </ReactLenis>
   );

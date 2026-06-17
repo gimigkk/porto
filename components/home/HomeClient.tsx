@@ -63,10 +63,14 @@ export default function HomeClient({ projects }: HomeClientProps) {
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [phase2Ready, setPhase2Ready] = useState(false);
 
-  // Detect mobile once on mount
-  const isMobile = useMemo(() =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches,
-    []);
+  // Detect mobile and update on resize
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
+    checkMobile(); // Check on mount
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Phase 1: words + contact text animate immediately when preloader done
   const heroAnimationReady = isReady;
@@ -90,14 +94,15 @@ export default function HomeClient({ projects }: HomeClientProps) {
     }
   }, [phase2Ready]);
 
-  // Transition hero height: 100svh → 95svh on Phase 2
+  // Transition hero height: 100svh → 95svh on Phase 2 (80svh on mobile)
   const [heroHeight, setHeroHeight] = useState("100svh");
+
   useEffect(() => {
     if (phase2Ready) {
       // Slight delay so CSS transition kicks after layout
-      requestAnimationFrame(() => setHeroHeight("95svh"));
+      requestAnimationFrame(() => setHeroHeight(isMobile ? "80svh" : "95svh"));
     }
-  }, [phase2Ready]);
+  }, [phase2Ready, isMobile]);
 
   const handleIntroComplete = useCallback(() => {
     // no-op — kept for clouds callback compatibility

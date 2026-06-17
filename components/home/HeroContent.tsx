@@ -26,6 +26,8 @@ interface HeroContentProps {
 
 export default function HeroContent({ isReady = true, ctaReady = false, sequenced = false }: HeroContentProps) {
   const words = ['Digitalisasi', 'dimulai', 'dari', 'hati,'];
+  const desktopHeadlineRef = useRef<HTMLHeadingElement>(null);
+  const desktopContactRef = useRef<HTMLParagraphElement>(null);
   const mobileHeadlineRef = useRef<HTMLHeadingElement>(null);
   const mobileContactRef = useRef<HTMLParagraphElement>(null);
 
@@ -35,24 +37,23 @@ export default function HeroContent({ isReady = true, ctaReady = false, sequence
   const subtextControls = useAnimationControls();
   const ctaControls = useAnimationControls();
 
-  // Mobile word width matching
+  // Word width matching for both desktop and mobile
   useEffect(() => {
     const matchWidths = () => {
-      const headline = mobileHeadlineRef.current;
-      const contact = mobileContactRef.current;
-      if (!headline || !contact) return;
+      const processRef = (hRef: HTMLHeadingElement | null, cRef: HTMLParagraphElement | null) => {
+        if (!hRef || !cRef) return;
+        cRef.style.fontSize = '';
+        void cRef.offsetWidth;
+        const hW = hRef.scrollWidth;
+        const cW = cRef.scrollWidth;
+        if (cW > 0) {
+          const baseFontSize = parseFloat(getComputedStyle(cRef).fontSize);
+          cRef.style.fontSize = `${baseFontSize * (hW / cW)}px`;
+        }
+      };
 
-      // Reset to CSS base size
-      contact.style.fontSize = '';
-      void contact.offsetWidth;
-
-      const headlineW = headline.scrollWidth;
-      const contactW = contact.scrollWidth;
-
-      if (contactW > 0) {
-        const baseFontSize = parseFloat(getComputedStyle(contact).fontSize);
-        contact.style.fontSize = `${baseFontSize * (headlineW / contactW)}px`;
-      }
+      processRef(desktopHeadlineRef.current, desktopContactRef.current);
+      processRef(mobileHeadlineRef.current, mobileContactRef.current);
     };
 
     document.fonts.ready.then(matchWidths);
@@ -65,15 +66,15 @@ export default function HeroContent({ isReady = true, ctaReady = false, sequence
     if (!isReady) return;
 
     const d = sequenced
-      ? { words: [0, 0.3], contact: [1.5, 2.2, 2.4] }
-      : { words: [0.1, 0.3], contact: [1.6, 2.3, 2.5] };
+      ? { words: [0, 0.24], contact: [1.5, 2.2, 2.4] }
+      : { words: [0.08, 0.24], contact: [1.6, 2.3, 2.5] };
 
     // Words: staggered spring with rotateX
     wordControls.forEach((ctrl, i) => {
       ctrl.start({
         opacity: 1,
         rotateX: 0,
-        transition: { type: "spring", bounce: 0.6, duration: 1.2, delay: d.words[0] + i * d.words[1] },
+        transition: { type: "spring", bounce: 0.6, duration: 0.96, delay: d.words[0] + i * d.words[1] },
       });
     });
 
@@ -111,7 +112,7 @@ export default function HeroContent({ isReady = true, ctaReady = false, sequence
       {/* --- DESKTOP VERSION --- */}
       <div className="relative z-20 hidden md:flex flex-col items-center text-center text-white px-6 w-full max-w-4xl mx-auto md:-mt-24 lg:-mt-28 xl:-mt-32 2xl:-mt-52">
         {/* 1. Big Text - Plus Jakarta Sans */}
-        <h1 className={`${plusJakartaSans.className} text-5xl font-[700] tracking-tight mb-2 drop-shadow-xs flex flex-wrap justify-center gap-x-2.5`}>
+        <h1 ref={desktopHeadlineRef} className={`${plusJakartaSans.className} text-5xl font-[700] tracking-tight mb-2 drop-shadow-xs flex flex-nowrap justify-center gap-x-2.5 whitespace-nowrap`}>
           {words.map((word, i) => (
             <span key={i} className="inline-block" style={{ perspective: "1000px" }}>
               <motion.span
@@ -126,17 +127,17 @@ export default function HeroContent({ isReady = true, ctaReady = false, sequence
         </h1>
 
         {/* 2. Contact Text - IBM Plex Serif */}
-        <p className={`${ibmPlexSerif.className} font-[400] text-4xl opacity-90 mb-[60px] flex gap-x-2 justify-center`}>
+        <p ref={desktopContactRef} className={`${ibmPlexSerif.className} font-[400] text-4xl opacity-90 mb-[60px] whitespace-nowrap`}>
           <span className="inline-block" style={{ perspective: "1000px" }}>
             <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[0]} className="italic inline-block origin-top">
               Contact me!
             </motion.span>
-          </span>
+          </span>{" "}
           <span className="inline-block" style={{ perspective: "1000px" }}>
             <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[1]} className="inline-block origin-top">
               Mari
             </motion.span>
-          </span>
+          </span>{" "}
           <span className="inline-block" style={{ perspective: "1000px" }}>
             <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[2]} className="inline-block origin-top">
               berkolaborasi.
@@ -201,7 +202,7 @@ export default function HeroContent({ isReady = true, ctaReady = false, sequence
       </div>
 
       {/* --- MOBILE VERSION --- */}
-      <div className="relative z-20 flex md:hidden flex-col items-center text-center text-white px-4 w-full mx-auto -translate-y-16 pointer-events-auto">
+      <div className="relative z-20 flex md:hidden flex-col items-center text-center text-white px-4 w-full mx-auto pointer-events-auto">
         {/* 1. Big Text */}
         <h1 ref={mobileHeadlineRef} className={`${plusJakartaSans.className} text-[7vw] font-[700] tracking-tight drop-shadow-sm flex flex-nowrap justify-center gap-1 whitespace-nowrap`}>
           {words.map((word, i) => (

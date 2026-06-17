@@ -189,15 +189,18 @@ export class AsciiRenderer {
       if (this.pxRows.length < rows) this.pxRows = new Int32Array(rows);
       
       const displayAR = W / H;
-      const zoom = displayAR < 1 ? 1 / displayAR : 1;
+      const isMobile = displayAR < 1;
 
       for (let c = 0; c < cols; c++) {
         const u = (c + 0.5) / cols;
-        const mappedU = 0.5 + (u - 0.5) / zoom; // center-crop horizontally
-        this.pxCols[c] = Math.max(0, Math.min(this.imgW - 1, Math.floor(mappedU * this.imgW)));
+        this.pxCols[c] = Math.max(0, Math.min(this.imgW - 1, Math.floor(u * this.imgW)));
       }
       for (let r = 0; r < rows; r++) {
-        const normY = (r + 0.5) / rows - introOffsetNorm;
+        let normY = (r + 0.5) / rows;
+        if (isMobile) {
+          normY = (normY - (1 - displayAR)) / displayAR;
+        }
+        normY -= introOffsetNorm;
         
         if (normY < 0 || normY >= 1) {
           this.pxRows[r] = -1;
@@ -221,7 +224,7 @@ export class AsciiRenderer {
       blobAlphaGrid.fill(0);
 
       const displayAR = W / H;
-      const zoom = displayAR < 1 ? 1 / displayAR : 1;
+      const isMobile = displayAR < 1;
 
       for (const b of state.blobs) {
         const pct = b.life / b.maxLife;
@@ -231,12 +234,21 @@ export class AsciiRenderer {
         const scaleProg = Math.pow(1.0 - pct, b.growthExp);
         const currentRadius = b.maxRadius * (0.45 + 0.75 * scaleProg);
 
-        // Reverse-map blob image coords to grid coords (horizontal zoom, vertical identity)
-        const g_cx = (0.5 + (b.px / this.imgW - 0.5) * zoom) * cols;
-        const g_cy = ((b.py / this.imgH) + introOffsetNorm) * rows;
+        // Map blob image coords directly to grid coords
+        const g_cx = (b.px / this.imgW) * cols;
+        
+        let b_normY = (b.py / this.imgH);
+        let b_radiusY = (currentRadius / this.imgH);
+        
+        if (isMobile) {
+          b_normY = b_normY * displayAR + (1 - displayAR);
+          b_radiusY *= displayAR;
+        }
+        
+        const g_cy = (b_normY + introOffsetNorm) * rows;
 
-        const g_rx = (currentRadius / this.imgW) * zoom * cols;
-        const g_ry = (currentRadius / this.imgH) * rows;
+        const g_rx = (currentRadius / this.imgW) * cols;
+        const g_ry = b_radiusY * rows;
 
         const radiusX = g_rx * b.aspectRatio;
         const radiusY = g_ry / b.aspectRatio;
