@@ -150,7 +150,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
           {/* Section 1 */}
           <section
             id="home"
-            className="w-full flex flex-col items-center justify-center text-zinc-900 sticky z-10 overflow-hidden"
+            className="w-full flex flex-col items-center justify-start pt-[120px] md:pt-0 md:justify-center text-zinc-900 sticky z-10 overflow-hidden"
             style={{
               height: heroHeight,
               transition: "height 600ms cubic-bezier(0.22,1,0.36,1), top 600ms cubic-bezier(0.22,1,0.36,1)",
