@@ -42,21 +42,22 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
       <div className="relative z-20 hidden md:flex flex-col items-center text-center text-white px-6 w-full max-w-4xl mx-auto md:-mt-24 lg:-mt-28 xl:-mt-32 2xl:-mt-52">
         {/* SVG Title */}
         {showTitle && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-2xl mx-auto mb-4"
-          >
-            <img src="/gimigkk.svg" alt="gimigkk" className="w-full h-auto" />
-          </motion.div>
+          <div className="w-full max-w-2xl mx-auto mb-4 overflow-hidden">
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <img src="/gimigkk.svg" alt="gimigkk" className="w-full h-auto" />
+            </motion.div>
+          </div>
         )}
 
         {/* Subtext - IBM Plex Serif */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={subtextControls}
-          className={`${ibmPlexSerif.className} font-[400] text-[22.5px] opacity-90 mb-2`}
+          className={`${ibmPlexSerif.className} font-[500] text-[22px] opacity-90 mb-2`}
         >
           Full-stack Dev &amp; Product Designer
         </motion.p>
@@ -112,14 +113,15 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
       <div className="relative z-20 flex md:hidden flex-col items-center text-center text-white px-4 w-full mx-auto pointer-events-auto">
         {/* SVG Title */}
         {showTitle && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-2xl mx-auto mb-2"
-          >
-            <img src="/gimigkk.svg" alt="gimigkk" className="w-full h-auto" />
-          </motion.div>
+          <div className="w-full max-w-2xl mx-auto mb-2 overflow-hidden">
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <img src="/gimigkk.svg" alt="gimigkk" className="w-full h-auto" />
+            </motion.div>
+          </div>
         )}
 
         {/* Subtext */}

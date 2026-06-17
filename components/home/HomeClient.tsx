@@ -38,8 +38,8 @@ function BlurStack() {
       <div
         className="absolute inset-0"
         style={{
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
           WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
           maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
         }}
@@ -63,7 +63,9 @@ export default function HomeClient({ projects }: HomeClientProps) {
   const { isReady, assets } = usePreloader();
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [introComplete, setIntroComplete] = useState(false);
-  const [phase2Ready, setPhase2Ready] = useState(false);
+  const [foldersReady, setFoldersReady] = useState(false);
+  const [cloudsReady, setCloudsReady] = useState(false);
+  const [ctaReady, setCtaReady] = useState(false);
 
   // Detect mobile and update on resize
   const [isMobile, setIsMobile] = useState(false);
@@ -77,27 +79,39 @@ export default function HomeClient({ projects }: HomeClientProps) {
   // Phase 1: words + contact text animate immediately when preloader done
   const heroAnimationReady = isReady;
 
-  // Clouds + stacked sections start at Phase 2 (together with navbar, subtext, CTA)
-  const animationReady = phase2Ready;
+  // Staggered Phase 2 orchestration
+  useEffect(() => {
+    if (!introComplete) return;
 
+    // 1 & 2. SVG and Nav+Folders trigger immediately
+    setFoldersReady(true);
+    // 3. Clouds after 400ms
+    const t2 = setTimeout(() => setCloudsReady(true), 400);
+    // 4. CTA + Subtext after 700ms total
+    const t3 = setTimeout(() => setCtaReady(true), 700);
 
+    return () => {
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [introComplete]);
 
   // Fire event for navbar phase2 uncollapse
   useEffect(() => {
-    if (phase2Ready) {
+    if (foldersReady) {
       window.dispatchEvent(new Event("hero-phase2"));
     }
-  }, [phase2Ready]);
+  }, [foldersReady]);
 
-  // Transition hero height: 100svh → 95svh on Phase 2 (80svh on mobile)
+  // Transition hero height: 100svh → 95svh when folders appear (80svh on mobile)
   const [heroHeight, setHeroHeight] = useState("100svh");
 
   useEffect(() => {
-    if (phase2Ready) {
+    if (foldersReady) {
       // Slight delay so CSS transition kicks after layout
       requestAnimationFrame(() => setHeroHeight(isMobile ? "80svh" : "95svh"));
     }
-  }, [phase2Ready, isMobile]);
+  }, [foldersReady, isMobile]);
 
   const handleIntroComplete = useCallback(() => {
     // no-op — kept for clouds callback compatibility
@@ -124,7 +138,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
       <main className="w-full min-h-svh bg-[#141416]">
         {/* Fixed sky + clouds layer — parallax 0.5x, docks at end of 3rd folder */}
         <SkyBackground
-          isReady={animationReady}
+          isReady={cloudsReady}
           preloadedAssets={assets}
           onIntroComplete={handleIntroComplete}
           heroHeight={heroHeight}
@@ -143,18 +157,18 @@ export default function HomeClient({ projects }: HomeClientProps) {
               top: `calc(136px - ${heroHeight})`,
             }}
           >
-            {/* dark gradient overlay — fades in on Phase 2 */}
+            {/* dark gradient overlay — fades in with folders */}
             <div
-              className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#00000081] to-transparent z-10"
+              className="absolute bottom-0 left-0 right-0 h-60 bg-linear-to-t from-[#00000081] to-transparent z-10"
               style={{
-                opacity: phase2Ready ? 1 : 0,
+                opacity: foldersReady ? 1 : 0,
                 transition: "opacity 600ms cubic-bezier(0.22,1,0.36,1)",
               }}
             />
             <div
-              className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-[#000000b2] to-transparent z-11"
+              className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#000000b2] to-transparent z-11"
               style={{
-                opacity: phase2Ready ? 1 : 0,
+                opacity: foldersReady ? 1 : 0,
                 transition: "opacity 600ms cubic-bezier(0.22,1,0.36,1)",
               }}
             />
@@ -167,17 +181,14 @@ export default function HomeClient({ projects }: HomeClientProps) {
               <HeroIntroText
                 isReady={heroAnimationReady}
                 sequenced={isMobile}
-                onComplete={() => {
-                  setIntroComplete(true);
-                  setPhase2Ready(true);
-                }}
+                onComplete={() => setIntroComplete(true)}
               />
             )}
 
             {/* Persistent content — SVG title fades in after intro, subtext+CTA on phase2 */}
             <HeroContent
               showTitle={introComplete}
-              ctaReady={phase2Ready}
+              ctaReady={ctaReady}
             />
           </section>
 
@@ -190,7 +201,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
           )}
 
           {/* Sections 2, 3, 4 (Stacked Folders) — id used for dock measurement */}
-          <StackedSections projects={projects} isReady={animationReady} />
+          <StackedSections projects={projects} isReady={foldersReady} />
         </div>
 
         {/* Section 5 */}

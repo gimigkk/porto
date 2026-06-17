@@ -46,9 +46,6 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     let pauseAccum = 0;
     let pauseStart = 0;
 
-    // Detect mobile for FPS capping
-    const isMobile = window.matchMedia("(max-width: 768px)").matches;
-
     const mouse: MouseState = { x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0, active: false, hasMoved: false };
     const state: CloudState = {
       gusts: [],
@@ -144,7 +141,8 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
         onIntroComplete?.();
       }
 
-      let currentCellSize = CONFIG.cellSize;
+      const activeCellSize = W < 768 ? 5 : CONFIG.cellSize;
+      let currentCellSize = activeCellSize;
       let introOffsetNorm = 0;
       if (isIntro) {
         const progress = t / CONFIG.introDuration;
@@ -152,7 +150,7 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
         const ease = warped === 0 ? 0 : warped === 1 ? 1 : warped < 0.5 
           ? Math.pow(2, 20 * warped - 10) / 2 
           : (2 - Math.pow(2, -20 * warped + 10)) / 2;
-        const calculatedSize = CONFIG.introStartSize * Math.pow(CONFIG.cellSize / CONFIG.introStartSize, ease);
+        const calculatedSize = CONFIG.introStartSize * Math.pow(activeCellSize / CONFIG.introStartSize, ease);
         currentCellSize = Math.min(200, calculatedSize);
         introOffsetNorm = CONFIG.introSlideY * (1 - ease);
       }
@@ -176,7 +174,7 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       // Render FPS: Firefox 30, desktop 60, mobile intro lower
       const isFirefox = navigator.userAgent.includes("Firefox");
       let renderFps = isFirefox ? 30 : CONFIG.fps;
-      if (isIntro && isMobile) {
+      if (isIntro && W < 768) {
         renderFps = t >= overlapStart ? 15 : 30;
       }
       const renderInterval = 1000 / renderFps;

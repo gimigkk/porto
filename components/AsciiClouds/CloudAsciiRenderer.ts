@@ -176,7 +176,8 @@ export class AsciiRenderer {
     const PW   = Math.round(W * dpr);
     const PH   = Math.round(H * dpr);
 
-    const targetTileSize = Math.ceil(CONFIG.cellSize * dpr);
+    const activeCellSize = W < 768 ? 5 : CONFIG.cellSize;
+    const targetTileSize = Math.ceil(activeCellSize * dpr);
     if (this.glyphAtlas.length === 0 || (targetTileSize !== this.cachedTileSize || dpr !== this.cachedDpr)) {
       // Only build if not pre-loaded
       this.cachedDpr = dpr;
@@ -348,8 +349,9 @@ export class AsciiRenderer {
 
     // Allocate at the MAXIMUM possible grid size (steady-state post-intro).
     // During intro, cols/rows change every frame — we must NOT reallocate.
-    const maxCols = Math.max(1, Math.floor(W / CONFIG.cellSize));
-    const maxRows = Math.max(1, Math.floor(H / CONFIG.cellSize));
+    const activeCellSizeMax = W < 768 ? 5 : CONFIG.cellSize;
+    const maxCols = Math.max(1, Math.floor(W / activeCellSizeMax));
+    const maxRows = Math.max(1, Math.floor(H / activeCellSizeMax));
     const maxGridPW = Math.max(1, (maxCols * activeTileSize) | 0);
     const maxGridPH = Math.max(1, (maxRows * activeTileSize) | 0);
 
