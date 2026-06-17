@@ -220,7 +220,7 @@ export function updateDisruptions(
     mouse.vy *= damp;
   }
 
-  if (CONFIG.cursorDisruptor.enabled && mouse.active) {
+  if (CONFIG.cursorDisruptor.enabled && mouse.active && state.disruptions.length < 50) {
     const mSpeed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
     if (mSpeed > CONFIG.cursorDisruptor.minSpeedToSpawn) {
       const normSpeed = Math.min(1.0, mSpeed / CONFIG.cursorDisruptor.maxSpeedReference);

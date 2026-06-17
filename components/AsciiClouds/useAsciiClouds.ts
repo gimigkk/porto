@@ -110,12 +110,24 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     window.addEventListener("ascii-pause", handlePause);
     window.addEventListener("ascii-resume", handleResume);
 
-    // Pause canvas when hero scrolls off-screen
-    const io = new IntersectionObserver(
-      ([entry]) => { pauseFlags.visible = entry.isIntersecting; checkShouldPause(); },
-      { threshold: 0 }
-    );
-    io.observe(canvas);
+    // Pause canvas when hero scrolls off-screen.
+    // The canvas is inside a position:fixed container, and #home is sticky,
+    // so IntersectionObserver always reports both as visible. Instead, check
+    // scroll position — once we've scrolled past the hero height, opaque
+    // folder sections fully cover the clouds.
+    let heroHeight = window.innerHeight; // fallback
+    const heroEl = document.getElementById("home");
+    if (heroEl) heroHeight = heroEl.getBoundingClientRect().height;
+
+    const onScrollVisibility = () => {
+      const scrollY = window.scrollY || 0;
+      // Add some margin so animation starts before hero is fully in view
+      const wasVisible = pauseFlags.visible;
+      pauseFlags.visible = scrollY < heroHeight + 100;
+      if (wasVisible !== pauseFlags.visible) checkShouldPause();
+    };
+    window.addEventListener("scroll", onScrollVisibility, { passive: true });
+    onScrollVisibility(); // set initial state
 
     // Pause when tab hidden (saves battery on background tabs)
     const onVisibility = () => { pauseFlags.tab = document.hidden; checkShouldPause(); };
@@ -230,7 +242,7 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       window.removeEventListener("scroll", handleScroll, { capture: true });
       window.removeEventListener("ascii-pause", handlePause);
       window.removeEventListener("ascii-resume", handleResume);
-      io.disconnect();
+      window.removeEventListener("scroll", onScrollVisibility);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [isReady, preloadedAssets]);

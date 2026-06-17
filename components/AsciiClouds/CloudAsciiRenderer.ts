@@ -92,13 +92,15 @@ export class AsciiRenderer {
   }
 
   getEffectiveDpr(isIntro = false): number {
-    const vvScale = window.visualViewport?.scale ?? 1;
     // Cap DPR at 2.0 — at cellSize=8, 2x renders 16px glyphs
     // vs 12px at 1.5x. 2x is enough for retina crispness without
     // paying 3x+ fill rate cost.
+    // NOTE: Do NOT include visualViewport.scale here. The browser compositor
+    // already handles pinch-zoom scaling. Multiplying it in causes canvas
+    // resolution to explode (e.g. 4x pixels on 2x display at 2x zoom),
+    // triggering massive buffer reallocs and permanent lag.
     const maxDpr = 2.0;
-    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-    return dpr * vvScale;
+    return Math.min(window.devicePixelRatio || 1, maxDpr);
   }
 
   buildGustMap(state: CloudState, rows: number, cols: number, t: number): Float32Array {
