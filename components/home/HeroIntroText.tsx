@@ -82,7 +82,7 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
   const handleSkip = useCallback(async () => {
     if (skippedRef.current) return;
     skippedRef.current = true;
-    
+
     // Stop ongoing animations immediately
     wordControls.forEach(ctrl => ctrl.stop());
     contactControls.forEach(ctrl => ctrl.stop());
@@ -129,7 +129,7 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
       // Start skip button fade in independently
       skipButtonControl.start({
         opacity: 1,
-        transition: { duration: 0.2, delay: 0.4, ease: "easeOut" }
+        transition: { duration: 0.2, delay: 0.1, ease: "easeOut" }
       });
 
       await Promise.all([...introWords, ...introContact]);
@@ -197,7 +197,7 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
         animate={skipButtonControl}
         className="pointer-events-auto mt-8 md:mt-12 scale-[0.55] md:scale-[0.65] origin-top"
       >
-        <SkipIntroButton onClick={handleSkip} />
+        <SkipIntroButton onClick={handleSkip} label={sequenced ? 'SKIP INTRO' : undefined} />
       </motion.div>
     </div>
   );
