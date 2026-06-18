@@ -94,6 +94,34 @@ function TableOfContents({ accent, slug }: { accent: string; slug: string }) {
   );
 }
 
+function ArticleSkeleton() {
+  return (
+    <div className="w-full flex flex-col gap-8 animate-pulse mt-4">
+      {/* Paragraph 1 */}
+      <div className="space-y-3">
+        <div className="h-4 bg-zinc-800/40 rounded w-full"></div>
+        <div className="h-4 bg-zinc-800/40 rounded w-[96%]"></div>
+        <div className="h-4 bg-zinc-800/40 rounded w-[88%]"></div>
+        <div className="h-4 bg-zinc-800/40 rounded w-[75%]"></div>
+      </div>
+      
+      {/* Heading 2 */}
+      <div className="h-7 bg-zinc-800/40 rounded w-[40%] mt-4"></div>
+
+      {/* Paragraph 2 */}
+      <div className="space-y-3">
+        <div className="h-4 bg-zinc-800/40 rounded w-[92%]"></div>
+        <div className="h-4 bg-zinc-800/40 rounded w-full"></div>
+        <div className="h-4 bg-zinc-800/40 rounded w-[85%]"></div>
+        <div className="h-4 bg-zinc-800/40 rounded w-[60%]"></div>
+      </div>
+
+      {/* Code block placeholder */}
+      <div className="h-56 bg-zinc-800/20 rounded-xl w-full my-2 border border-zinc-800/40"></div>
+    </div>
+  );
+}
+
 function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
   const searchParams = useSearchParams();
   const slug = searchParams.get("project");
@@ -131,22 +159,18 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
     setProject(proj);
     setIsOpen(true);
 
-    // Load MDX dynamically
-    NProgress.start();
     if (mdxModules[slug]) {
       setPost(() => mdxModules[slug]);
-      setTimeout(() => {
-        setIsAnimating(true);
-        NProgress.done();
-      }, 50);
+      setTimeout(() => setIsAnimating(true), 10);
     } else {
+      setPost(null); // Clear to show skeleton
+      setTimeout(() => setIsAnimating(true), 10); // Slide up instantly
+
+      NProgress.start();
       import(`@/content/projects/${slug}.mdx`).then((mod) => {
         mdxModules[slug] = mod.default;
         setPost(() => mod.default);
-        setTimeout(() => {
-          setIsAnimating(true);
-          NProgress.done();
-        }, 50);
+        NProgress.done();
       });
     }
   }, [slug, lenis, allProjects]);
@@ -205,26 +229,20 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
         const wasOpen = isOpenRef.current;
         if (!wasOpen) {
           setIsOpen(true);
-          setIsAnimating(false);
         }
 
-        NProgress.start();
         if (mdxModules[newSlug]) {
           setPost(() => mdxModules[newSlug]);
-          if (!wasOpen) {
-            setTimeout(() => { setIsAnimating(true); NProgress.done(); }, 50);
-          } else {
-            NProgress.done();
-          }
+          if (!wasOpen) setTimeout(() => setIsAnimating(true), 10);
         } else {
+          setPost(null); // Show skeleton
+          if (!wasOpen) setTimeout(() => setIsAnimating(true), 10); // Slide up instantly
+
+          NProgress.start();
           import(`@/content/projects/${newSlug}.mdx`).then((mod) => {
             mdxModules[newSlug] = mod.default;
             setPost(() => mod.default);
-            if (!wasOpen) {
-              setTimeout(() => { setIsAnimating(true); NProgress.done(); }, 50);
-            } else {
-              NProgress.done();
-            }
+            NProgress.done();
           });
         }
       }
@@ -233,7 +251,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
     return () => window.removeEventListener("popstate", handlePop);
   }, [lenis, allProjects]);
 
-  if (!isOpen || !project || !Post || allProjects.length === 0) return null;
+  if (!isOpen || !project || allProjects.length === 0) return null;
 
   const currentIndex = allProjects.findIndex(p => p.slug === project.slug);
   const totalProjects = allProjects.length;
@@ -382,14 +400,14 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
                       </p>
 
                       <div
-                        className="w-full prose prose-sm md:prose-base prose-invert prose-zinc max-w-none prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:bg-transparent hover:prose-a:opacity-80"
+                        className="w-full prose prose-sm md:prose-base prose-invert prose-zinc max-w-none prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:bg-transparent hover:prose-a:opacity-80 min-h-[50vh]"
                         style={{
                           "--theme-color": project.accent,
                           "--tw-prose-links": project.accent,
                           paddingBottom: "calc(2rem + 46px + 1rem)",
                         } as React.CSSProperties}
                       >
-                        <Post />
+                        {Post ? <Post /> : <ArticleSkeleton />}
                       </div>
                     </div>
                   </article>
@@ -431,7 +449,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
                   </div>
 
                   {/* Table of Contents */}
-                  <TableOfContents accent={project.accent} slug={project.slug} />
+                  {Post && <TableOfContents accent={project.accent} slug={project.slug} />}
                 </div>
               </aside>
             </div>
