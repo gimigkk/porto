@@ -10,6 +10,89 @@ import TechIcon from "@/components/ui/TechIcon";
 /* -- Preload all MDX components at module level -------------- */
 const mdxModules: Record<string, React.ComponentType> = {};
 
+interface TocItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
+function TableOfContents({ accent, slug }: { accent: string; slug: string }) {
+  const [activeId, setActiveId] = useState<string>("");
+  const [headings, setHeadings] = useState<TocItem[]>([]);
+
+  useEffect(() => {
+    // Wait a tick for MDX to finish rendering
+    const timeout = setTimeout(() => {
+      const elements = Array.from(document.querySelectorAll(".prose h2, .prose h3"));
+      const items = elements.map((elem) => ({
+        id: elem.id,
+        text: elem.textContent || "",
+        level: Number(elem.tagName.substring(1)),
+      })).filter(item => item.id);
+
+      setHeadings(items);
+
+      if (items.length === 0) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setActiveId(entry.target.id);
+            }
+          });
+        },
+        { rootMargin: "0% 0px -80% 0px" }
+      );
+
+      elements.forEach((elem) => observer.observe(elem));
+      return () => observer.disconnect();
+    }, 150);
+
+    return () => clearTimeout(timeout);
+  }, [slug]);
+
+  if (headings.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-4 p-6 rounded-xl bg-zinc-800/20">
+      <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Contents</h3>
+      <nav className="flex flex-col gap-3">
+        {headings.map((heading) => (
+          <a
+            key={heading.id}
+            href={`#${heading.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              const target = document.getElementById(heading.id);
+              if (target) {
+                // Find scroll container and scroll it
+                const scrollContainer = document.querySelector('[data-lenis-prevent="true"]');
+                if (scrollContainer) {
+                  const top = target.getBoundingClientRect().top + scrollContainer.scrollTop - 80;
+                  scrollContainer.scrollTo({ top, behavior: "smooth" });
+                } else {
+                  target.scrollIntoView({ behavior: "smooth" });
+                }
+              }
+            }}
+            className={`text-[13px] transition-colors line-clamp-1 ${activeId === heading.id
+              ? "font-medium"
+              : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            style={{
+              paddingLeft: heading.level === 3 ? "1rem" : "0",
+              color: activeId === heading.id ? accent : undefined
+            }}
+          >
+            {heading.text}
+          </a>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
 function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
   const searchParams = useSearchParams();
   const slug = searchParams.get("project");
@@ -106,7 +189,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
         const proj = allProjects.find((p) => p.slug === newSlug);
         if (!proj) return;
         setProject(proj);
-        
+
         const wasOpen = isOpenRef.current;
         if (!wasOpen) {
           setIsOpen(true);
@@ -160,7 +243,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
       <style>{`
         @keyframes slideUpFade {
           from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          to { opacity: 1; transform: none; }
         }
         .animate-slide-up-fade {
           animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -205,137 +288,134 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
 
       {/* Page-aligned centering wrapper — edge-to-edge on mobile, guttered on desktop */}
       <div className="w-full md:max-w-350 md:mx-auto md:px-12 flex items-end h-full">
-      {/* Modal Container — Pure CSS animation */}
-      <div
-        className="relative w-full h-[95dvh] sm:h-[92dvh] flex flex-col transition-all pointer-events-none md:rounded-t-none"
-        style={{
-          transform: isAnimating ? "translateY(0)" : "translateY(120px)",
-          opacity: isAnimating ? 1 : 0,
-          transitionDuration: isAnimating ? "300ms" : "200ms",
-          transitionTimingFunction: isAnimating ? "cubic-bezier(0.16, 1, 0.3, 1)" : "ease-in",
-        }}
-      >
-        {/* TOP BAR (Folder Tabs Style) */}
-        <div className={`flex w-full items-end justify-between h-[40px] shrink-0 relative z-10 translate-y-[1px] ${isAnimating ? "pointer-events-auto" : "pointer-events-none"}`}>
-          {/* Left Tab: Pagination */}
-          <div className="relative w-[180px] h-full flex items-center justify-center">
-            <svg width="288" height="64" viewBox="0 0 288 64" className="absolute inset-0 w-full h-full fill-zinc-900">
-              <path d="M 0 64 L 0 24 Q 0 0, 24 0 L 204 0 Q 224 0, 232 16 L 248 48 Q 256 64, 276 64 L 288 64 Z" />
-            </svg>
-            <div className="relative z-10 flex items-center justify-center gap-3 pb-1 pr-8 w-full">
-              <button onClick={prevProject} className="text-zinc-400 hover:text-white p-1 rounded-md transition-colors" aria-label="Previous project">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <span className="text-[13px] font-mono text-zinc-400 select-none">
-                {currentIndex + 1} of {totalProjects}
-              </span>
-              <button onClick={nextProject} className="text-zinc-400 hover:text-white p-1 rounded-md transition-colors" aria-label="Next project">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+        {/* Modal Container — Pure CSS animation */}
+        <div
+          className="relative w-full h-[95dvh] sm:h-[92dvh] flex flex-col transition-all pointer-events-none md:rounded-t-none"
+          style={{
+            transform: isAnimating ? "translateY(0)" : "translateY(120px)",
+            opacity: isAnimating ? 1 : 0,
+            transitionDuration: isAnimating ? "300ms" : "200ms",
+            transitionTimingFunction: isAnimating ? "cubic-bezier(0.16, 1, 0.3, 1)" : "ease-in",
+          }}
+        >
+          {/* TOP BAR (Folder Tabs Style) */}
+          <div className={`flex w-full items-end justify-between h-[40px] shrink-0 relative z-10 translate-y-[1px] ${isAnimating ? "pointer-events-auto" : "pointer-events-none"}`}>
+            {/* Left Tab: Pagination */}
+            <div className="relative w-[180px] h-full flex items-center justify-center">
+              <svg width="288" height="64" viewBox="0 0 288 64" className="absolute inset-0 w-full h-full fill-zinc-950">
+                <path d="M 0 64 L 0 24 Q 0 0, 24 0 L 204 0 Q 224 0, 232 16 L 248 48 Q 256 64, 276 64 L 288 64 Z" />
+              </svg>
+              <div className="relative z-10 flex items-center justify-center gap-3 pb-1 pr-8 w-full">
+                <button onClick={prevProject} className="text-zinc-400 hover:text-white p-1 rounded-md transition-colors" aria-label="Previous project">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <span className="text-[13px] font-mono text-zinc-400 select-none">
+                  {currentIndex + 1} of {totalProjects}
+                </span>
+                <button onClick={nextProject} className="text-zinc-400 hover:text-white p-1 rounded-md transition-colors" aria-label="Next project">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Right Tab: Close Button */}
+            <div className="relative w-[80px] h-full flex items-center justify-center">
+              {/* Custom narrowed SVG to fit X button with sloped left, flat right */}
+              <svg width="128" height="64" viewBox="0 0 128 64" className="absolute inset-0 w-full h-full fill-zinc-950">
+                <path d="M 0 64 L 12 64 Q 32 64, 40 48 L 56 16 Q 64 0, 84 0 L 104 0 Q 128 0, 128 24 L 128 64 Z" />
+              </svg>
+              <div className="relative z-10 flex items-center justify-center pb-1 pl-8 w-full">
+                <button onClick={close} className="text-zinc-400 hover:text-zinc-100 transition-colors p-1.5" aria-label="Close modal">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Right Tab: Close Button */}
-          <div className="relative w-[80px] h-full flex items-center justify-center">
-            {/* Custom narrowed SVG to fit X button with sloped left, flat right */}
-            <svg width="128" height="64" viewBox="0 0 128 64" className="absolute inset-0 w-full h-full fill-zinc-900">
-              <path d="M 0 64 L 12 64 Q 32 64, 40 48 L 56 16 Q 64 0, 84 0 L 104 0 Q 128 0, 128 24 L 128 64 Z" />
-            </svg>
-            <div className="relative z-10 flex items-center justify-center pb-1 pl-8 w-full">
-              <button onClick={close} className="text-zinc-400 hover:text-zinc-100 transition-colors p-1.5" aria-label="Close modal">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+          {/* Content Wrapper (Gradient + Scrollable Body) */}
+          <div className={`flex-1 w-full bg-zinc-950 overflow-hidden relative z-20 flex flex-col ${isAnimating ? "pointer-events-auto" : "pointer-events-none"}`}>
+            {/* Top Fade Gradient */}
+            <div className="absolute top-0 left-0 w-full h-12 sm:h-16 bg-gradient-to-b from-zinc-950 to-transparent z-30 pointer-events-none transform-gpu" />
 
-        {/* Content Wrapper (Gradient + Scrollable Body) */}
-        <div className={`flex-1 w-full bg-zinc-900 overflow-hidden relative z-20 flex flex-col ${isAnimating ? "pointer-events-auto" : "pointer-events-none"}`}>
-          {/* Top Fade Gradient */}
-          <div className="absolute top-0 left-0 w-full h-12 sm:h-16 bg-gradient-to-b from-zinc-900 to-transparent z-30 pointer-events-none" />
+            {/* Two-Column Split (Independent Scrolling) */}
+            <div className="flex-1 w-full h-full flex flex-col lg:flex-row overflow-hidden relative">
 
-          {/* Scrollable Content Body */}
-          <div ref={scrollBodyRef} className="flex-1 w-full overflow-y-auto no-scrollbar" data-lenis-prevent="true">
-            <article key={project.slug} className="min-h-full bg-zinc-900 text-zinc-200 flex flex-col">
-              {/* Header: Text Left, Video Right */}
-              <header 
-                className="w-full px-4 sm:px-8 md:px-12 pt-12 sm:pt-16 pb-10 border-b border-zinc-800/50 animate-slide-up-fade"
-                style={{ opacity: 0, animationDelay: "100ms" }}
-              >
-                <div className="flex flex-col md:flex-row md:items-start gap-8">
-                  {/* Left: Meta */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">{project.category}</span>
-                      <span className="w-1 h-1 rounded-full" style={{ backgroundColor: project.accent }} />
-                      <span className="text-[11px] font-mono text-zinc-400">{project.year}</span>
+              {/* Left: Main Content Wrapper */}
+              <div className="flex-1 h-full relative min-w-0">
+                {/* Left: Main Content (Scrolls independently) */}
+                <div ref={scrollBodyRef} className="w-full h-full overflow-y-auto no-scrollbar" data-lenis-prevent="true">
+                  <article key={project.slug} className="min-h-full bg-zinc-950 text-zinc-200 px-4 sm:px-8 md:px-12 py-12 sm:py-16">
+                    <div className="w-full max-w-3xl mx-auto animate-slide-up-fade" style={{ opacity: 0, animationDelay: "100ms" }}>
+                      <h1 className="text-4xl sm:text-5xl font-bold mb-6 tracking-tight" style={{ color: project.accent }}>
+                        {project.title}
+                      </h1>
+
+                      <p className="text-lg md:text-xl text-zinc-400 leading-relaxed mb-12">
+                        {project.description}
+                      </p>
+
+                      <div
+                        className="w-full prose prose-sm md:prose-base prose-invert prose-zinc max-w-none prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:bg-transparent hover:prose-a:opacity-80"
+                        style={{
+                          "--theme-color": project.accent,
+                          "--tw-prose-links": project.accent,
+                          paddingBottom: "calc(2rem + 46px + 1rem)",
+                        } as React.CSSProperties}
+                      >
+                        <Post />
+                      </div>
                     </div>
+                  </article>
+                </div>
 
-                    <h1
-                      className="text-3xl sm:text-5xl font-bold mb-4 tracking-tight"
-                      style={{ color: project.accent }}
-                    >
-                      {project.title}
-                    </h1>
+                {/* Back to Top */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40">
+                  <BackToTop scrollRef={scrollBodyRef} />
+                </div>
+              </div>
 
-                    <p className="text-sm md:text-base text-zinc-400 leading-relaxed mb-6">
-                      {project.description}
-                    </p>
-
+              {/* Right: Fixed Sidebar (Scrolls independently if content overflows) */}
+              <aside className="w-full lg:w-72 xl:w-80 h-auto lg:h-full shrink-0 bg-zinc-950 overflow-y-auto no-scrollbar mr-12" data-lenis-prevent="true">
+                <div className="p-6 sm:p-8 flex flex-col gap-4 pb-12 animate-slide-up-fade" style={{ opacity: 0, animationDelay: "200ms" }}>
+                  {/* Metadata Section */}
+                  <div className="flex flex-col gap-6 p-6 rounded-xl bg-zinc-800/20 mt-8">
                     <div>
-                      <h3 className="text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-3">Technologies</h3>
-                      <div className="flex flex-wrap gap-2">
+                      <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-2">Category</h3>
+                      <p className="text-sm font-medium text-zinc-200">{project.category}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-2">Year</h3>
+                      <p className="text-sm font-mono text-zinc-400">{project.year}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">Technologies</h3>
+                      <div className="flex flex-wrap items-center gap-3">
                         {project.stack.map(tech => (
-                          <span key={tech} className="text-[12px] font-medium px-2.5 py-1 rounded-md bg-zinc-800 border border-zinc-700/80 text-zinc-300 flex items-center gap-1.5 transition-colors hover:bg-zinc-700">
-                            <TechIcon tech={tech} size={14} className="text-zinc-400" />
-                            {tech}
-                          </span>
+                          <div key={tech} className="group relative flex items-center justify-center cursor-default">
+                            <TechIcon tech={tech} size={18} className="text-zinc-400 group-hover:text-white transition-colors" />
+                            {/* Tooltip */}
+                            <div className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-out px-2 py-1 bg-zinc-900 border border-zinc-700 text-zinc-200 text-[11px] rounded shadow-xl whitespace-nowrap z-50">
+                              {tech}
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
                   </div>
 
-                  {/* Right: Video */}
-                  <div className="w-full md:w-80 lg:w-[440px] shrink-0">
-                    <div className="w-full aspect-video bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center overflow-hidden relative group">
-                      <div className="w-12 h-12 rounded-full bg-zinc-700/80 border border-zinc-600 flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:scale-110 transition-all cursor-pointer">
-                        <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
+                  {/* Table of Contents */}
+                  <TableOfContents accent={project.accent} slug={project.slug} />
                 </div>
-              </header>
-
-              {/* Article body */}
-              <div
-                className="flex-1 w-full px-4 sm:px-8 md:px-12 py-10 sm:py-12 prose prose-sm md:prose-base prose-invert prose-zinc max-w-3xl prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:bg-transparent hover:prose-a:opacity-80 animate-slide-up-fade"
-                style={{ 
-                  "--theme-color": project.accent,
-                  "--tw-prose-links": project.accent, 
-                  paddingBottom: "calc(2rem + 46px + 1rem)",
-                  opacity: 0,
-                  animationDelay: "200ms",
-                } as React.CSSProperties}
-              >
-                <Post />
-              </div>
-            </article>
-          </div>
-
-          {/* Back to Top */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40">
-            <BackToTop scrollRef={scrollBodyRef} />
+              </aside>
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );

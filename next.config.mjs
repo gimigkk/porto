@@ -16,6 +16,7 @@ const withMDX = createMDX({
       ["remark-gfm"]
     ],
     rehypePlugins: [
+      ["rehype-slug"],
       [mermaidPluginPath],
       ["rehype-pretty-code", { theme: "github-dark", keepBackground: true }]
     ],
