@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useCallback, useState, Suspense, useRef } from "react";
 import { useLenis } from "lenis/react";
+import NProgress from "nprogress";
 import type { ProjectMeta } from "@/lib/projects";
 import BackToTop from "@/components/ui/BackToTop";
 import TechIcon from "@/components/ui/TechIcon";
@@ -108,6 +109,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
   // Load MDX content when slug changes
   useEffect(() => {
     if (!slug) {
+      NProgress.start();
       // Start exit animation
       setIsAnimating(false);
       if (lenis) lenis.start();
@@ -118,6 +120,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
         setIsOpen(false);
         setPost(null);
         setProject(null);
+        NProgress.done();
       }, 400);
       return;
     }
@@ -129,14 +132,21 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
     setIsOpen(true);
 
     // Load MDX dynamically
+    NProgress.start();
     if (mdxModules[slug]) {
       setPost(() => mdxModules[slug]);
-      setTimeout(() => setIsAnimating(true), 50);
+      setTimeout(() => {
+        setIsAnimating(true);
+        NProgress.done();
+      }, 50);
     } else {
       import(`@/content/projects/${slug}.mdx`).then((mod) => {
         mdxModules[slug] = mod.default;
         setPost(() => mod.default);
-        setTimeout(() => setIsAnimating(true), 50);
+        setTimeout(() => {
+          setIsAnimating(true);
+          NProgress.done();
+        }, 50);
       });
     }
   }, [slug, lenis, allProjects]);
@@ -174,6 +184,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
       const params = new URLSearchParams(window.location.search);
       const newSlug = params.get("project");
       if (!newSlug) {
+        NProgress.start();
         setIsAnimating(false);
         if (lenis) lenis.start();
         document.body.style.overflow = "";
@@ -183,6 +194,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
           setIsOpen(false);
           setPost(null);
           setProject(null);
+          NProgress.done();
         }, 400);
       } else {
         // Opening a project or paginating
@@ -196,14 +208,23 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
           setIsAnimating(false);
         }
 
+        NProgress.start();
         if (mdxModules[newSlug]) {
           setPost(() => mdxModules[newSlug]);
-          if (!wasOpen) setTimeout(() => setIsAnimating(true), 50);
+          if (!wasOpen) {
+            setTimeout(() => { setIsAnimating(true); NProgress.done(); }, 50);
+          } else {
+            NProgress.done();
+          }
         } else {
           import(`@/content/projects/${newSlug}.mdx`).then((mod) => {
             mdxModules[newSlug] = mod.default;
             setPost(() => mod.default);
-            if (!wasOpen) setTimeout(() => setIsAnimating(true), 50);
+            if (!wasOpen) {
+              setTimeout(() => { setIsAnimating(true); NProgress.done(); }, 50);
+            } else {
+              NProgress.done();
+            }
           });
         }
       }

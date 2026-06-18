@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import LenisProvider from "@/components/providers/LenisProvider";
 import Navbar from "@/components/layout/Navbar";
+import NextTopLoader from 'nextjs-toploader';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
@@ -67,6 +68,18 @@ export default function RootLayout({
             100% { opacity: 0.2; }
           }
         `}} />
+        <NextTopLoader
+          color="var(--top-loader-color, #000000)"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={3}
+          crawl={true}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+          shadow="none"
+          zIndex={10001}
+        />
         <Navbar />
         <LenisProvider>{children}</LenisProvider>
       </body>

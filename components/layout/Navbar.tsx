@@ -137,6 +137,12 @@ export default function Navbar() {
   const menuStateRef = useRef({ mobileMenuOpen, gimigkkPanelOpen, hoveredIndex });
   menuStateRef.current = { mobileMenuOpen, gimigkkPanelOpen, hoveredIndex };
 
+  const isNavbarOn = navVisible && !introCollapsed;
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--top-loader-color', isNavbarOn ? '#000000' : '#ffffff');
+  }, [isNavbarOn]);
+
   useEffect(() => {
     const THRESHOLD = 10;
     const TOP_THRESHOLD = 50;

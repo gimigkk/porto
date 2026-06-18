@@ -112,7 +112,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
   useEffect(() => {
     if (foldersReady) {
       // Slight delay so CSS transition kicks after layout
-      requestAnimationFrame(() => setHeroHeight(isMobile ? "80svh" : "95svh"));
+      requestAnimationFrame(() => setHeroHeight(isMobile ? "70svh" : "95svh"));
     }
   }, [foldersReady, isMobile]);
 
@@ -161,7 +161,7 @@ export default function HomeClient({ projects }: HomeClientProps) {
             }}
           >
             {/* dark gradient overlay — fades in with folders and fades out on scroll */}
-            <motion.div 
+            <motion.div
               className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none"
               style={{ opacity: scrollOpacity }}
             >
