@@ -22,6 +22,8 @@ interface ParallaxDockOptions {
   visibleFrac?: number;
   /** Initial speed relative to content (0-1). 0.5 = starts at 50% scroll speed, decelerates to 0. */
   startSpeed?: number;
+  /** If true, parallax is disabled and transform resets to 0 */
+  disabled?: boolean;
 }
 
 interface ParallaxDockResult {
@@ -34,7 +36,7 @@ interface ParallaxDockResult {
 // ─── Hook ───────────────────────────────────────────────────────
 
 export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResult {
-  const { dockAnchor, target = "auto", visibleFrac = 0, startSpeed = 0.5, dockOffset } = options;
+  const { dockAnchor, target = "auto", visibleFrac = 0, startSpeed = 0.5, dockOffset, disabled = false } = options;
 
   const parallaxRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef(0);
@@ -106,6 +108,11 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
 
   // ── Parallax: quadratic ease-out = linear deceleration, always ──
   useEffect(() => {
+    if (disabled) {
+      if (parallaxRef.current) parallaxRef.current.style.transform = "translateY(0px)";
+      return;
+    }
+
     // f(t) = 2t - t². f'(t) = 2 - 2t. Speed drops linearly 2→0. Always decelerates.
     function update(scroll: number) {
       const dock = dockScrollRef.current;
@@ -143,7 +150,7 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
     window.addEventListener("scroll", onScroll, { passive: true });
     update(window.scrollY);
     return () => window.removeEventListener("scroll", onScroll);
-  }, [lenis]);
+  }, [lenis, disabled]);
 
   return { parallaxRef, progressRef };
 }

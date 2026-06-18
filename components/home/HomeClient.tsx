@@ -139,16 +139,18 @@ export default function HomeClient({ projects }: HomeClientProps) {
   return (
     <>
       <main className="w-full min-h-svh bg-[#141416]">
-        {/* Fixed sky + clouds layer — parallax 0.5x, docks at end of 3rd folder */}
-        <SkyBackground
-          isReady={cloudsReady}
-          preloadedAssets={assets}
-          onIntroComplete={handleIntroComplete}
-          heroHeight={heroHeight}
-        />
+        {/* Desktop: Fixed sky + clouds layer — parallax, docks at end of 3rd folder */}
+        {!isMobile && (
+          <SkyBackground
+            isReady={cloudsReady}
+            preloadedAssets={assets}
+            onIntroComplete={handleIntroComplete}
+            heroHeight={heroHeight}
+            isMobile={false}
+          />
+        )}
 
-        {/* Responsive Hero Height Variable */}
-        {/* Hero height via CSS transition — starts 100svh, shrinks to 95svh on Phase 2 */}
+        {/* Hero height via CSS transition — starts 100svh, shrinks to 95/70svh on Phase 2 */}
         <div className="relative z-20 w-full">
           {/* Section 1 */}
           <section
@@ -160,6 +162,16 @@ export default function HomeClient({ projects }: HomeClientProps) {
               top: `calc(136px - ${heroHeight})`,
             }}
           >
+            {/* Mobile: Sky inside hero — inherits sticky docking, no parallax */}
+            {isMobile && (
+              <SkyBackground
+                isReady={cloudsReady}
+                preloadedAssets={assets}
+                onIntroComplete={handleIntroComplete}
+                heroHeight={heroHeight}
+                isMobile={true}
+              />
+            )}
             {/* dark gradient overlay — fades in with folders and fades out on scroll */}
             <motion.div
               className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none"

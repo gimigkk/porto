@@ -9,21 +9,26 @@ interface SkyBackgroundProps {
   preloadedAssets?: PreloadedAssets | null;
   onIntroComplete?: () => void;
   heroHeight?: string;
+  isMobile?: boolean;
 }
 
-export default function SkyBackground({ isReady, preloadedAssets, onIntroComplete, heroHeight = "100svh" }: SkyBackgroundProps) {
+export default function SkyBackground({ isReady, preloadedAssets, onIntroComplete, heroHeight = "100svh", isMobile = false }: SkyBackgroundProps) {
   const { parallaxRef } = useParallaxDock({
     dockAnchor: "#section-experience",
     target: "#home",
     visibleFrac: 0.3,
     startSpeed: 1,
+    disabled: isMobile,
   });
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-0 overflow-hidden pointer-events-none select-none" style={{
-      height: heroHeight,
-      transition: "height 600ms cubic-bezier(0.22,1,0.36,1)",
-    }}>
+    <div
+      className={`${isMobile ? 'absolute inset-0' : 'fixed top-0 left-0 right-0'} z-0 overflow-hidden pointer-events-none select-none`}
+      style={isMobile ? undefined : {
+        height: heroHeight,
+        transition: "height 600ms cubic-bezier(0.22,1,0.36,1)",
+      }}
+    >
       {/* Parallax container — gradient + clouds move together */}
       <div
         ref={parallaxRef}
