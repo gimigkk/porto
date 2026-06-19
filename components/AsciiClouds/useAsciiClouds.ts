@@ -102,10 +102,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     const handlePause = () => { pauseFlags.ascii = true; checkShouldPause(); };
     const handleResume = () => { pauseFlags.ascii = false; checkShouldPause(); };
 
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerdown", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerLeave);
-    window.addEventListener("pointerleave", handlePointerLeave);
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("pointerdown", handlePointerMove, { passive: true });
+    window.addEventListener("pointerup", handlePointerLeave, { passive: true });
+    window.addEventListener("pointerleave", handlePointerLeave, { passive: true });
     window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
     window.addEventListener("ascii-pause", handlePause);
     window.addEventListener("ascii-resume", handleResume);
@@ -185,9 +185,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
 
       // Render FPS: Firefox 30, desktop 60, mobile intro lower
       const isFirefox = navigator.userAgent.includes("Firefox");
-      let renderFps = isFirefox ? 30 : CONFIG.fps;
+      const isLowEnd = (navigator.hardwareConcurrency || 4) <= 4;
+      let renderFps = isFirefox || isLowEnd ? 30 : CONFIG.fps;
       if (isIntro && W < 768) {
-        renderFps = t >= overlapStart ? 15 : 30;
+        renderFps = 30;
       }
       const renderInterval = 1000 / renderFps;
       if (now - lastRenderTime >= renderInterval) {

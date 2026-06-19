@@ -1,6 +1,8 @@
+import dynamic from "next/dynamic";
 import type { MDXComponents } from "mdx/types";
 import React from "react";
-import MermaidDiagram from "./components/ui/MermaidDiagram";
+
+const MermaidDiagram = dynamic(() => import("./components/ui/MermaidDiagram"), { ssr: false });
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -24,6 +26,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         <img
           src={src}
           alt={alt}
+          loading="lazy"
           className="w-full rounded-xl border border-zinc-800/50 my-8 shadow-2xl bg-zinc-900/50"
           {...props}
         />

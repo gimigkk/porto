@@ -55,10 +55,11 @@ export function usePreloader(): {
 
         if (!cancelled) {
           // 3. Build glyph atlas now (behind loading screen) so first render frame is free
-          const { buildGlyphAtlas } = await import("@/components/AsciiClouds/CloudAsciiCore");
+          const { CONFIG, buildGlyphAtlas } = await import("@/components/AsciiClouds/CloudAsciiCore");
           const maxDpr = 2.0;
           const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-          const tileSize = Math.ceil(8 * dpr); // CONFIG.cellSize * capped DPR
+          const activeCellSize = window.innerWidth < 768 ? 5 : CONFIG.cellSize;
+          const tileSize = Math.ceil(activeCellSize * dpr);
           const atlas = buildGlyphAtlas(tileSize);
 
           const imageAssets: PreloadedAssets = {

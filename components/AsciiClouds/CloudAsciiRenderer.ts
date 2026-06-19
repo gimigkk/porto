@@ -35,8 +35,6 @@ export class AsciiRenderer {
   bloomBuf: Uint8ClampedArray | null = null;
   bloomBuf32: Uint32Array | null = null;
 
-  colPx = new Int32Array(0);
-  rowPx = new Int32Array(0);
   pxCols = new Int32Array(0);
   pxRows = new Int32Array(0);
 
@@ -112,13 +110,13 @@ export class AsciiRenderer {
     return Math.min(window.devicePixelRatio || 1, maxDpr);
   }
 
-  buildGustMap(state: CloudState, rows: number, cols: number, t: number): Float32Array {
-    const reqSize = rows * cols;
+  buildGustMap(state: CloudState, rows: number, cols: number, t: number, maxRows: number, maxCols: number): Float32Array {
+    const reqSize = maxRows * maxCols;
     if (!this.gustRowCache || this.gustRowCache.length < reqSize) {
       this.gustRowCache = new Float32Array(reqSize);
     }
     const map = this.gustRowCache;
-    map.fill(0);
+    map.fill(0, 0, rows * cols);
 
     for (const g of state.gusts) {
       const age   = t - g.born;
@@ -226,8 +224,12 @@ export class AsciiRenderer {
     }
 
     if (cols !== this.cachedImageCols || rows !== this.cachedImageRows || isIntro || this.wasIntro) {
-      if (this.pxCols.length < cols) this.pxCols = new Int32Array(cols);
-      if (this.pxRows.length < rows) this.pxRows = new Int32Array(rows);
+      const activeCellSizeMax = W < 768 ? 5 : CONFIG.cellSize;
+      const maxCols = Math.max(1, Math.floor(W / activeCellSizeMax));
+      const maxRows = Math.max(1, Math.floor(H / activeCellSizeMax));
+
+      if (this.pxCols.length < maxCols) this.pxCols = new Int32Array(maxCols);
+      if (this.pxRows.length < maxRows) this.pxRows = new Int32Array(maxRows);
       
       const displayAR = W / H;
       const isMobile = displayAR < 1;
@@ -255,14 +257,18 @@ export class AsciiRenderer {
       this.wasIntro = isIntro;
     }
 
+    const activeCellSizeMax = W < 768 ? 5 : CONFIG.cellSize;
+    const maxCols = Math.max(1, Math.floor(W / activeCellSizeMax));
+    const maxRows = Math.max(1, Math.floor(H / activeCellSizeMax));
+
     let blobAlphaGrid: Float32Array | null = null;
     if (state.blobs.length > 0) {
-      const reqSize = rows * cols;
+      const reqSize = maxRows * maxCols;
       if (!this.blobGridCache || this.blobGridCache.length < reqSize) {
         this.blobGridCache = new Float32Array(reqSize);
       }
       blobAlphaGrid = this.blobGridCache;
-      blobAlphaGrid.fill(0);
+      blobAlphaGrid.fill(0, 0, rows * cols);
 
       const displayAR = W / H;
       const isMobile = displayAR < 1;
@@ -304,20 +310,39 @@ export class AsciiRenderer {
         for (let r = rMin; r <= rMax; r++) {
           const rowBase = r * cols;
           const dy = (r - g_cy) / radiusY;
+          
+          const noisePhase = b.seed + t * 0.15;
+          const cos_dy_1 = Math.cos(dy * 1.5 - noisePhase * 0.8);
+          const cos_dy_2 = Math.cos(dy * 2.0 + noisePhase);
 
           for (let c = cMin; c <= cMax; c++) {
             const dx = (c - g_cx) / radiusX;
             
             // Organic noise distortion based on grid coordinates and angle
-            const angle = Math.atan2(dy, dx);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 0.001) continue;
+
             const noisePhase = b.seed + t * 0.15; // Slowed down from 0.5
             
+            // Precalculate trigonometric terms for radial wobble
+            const cosP1 = Math.cos(noisePhase * 0.7);
+            const sinP1 = Math.sin(noisePhase * 0.7);
+            const cosP2 = Math.cos(noisePhase);
+            const sinP2 = Math.sin(noisePhase);
+
+            const cosA = dx / dist;
+            const sinA = dy / dist;
+            const sin2A = 2 * sinA * cosA;
+            const cos2A = cosA * cosA - sinA * sinA;
+
             // Cartesian noise - lower frequencies for slower billowing
-            const noise1 = Math.sin(dx * 1.5 + noisePhase) * Math.cos(dy * 1.5 - noisePhase * 0.8);
-            const noise2 = Math.sin(dx * 2.5 - noisePhase * 1.2) * Math.cos(dy * 2.0 + noisePhase);
+            const noise1 = Math.sin(dx * 1.5 + noisePhase) * cos_dy_1;
+            const noise2 = Math.sin(dx * 2.5 - noisePhase * 1.2) * cos_dy_2;
             
-            // Radial wobble - smoother
-            const angleWobble = Math.sin(angle * 2.0 + noisePhase * 0.7) * 0.5 + Math.cos(angle * 1.0 - noisePhase) * 0.5;
+            // Radial wobble - smoother, avoiding Math.atan2
+            const sin_2A_P = sin2A * cosP1 + cos2A * sinP1;
+            const cos_A_minus_P = cosA * cosP2 + sinA * sinP2;
+            const angleWobble = sin_2A_P * 0.5 + cos_A_minus_P * 0.5;
             
             // Combine them for a much more organic, less oblong shape
             const radiusPerturbation = Math.max(0.2, 1.0 + (noise1 * 0.6 + noise2 * 0.3 + angleWobble * 0.5) * b.roughness * 0.7);
@@ -341,12 +366,12 @@ export class AsciiRenderer {
 
     let disruptionGrid: Float32Array | null = null;
     if (state.disruptions.length > 0) {
-      const reqSize = rows * cols;
+      const reqSize = maxRows * maxCols;
       if (!this.disruptionGridCache || this.disruptionGridCache.length < reqSize) {
         this.disruptionGridCache = new Float32Array(reqSize);
       }
       disruptionGrid = this.disruptionGridCache;
-      disruptionGrid.fill(0);
+      disruptionGrid.fill(0, 0, rows * cols);
 
       for (const d of state.disruptions) {
         const pct = d.life / d.maxLife;
@@ -391,7 +416,7 @@ export class AsciiRenderer {
 
     let gustMap: Float32Array | null = null;
     if (!isIntro) {
-      gustMap = this.buildGustMap(state, rows, cols, t);
+      gustMap = this.buildGustMap(state, rows, cols, t, maxRows, maxCols);
     }
 
     const activeTileSize = this.cachedTileSize;
@@ -399,10 +424,6 @@ export class AsciiRenderer {
     const gridPH = Math.max(1, (rows * activeTileSize) | 0);
 
     // Allocate at the MAXIMUM possible grid size (steady-state post-intro).
-    // During intro, cols/rows change every frame — we must NOT reallocate.
-    const activeCellSizeMax = W < 768 ? 5 : CONFIG.cellSize;
-    const maxCols = Math.max(1, Math.floor(W / activeCellSizeMax));
-    const maxRows = Math.max(1, Math.floor(H / activeCellSizeMax));
     const maxGridPW = Math.max(1, (maxCols * activeTileSize) | 0);
     const maxGridPH = Math.max(1, (maxRows * activeTileSize) | 0);
 
@@ -463,7 +484,6 @@ export class AsciiRenderer {
 
     for (let row = 0; row < rows; row++) {
       const rowBase = row * cols;
-      const pyStart = this.rowPx[row];
 
       for (let col = 0; col < cols; col++) {
         let dispCol = 0;

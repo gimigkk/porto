@@ -2,6 +2,7 @@
 
 import type { ProjectMeta } from "@/lib/projects";
 import { ChevronRight } from "lucide-react";
+import Image from "next/image";
 import TechIcon from "@/components/ui/TechIcon";
 
 /* -- Max cards shown in the folder highlight -------------------- */
@@ -74,11 +75,11 @@ export default function ProjectCards({
               }}
             >
               {/* -- Full-cover thumbnail -- */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={project.thumbnail}
                 alt={`${project.title} preview`}
-                loading="lazy"
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="absolute inset-0 w-full h-full object-cover"
               />
 
