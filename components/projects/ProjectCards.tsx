@@ -1,7 +1,7 @@
 "use client";
 
 import type { ProjectMeta } from "@/lib/projects";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import TechIcon from "@/components/ui/TechIcon";
 
@@ -14,12 +14,12 @@ export default function ProjectCards({
   projects: ProjectMeta[];
 }) {
   const featured = projects.slice(0, MAX_FEATURED);
-  const hasMore = projects.length > MAX_FEATURED;
+  const hasMore = projects.length >= MAX_FEATURED;
 
   return (
-    <>
+    <div className="relative w-full max-w-350 mx-auto pb-20">
       {/* -- Cards Grid (3-column) ---------------- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5 md:gap-3 w-full max-w-350 mx-auto px-4 md:px-12">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5 md:gap-3 px-4 md:px-12">
         {featured.map((project) => (
           <div
             key={project.slug}
@@ -165,21 +165,18 @@ export default function ProjectCards({
       </div>
 
       {hasMore && (
-        <a
-          href="/projects"
-          className="mt-6 inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors group"
-        >
-          <span className="transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:translate-x-1">
-            View all {projects.length} projects
-          </span>
-          <svg
-            className="w-4 h-4 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:translate-x-1"
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        <div className="absolute bottom-0 left-0 right-0 h-52 pointer-events-none flex flex-col justify-end items-center pb-8 z-50">
+          <div className="absolute inset-x-0 top-0 bottom-20 bg-linear-to-t from-[#09090b] via-[#09090b]/50 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-[#09090b]" />
+          <a
+            href="/projects"
+            className="pointer-events-auto relative z-10 flex items-center text-sm text-zinc-400 hover:text-white font-medium transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group hover:-translate-y-0.5"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-          </svg>
-        </a>
+            <span>view more</span>
+            <ArrowRight className="w-4 h-4 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45 mt-0.5" />
+          </a>
+        </div>
       )}
-    </>
+    </div>
   );
 }
