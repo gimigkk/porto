@@ -103,24 +103,24 @@ export default function FolderSection({
 
           {/* Main Body */}
           <div
-            className={`flex-1 w-full ${bodyRadius} py-8 flex flex-col items-center justify-center relative z-20 overflow-hidden`}
+            className={`flex-1 w-full ${bodyRadius} py-8 flex flex-col items-center justify-center relative z-20`}
           >
             {/* Background: Tailwind class or hex */}
             {bgBase ? (
               <>
                 <div
-                  className="absolute inset-0 z-0"
+                  className={`absolute inset-0 z-0 ${bodyRadius}`}
                   style={{ background: bgBase }}
                 />
                 {bgFaded && (
                   <motion.div
-                    className="absolute inset-0 z-0"
+                    className={`absolute inset-0 z-0 ${bodyRadius}`}
                     style={{ background: bgFaded, opacity: overlayOpacity, willChange: "opacity" }}
                   />
                 )}
               </>
             ) : (
-              <div className={`absolute inset-0 z-0 ${bgClass}`} />
+              <div className={`absolute inset-0 z-0 ${bgClass} ${bodyRadius}`} />
             )}
             <div className="relative z-10 w-full h-full">
               {children}

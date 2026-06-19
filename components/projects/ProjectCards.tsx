@@ -83,12 +83,20 @@ export default function ProjectCards({
                 className="absolute inset-0 w-full h-full object-cover"
               />
 
-              {/* -- Gradient + blur overlay at bottom -- */}
-              <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-transparent" />
-              {/* isolate needed so backdrop-filter survives parent's 3D transform + overflow:hidden */}
-              <div className="absolute bottom-0 left-0 right-0 h-2/3 isolate">
-                <div className="absolute inset-0 backdrop-blur-[2px] [mask-image:linear-gradient(to_top,black_40%,transparent_100%)]" />
+              {/* -- Fake backdrop blur (Hardware Accelerated) -- */}
+              {/* Uses a duplicated blurred image instead of backdrop-filter to survive 3D transforms without CPU lag */}
+              <div className="absolute inset-0 pointer-events-none [mask-image:linear-gradient(to_top,black_5%,transparent_50%)]">
+                <Image
+                  src={project.thumbnail}
+                  alt={`${project.title} preview`}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="absolute inset-0 w-full h-full object-cover blur-[3px] scale-[1.02]"
+                />
               </div>
+
+              {/* -- Gradient overlay at bottom -- */}
+              <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
 
               {/* -- Year badge — top right -- */}
               <span
