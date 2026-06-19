@@ -63,7 +63,7 @@ export default function ProjectCards({
                 window.history.pushState(null, "", `?project=${project.slug}`);
                 window.dispatchEvent(new PopStateEvent("popstate"));
               }}
-              className="relative z-10 flex flex-col justify-end h-full min-h-[300px] rounded-lg border border-zinc-700/60 bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)]"
+              className="relative z-10 flex flex-col justify-end h-full min-h-[300px] rounded-lg  bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)]"
               style={{
                 willChange: "transform"
               }}

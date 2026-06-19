@@ -42,7 +42,7 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 	const lenis = useLenis();
 
   useEffect(() => {
-    if (!lenis || !isMobile) return;
+    if (!isMobile) return;
 
     let cachedTop = 0;
     let cachedHeight = 0;
@@ -69,17 +69,19 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
         return;
       }
       
-      const currentScrollY = window.scrollY || lenis.scroll || 0;
+      const currentScrollY = window.scrollY;
       const currentTop = cachedTop - currentScrollY;
       
       mobileProgress.set(Math.max(0, Math.min(1, -currentTop / distance)));
     };
 
-    lenis.on("scroll", onScroll);
+    if (lenis) lenis.on("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
     onScroll(); // set initial value
 
     return () => {
-      lenis.off("scroll", onScroll);
+      if (lenis) lenis.off("scroll", onScroll);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", updateMetrics);
     };
   }, [lenis, isMobile, mobileProgress]);

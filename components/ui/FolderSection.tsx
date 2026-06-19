@@ -127,10 +127,15 @@ export default function FolderSection({
             </div>
             {/* Infinite Downward Extension */}
             {bgFaded ? (
-              <motion.div
-                className="absolute top-full left-0 w-full h-svh z-0"
-                style={{ background: bgFaded, opacity: overlayOpacity, willChange: "opacity" }}
-              />
+              <>
+                {bgBase && (
+                  <div className={`absolute top-full left-0 w-full h-svh z-0`} style={{ background: bgBase }} />
+                )}
+                <motion.div
+                  className="absolute top-full left-0 w-full h-svh z-0"
+                  style={{ background: bgFaded, opacity: overlayOpacity, willChange: "opacity" }}
+                />
+              </>
             ) : bgClass ? (
               <div className={`absolute top-full left-0 w-full h-svh z-0 ${bgClass}`} />
             ) : null}
