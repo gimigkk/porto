@@ -38,6 +38,21 @@
       hsl(0, 0%, 65%) 100%);
 }
 
+.edgeDark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  border-radius: 8px;
+  background: linear-gradient(to right,
+      hsl(0, 0%, 16%) 0%,
+      hsl(0, 0%, 24%) 8%,
+      hsl(0, 0%, 16%) 92%,
+      hsl(0, 0%, 8%) 100%);
+}
+
+
 @keyframes popUp {
   0% {
     transform: translateY(0px);
@@ -61,7 +76,22 @@
   transition: transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.animateIntro .front {
+.frontDark {
+  display: block;
+  position: relative;
+  border-radius: 8px;
+  background: hsl(0, 0%, 9%);
+  padding: 16px 32px;
+  color: white;
+  font-weight: 700;
+  /* letter-spacing: 1.5px; */
+  font-size: 1rem;
+  transform: translateY(-6px);
+  transition: transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animateIntro .front,
+.animateIntro .frontDark {
   animation: popUp 800ms cubic-bezier(0.34, 1.56, 0.64, 1) 400ms backwards;
 }
 
@@ -69,13 +99,16 @@
   filter: brightness(110%);
 }
 
-.pushable:hover .front {
+.pushable:hover .front,
+.pushable:hover .frontDark {
   transform: translateY(-10px);
   transition: transform 400ms cubic-bezier(0.4, 2.5, 0.2, 1);
 }
 
 .pushable:active .front,
-.pushable.simulateActive .front {
+.pushable.simulateActive .front,
+.pushable:active .frontDark,
+.pushable.simulateActive .frontDark {
   transform: translateY(2px);
   transition: transform 100ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
