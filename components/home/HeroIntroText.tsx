@@ -61,13 +61,13 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
     // Outro (rotate out, anchor bottom) — tween so promise resolves at exact end
     const outroWords = wordControls.map((ctrl, i) =>
       ctrl.start({
-        opacity: 0, rotateX: 90, transformOrigin: "bottom",
+        opacity: 0, rotateX: 90, originY: 1,
         transition: { duration: 0.5, ease: [0.55, 0, 1, 0.45], delay: i * 0.08 },
       })
     );
     const outroContact = contactControls.map((ctrl, i) =>
       ctrl.start({
-        opacity: 0, rotateX: 90, transformOrigin: "bottom",
+        opacity: 0, rotateX: 90, originY: 1,
         transition: { duration: 0.5, ease: [0.55, 0, 1, 0.45], delay: 0.32 + i * 0.08 },
       })
     );
@@ -128,13 +128,13 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
       // Intro (rotate in from top)
       const introWords = wordControls.map((ctrl, i) =>
         ctrl.start({
-          opacity: 1, rotateX: 0, transformOrigin: "top",
+          opacity: 1, rotateX: 0, originY: 0,
           transition: { type: "spring", bounce: 0.6, duration: 0.96, delay: d.words[0] + i * d.words[1] },
         })
       );
       const introContact = contactControls.map((ctrl, i) =>
         ctrl.start({
-          opacity: 1, rotateX: 0, transformOrigin: "top",
+          opacity: 1, rotateX: 0, originY: 0,
           transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: d.contact[i] },
         })
       );
