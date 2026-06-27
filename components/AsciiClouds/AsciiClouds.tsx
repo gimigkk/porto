@@ -16,10 +16,12 @@ interface AsciiCloudsProps {
   preloadedAssets?: PreloadedAssets | null;
   /** Fired once when the intro zoom/slide animation completes */
   onIntroComplete?: () => void;
+  /** Fired once the first canvas frame is fully drawn */
+  onFirstFrameRendered?: () => void;
 }
 
-export default function AsciiClouds({ className = "", isReady, preloadedAssets, onIntroComplete }: AsciiCloudsProps) {
-  const canvasRef = useAsciiClouds({ isReady, preloadedAssets, onIntroComplete });
+export default function AsciiClouds({ className = "", isReady, preloadedAssets, onIntroComplete, onFirstFrameRendered }: AsciiCloudsProps) {
+  const canvasRef = useAsciiClouds({ isReady, preloadedAssets, onIntroComplete, onFirstFrameRendered });
 
   return (
     <canvas

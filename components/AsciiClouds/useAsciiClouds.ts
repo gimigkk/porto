@@ -21,13 +21,16 @@ interface UseAsciiCloudsOptions {
   preloadedAssets?: PreloadedAssets | null;
   /** Fired once when the intro zoom/slide animation completes */
   onIntroComplete?: () => void;
+  /** Fired once the first canvas frame is fully drawn */
+  onFirstFrameRendered?: () => void;
 }
 
 export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
-  const { isReady = true, preloadedAssets = null, onIntroComplete } = options;
+  const { isReady = true, preloadedAssets = null, onIntroComplete, onFirstFrameRendered } = options;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
   const introCompleteRef = useRef(false);
+  const firstFrameRef = useRef(false);
   const pausedRef = useRef(false);
 
   useEffect(() => {
@@ -194,6 +197,11 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       if (now - lastRenderTime >= renderInterval) {
         lastRenderTime = now - ((now - lastRenderTime) % renderInterval);
         renderer.render(state, now, startTime, isIntro, introOffsetNorm, cols, rows);
+
+        if (!firstFrameRef.current) {
+          firstFrameRef.current = true;
+          onFirstFrameRendered?.();
+        }
       }
     }
 

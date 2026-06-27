@@ -12,9 +12,13 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 const ibmPlexSerif = IBM_Plex_Serif({
   subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700"],
+  weight: ["400", "700"],
   style: ["normal", "italic"],
 });
+
+// Hoisted static animation states to prevent garbage collection thrashing during render
+const INITIAL_TEXT_STATE = { opacity: 0, rotateX: -90, originY: 0 };
+const INITIAL_BUTTON_STATE = { opacity: 0 };
 
 interface HeroIntroTextProps {
   isReady: boolean;
@@ -62,13 +66,13 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
     const outroWords = wordControls.map((ctrl, i) =>
       ctrl.start({
         opacity: 0, rotateX: 90, originY: 1,
-        transition: { duration: 0.5, ease: [0.55, 0, 1, 0.45], delay: i * 0.08 },
+        transition: { duration: 0.5, ease: [0.55, 0, 1, 0.45], delay: i * 0.08, originY: { duration: 0 } },
       })
     );
     const outroContact = contactControls.map((ctrl, i) =>
       ctrl.start({
         opacity: 0, rotateX: 90, originY: 1,
-        transition: { duration: 0.5, ease: [0.55, 0, 1, 0.45], delay: 0.32 + i * 0.08 },
+        transition: { duration: 0.5, ease: [0.55, 0, 1, 0.45], delay: 0.32 + i * 0.08, originY: { duration: 0 } },
       })
     );
     const outroSkip = skipButtonControl.start({
@@ -129,13 +133,13 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
       const introWords = wordControls.map((ctrl, i) =>
         ctrl.start({
           opacity: 1, rotateX: 0, originY: 0,
-          transition: { type: "spring", bounce: 0.6, duration: 0.96, delay: d.words[0] + i * d.words[1] },
+          transition: { type: "spring", bounce: 0.6, duration: 0.96, delay: d.words[0] + i * d.words[1], originY: { duration: 0 } },
         })
       );
       const introContact = contactControls.map((ctrl, i) =>
         ctrl.start({
           opacity: 1, rotateX: 0, originY: 0,
-          transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: d.contact[i] },
+          transition: { type: "spring", bounce: 0.5, duration: 1.2, delay: d.contact[i], originY: { duration: 0 } },
         })
       );
       // Start skip button fade in independently
@@ -166,14 +170,14 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
       {/* Headline */}
       <h1
         ref={headlineRef}
-        className={`${plusJakartaSans.className} text-5xl md:text-5xl text-[7vw] font-[700] tracking-tight mb-2 drop-shadow-xs flex flex-nowrap justify-center gap-x-2.5 md:gap-x-2.5 gap-1 whitespace-nowrap`}
+        className={`${plusJakartaSans.className} text-5xl md:text-5xl text-[7vw] font-[700] tracking-tight mb-2 drop-shadow-xs flex flex-nowrap justify-center gap-x-2.5 md:gap-x-2.5 gap-1 whitespace-nowrap leading-none`}
       >
         {words.map((word, i) => (
           <span key={i} className="inline-block" style={{ perspective: "1000px" }}>
             <motion.span
-              initial={{ opacity: 0, rotateX: -90 }}
+              initial={INITIAL_TEXT_STATE}
               animate={wordControls[i]}
-              className="inline-block origin-top"
+              className="inline-block origin-top will-change-transform"
             >
               {word}
             </motion.span>
@@ -184,20 +188,20 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
       {/* Contact text */}
       <p
         ref={contactRef}
-        className={`${ibmPlexSerif.className} font-[400] text-4xl md:text-4xl text-[5vw] opacity-90 whitespace-nowrap`}
+        className={`${ibmPlexSerif.className} font-[400] text-4xl md:text-4xl text-[5vw] opacity-90 whitespace-nowrap leading-none`}
       >
         <span className="inline-block" style={{ perspective: "1000px" }}>
-          <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[0]} className="italic inline-block origin-top">
+          <motion.span initial={INITIAL_TEXT_STATE} animate={contactControls[0]} className="italic inline-block origin-top will-change-transform">
             Contact me!
           </motion.span>
         </span>{" "}
         <span className="inline-block" style={{ perspective: "1000px" }}>
-          <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[1]} className="inline-block origin-top">
+          <motion.span initial={INITIAL_TEXT_STATE} animate={contactControls[1]} className="inline-block origin-top will-change-transform">
             Mari
           </motion.span>
         </span>{" "}
         <span className="inline-block" style={{ perspective: "1000px" }}>
-          <motion.span initial={{ opacity: 0, rotateX: -90 }} animate={contactControls[2]} className="inline-block origin-top">
+          <motion.span initial={INITIAL_TEXT_STATE} animate={contactControls[2]} className="inline-block origin-top will-change-transform">
             berkolaborasi.
           </motion.span>
         </span>
@@ -205,9 +209,9 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
 
       {/* Skip Button */}
       <motion.div
-        initial={{ opacity: 0 }}
+        initial={INITIAL_BUTTON_STATE}
         animate={skipButtonControl}
-        className="pointer-events-auto mt-8 md:mt-12 scale-[0.55] md:scale-[0.65] origin-top"
+        className="pointer-events-auto mt-8 md:mt-12 scale-[0.55] md:scale-[0.65] origin-top will-change-transform"
       >
         <SkipIntroButton onClick={handleSkip} label={sequenced ? 'SKIP INTRO' : undefined} isActive={isSpaceDown} isReady={isReady} />
       </motion.div>

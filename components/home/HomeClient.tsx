@@ -11,8 +11,10 @@ import dynamic from "next/dynamic";
 import StackedSections from "@/components/layout/StackedSections";
 import BackToTop from "@/components/ui/BackToTop";
 import type { ProjectMeta } from "@/lib/projects";
+import type { GithubGraphDay } from "@/lib/github";
 
-const ClientProjectModal = dynamic(() => import("@/components/projects/ClientProjectModal"), { ssr: false });
+const importClientProjectModal = () => import("@/components/projects/ClientProjectModal");
+const ClientProjectModal = dynamic(importClientProjectModal, { ssr: false });
 
 // IMPORT: Loading Cormorant Garamond for the stylish accent
 import { Cormorant_Garamond } from 'next/font/google';
@@ -59,15 +61,22 @@ const cormorant = Cormorant_Garamond({
 
 interface HomeClientProps {
   projects: ProjectMeta[];
+  githubGraph: GithubGraphDay[][];
 }
 
-export default function HomeClient({ projects }: HomeClientProps) {
+export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   const { isReady, assets } = usePreloader();
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [introComplete, setIntroComplete] = useState(false);
   const [foldersReady, setFoldersReady] = useState(false);
   const [cloudsReady, setCloudsReady] = useState(false);
   const [ctaReady, setCtaReady] = useState(false);
+  const [firstFrameRendered, setFirstFrameRendered] = useState(false);
+
+  // Proactively fetch heavy chunks during loading screen
+  useEffect(() => {
+    importClientProjectModal().catch(() => { });
+  }, []);
 
   // Detect mobile and update on resize
   const [isMobile, setIsMobile] = useState(false);
@@ -81,8 +90,8 @@ export default function HomeClient({ projects }: HomeClientProps) {
   const { scrollY } = useScroll();
   const scrollOpacity = useTransform(scrollY, [0, 500], [1, 0.5]);
 
-  // Phase 1: words + contact text animate immediately when preloader done
-  const heroAnimationReady = isReady;
+  // Phase 1: words + contact text animate ONLY AFTER loading screen finishes fading out
+  const heroAnimationReady = isReady && loadingComplete;
 
   // Staggered Phase 2 orchestration
   useEffect(() => {
@@ -156,9 +165,10 @@ export default function HomeClient({ projects }: HomeClientProps) {
           >
             {/* Mobile & Desktop: Sky inside hero — handles its own CSS for fixed/absolute */}
             <SkyBackground
-              isReady={cloudsReady}
+              isReady={isReady} // Start immediately behind loading screen
               preloadedAssets={assets}
               onIntroComplete={handleIntroComplete}
+              onFirstFrameRendered={() => setFirstFrameRendered(true)}
               heroHeight={heroHeight}
               isMobile={isMobile}
             />
@@ -202,16 +212,16 @@ export default function HomeClient({ projects }: HomeClientProps) {
             />
           </section>
 
-          {/* Loading screen — debounced, only shows if load takes >300ms */}
+          {/* Loading screen — waits for fonts AND first canvas frame to finish */}
           {!loadingComplete && (
             <LoadingScreen
-              isReady={isReady}
+              isReady={isReady && firstFrameRendered}
               onComplete={handleLoadingComplete}
             />
           )}
 
           {/* Sections 2, 3, 4 (Stacked Folders) — id used for dock measurement */}
-          <StackedSections projects={projects} isReady={foldersReady} />
+          <StackedSections projects={projects} isReady={foldersReady} githubGraph={githubGraph} />
         </div>
 
         {/* Section 5 */}

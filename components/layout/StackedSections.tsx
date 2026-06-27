@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useMotionValue, type MotionValue } from "framer-motion";
 import { useLenis } from "lenis/react";
 import type { ProjectMeta } from "@/lib/projects";
+import type { GithubGraphDay } from "@/lib/github";
 import FolderSection from "@/components/ui/FolderSection";
 import AboutSection from "@/components/sections/AboutSection";
 import ExperienceSection from "@/components/sections/ExperienceSection";
@@ -12,9 +13,10 @@ import ProjectsSection from "@/components/sections/ProjectsSection";
 interface StackedSectionsProps {
 	projects: ProjectMeta[];
 	isReady?: boolean;
+	githubGraph: GithubGraphDay[][];
 }
 
-export default function StackedSections({ projects, isReady = true }: StackedSectionsProps) {
+export default function StackedSections({ projects, isReady = true, githubGraph }: StackedSectionsProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [isMobile, setIsMobile] = useState(false);
 	const mobileProgress = useMotionValue(0);
@@ -101,7 +103,7 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 				tabPosition="left"
 				bgClass="bg-[#141416]"
 				fillClass="fill-[#141416]"
-				stickyClass="h-[calc(100svh-5rem)] sticky top-20"
+				stickyClass="h-[calc(100svh-3rem)] md:h-[calc(100svh-5rem)] sticky top-12 md:top-20"
 				scrollYProgress={effectiveProgress}
 				parallaxOffset={-40}
 				scrollOffset={-80}
@@ -109,7 +111,7 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 				bgBase="#141416"
 				bgFaded="#1c2029"
 			>
-				<AboutSection />
+				<AboutSection githubGraph={githubGraph} />
 			</FolderSection>
 
 			<FolderSection
@@ -117,7 +119,7 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 				tabPosition="center"
 				bgClass="bg-[#0e0e10]"
 				fillClass="fill-[#0e0e10]"
-				stickyClass="h-[calc(100svh-120px)] sticky top-[120px]"
+				stickyClass="h-[calc(100svh-88px)] md:h-[calc(100svh-120px)] sticky top-[88px] md:top-[120px]"
 				scrollYProgress={effectiveProgress}
 				parallaxOffset={-60}
 				scrollOffset={-120}
@@ -133,7 +135,7 @@ export default function StackedSections({ projects, isReady = true }: StackedSec
 				tabPosition="right"
 				bgClass="bg-zinc-950"
 				fillClass="fill-zinc-950"
-				stickyClass="min-h-[calc(100svh-160px)] z-30 relative"
+				stickyClass="min-h-[calc(100svh-128px)] md:min-h-[calc(100svh-160px)] z-30 relative"
 				scrollYProgress={effectiveProgress}
 				parallaxOffset={-80}
 				scrollOffset={-160}

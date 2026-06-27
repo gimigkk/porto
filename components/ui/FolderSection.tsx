@@ -122,7 +122,7 @@ export default function FolderSection({
             ) : (
               <div className={`absolute inset-0 z-0 ${bgClass} ${bodyRadius}`} />
             )}
-            <div className="relative z-10 w-full h-full">
+            <div className="relative z-10 w-full h-full" style={{ contentVisibility: "auto", containIntrinsicSize: "auto 1000px" }}>
               {children}
             </div>
             {/* Infinite Downward Extension */}
