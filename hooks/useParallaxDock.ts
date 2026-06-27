@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { useLenis } from "lenis/react";
+
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -43,7 +43,7 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
   const dockScrollRef = useRef(Infinity);
   const maxShiftRef = useRef(900);
   const currentY = useRef(0);
-  const lenis = useLenis();
+
 
   // ── Apply transform directly (no React re-render) ──────────
   function applyTransform(y: number) {
@@ -129,28 +129,11 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
       }
     }
 
-    if (lenis) {
-      const handler = (e: { scroll: number }) => update(e.scroll);
-      lenis.on("scroll", handler);
-      update(lenis.scroll ?? 0);
-      return () => lenis.off("scroll", handler);
-    }
-
-    // Native fallback (Firefox / no Lenis)
-    let ticking = false;
-    const onScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          update(window.scrollY);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
+    const onScroll = () => update(window.scrollY);
     window.addEventListener("scroll", onScroll, { passive: true });
     update(window.scrollY);
     return () => window.removeEventListener("scroll", onScroll);
-  }, [lenis, disabled]);
+  }, [disabled]);
 
   return { parallaxRef, progressRef };
 }

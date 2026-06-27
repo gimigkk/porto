@@ -194,10 +194,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       }
 
       // Optimization: Lerp FPS towards 0 based on the main scroll progress curve.
-      // Linearly fade out FPS across the entire docking distance.
+      // Ease-out curve (cubic) so FPS drops fast at the beginning of scrolling/docking.
       if (progressRef) {
         const p = progressRef.current;
-        targetFps = Math.max(0, targetFps * (1 - p));
+        targetFps = Math.max(0, targetFps * Math.pow(1 - p, 3));
       }
 
       // If FPS hits 0, skip render entirely
