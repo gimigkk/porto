@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 import type { MDXComponents } from "mdx/types";
 import React from "react";
 
-const MermaidDiagram = dynamic(() => import("./components/ui/MermaidDiagram"), { ssr: false });
+const MermaidDiagram = dynamic(() => import("./components/shared/MermaidDiagram"), { ssr: false });
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {

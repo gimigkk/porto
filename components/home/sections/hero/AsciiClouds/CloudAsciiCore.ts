@@ -21,7 +21,7 @@ export const CONFIG = {
   speed: 5,
   waveDepth: 0.6,
   displacement: 0.6,
-  fps: 60,             // Visual render framerate
+  fps: 30,             // Visual render framerate
 
   // -- Wind gusts --
   maxGusts: 4,

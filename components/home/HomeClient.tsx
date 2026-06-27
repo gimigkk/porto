@@ -5,15 +5,15 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { usePreloader } from "@/hooks/usePreloader";
 import LoadingScreen from "@/components/home/LoadingScreen";
 import SkyBackground from "@/components/layout/SkyBackground";
-import HeroContent from "@/components/home/HeroContent";
-import HeroIntroText from "@/components/home/HeroIntroText";
+import HeroContent from "@/components/home/sections/hero/HeroContent";
+import HeroIntroText from "@/components/home/sections/hero/HeroIntroText";
 import dynamic from "next/dynamic";
 import StackedSections from "@/components/layout/StackedSections";
-import BackToTop from "@/components/ui/BackToTop";
+import BackToTop from "@/components/shared/BackToTop";
 import type { ProjectMeta } from "@/lib/projects";
 import type { GithubGraphDay } from "@/lib/github";
 
-const importClientProjectModal = () => import("@/components/projects/ClientProjectModal");
+const importClientProjectModal = () => import("@/components/home/sections/projects/ClientProjectModal");
 const ClientProjectModal = dynamic(importClientProjectModal, { ssr: false });
 
 // IMPORT: Loading Cormorant Garamond for the stylish accent

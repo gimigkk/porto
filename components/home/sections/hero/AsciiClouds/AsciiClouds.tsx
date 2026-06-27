@@ -18,16 +18,18 @@ interface AsciiCloudsProps {
   onIntroComplete?: () => void;
   /** Fired once the first canvas frame is fully drawn */
   onFirstFrameRendered?: () => void;
+  progressRef?: React.MutableRefObject<number>;
 }
 
-export default function AsciiClouds({ className = "", isReady, preloadedAssets, onIntroComplete, onFirstFrameRendered }: AsciiCloudsProps) {
-  const canvasRef = useAsciiClouds({ isReady, preloadedAssets, onIntroComplete, onFirstFrameRendered });
-
+export default function AsciiClouds({ className = "", isReady, preloadedAssets, onIntroComplete, onFirstFrameRendered, progressRef }: AsciiCloudsProps) {
+  const canvasRef = useAsciiClouds({ isReady, preloadedAssets, onIntroComplete, onFirstFrameRendered, progressRef });
   return (
-    <canvas
-      ref={canvasRef}
-      className={className}
-      style={{ display: "block", width: "100%", height: "100%", touchAction: "none" }}
-    />
+    <div className="relative w-full h-full">
+      <canvas
+        ref={canvasRef}
+        className={className}
+        style={{ display: "block", width: "100%", height: "100%", touchAction: "none" }}
+      />
+    </div>
   );
 }

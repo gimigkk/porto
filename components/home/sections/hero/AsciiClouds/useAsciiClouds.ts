@@ -23,10 +23,11 @@ interface UseAsciiCloudsOptions {
   onIntroComplete?: () => void;
   /** Fired once the first canvas frame is fully drawn */
   onFirstFrameRendered?: () => void;
+  progressRef?: React.MutableRefObject<number>;
 }
 
 export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
-  const { isReady = true, preloadedAssets = null, onIntroComplete, onFirstFrameRendered } = options;
+  const { isReady = true, preloadedAssets = null, onIntroComplete, onFirstFrameRendered, progressRef } = options;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
   const introCompleteRef = useRef(false);
@@ -111,22 +112,20 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     window.addEventListener("pointerleave", handlePointerLeave, { passive: true });
     window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
     window.addEventListener("ascii-pause", handlePause);
-    window.addEventListener("ascii-resume", handleResume);
-
-    // Pause canvas when hero scrolls off-screen.
-    // The canvas is inside a position:fixed container, and #home is sticky,
-    // so IntersectionObserver always reports both as visible. Instead, check
-    // scroll position — once we've scrolled past the hero height, opaque
-    // folder sections fully cover the clouds.
     let heroHeight = window.innerHeight; // fallback
     const heroEl = document.getElementById("home");
     if (heroEl) heroHeight = heroEl.getBoundingClientRect().height;
 
     const onScrollVisibility = () => {
-      const scrollY = window.scrollY || 0;
-      // Add some margin so animation starts before hero is fully in view
       const wasVisible = pauseFlags.visible;
-      pauseFlags.visible = scrollY < heroHeight + 100;
+      // If progressRef is provided, pause when progress === 1 (fully docked/covered)
+      // Otherwise fallback to the old heroHeight check
+      if (progressRef) {
+        pauseFlags.visible = progressRef.current < 1;
+      } else {
+        const scrollY = window.scrollY || 0;
+        pauseFlags.visible = scrollY < heroHeight + 100;
+      }
       if (wasVisible !== pauseFlags.visible) checkShouldPause();
     };
     window.addEventListener("scroll", onScrollVisibility, { passive: true });
@@ -189,11 +188,22 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       // Render FPS: Firefox 30, desktop 60, mobile intro lower
       const isFirefox = navigator.userAgent.includes("Firefox");
       const isLowEnd = (navigator.hardwareConcurrency || 4) <= 4;
-      let renderFps = isFirefox || isLowEnd ? 30 : CONFIG.fps;
+      let targetFps = isFirefox || isLowEnd ? 30 : CONFIG.fps;
       if (isIntro && W < 768) {
-        renderFps = 30;
+        targetFps = 30;
       }
-      const renderInterval = 1000 / renderFps;
+
+      // Optimization: Lerp FPS towards 0 based on the main scroll progress curve.
+      // Linearly fade out FPS across the entire docking distance.
+      if (progressRef) {
+        const p = progressRef.current;
+        targetFps = Math.max(0, targetFps * (1 - p));
+      }
+
+      // If FPS hits 0, skip render entirely
+      if (targetFps === 0) return;
+
+      const renderInterval = 1000 / targetFps;
       if (now - lastRenderTime >= renderInterval) {
         lastRenderTime = now - ((now - lastRenderTime) % renderInterval);
         renderer.render(state, now, startTime, isIntro, introOffsetNorm, cols, rows);

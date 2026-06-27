@@ -5,10 +5,10 @@ import { motion, useScroll, useMotionValue, type MotionValue } from "framer-moti
 import { useLenis } from "lenis/react";
 import type { ProjectMeta } from "@/lib/projects";
 import type { GithubGraphDay } from "@/lib/github";
-import FolderSection from "@/components/ui/FolderSection";
-import AboutSection from "@/components/sections/AboutSection";
-import ExperienceSection from "@/components/sections/ExperienceSection";
-import ProjectsSection from "@/components/sections/ProjectsSection";
+import FolderSection from "@/components/layout/FolderSection";
+import AboutSection from "@/components/home/sections/about/AboutSection";
+import ExperienceSection from "@/components/home/sections/experience/ExperienceSection";
+import ProjectsSection from "@/components/home/sections/projects/ProjectsSection";
 
 interface StackedSectionsProps {
 	projects: ProjectMeta[];

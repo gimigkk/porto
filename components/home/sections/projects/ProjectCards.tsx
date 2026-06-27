@@ -4,7 +4,7 @@ import type { ProjectMeta } from "@/lib/projects";
 import { ChevronRight, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import TechIcon from "@/components/ui/TechIcon";
+import TechIcon from "@/components/shared/TechIcon";
 import styles from "@/components/home/SkipIntroButton.module.css";
 
 /* -- Max cards shown in the folder highlight -------------------- */

@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { useInView } from "framer-motion";
-import TechIcon from "./TechIcon";
+import TechIcon from "@/components/shared/TechIcon";
 
 const TECH_STACK = [
   "react", "nextjs", "ts", "tailwind", "nodejs", "postgres", "figma", 

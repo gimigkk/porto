@@ -5,8 +5,8 @@ import { useEffect, useCallback, useState, Suspense, useRef } from "react";
 import { useLenis } from "lenis/react";
 import NProgress from "nprogress";
 import type { ProjectMeta } from "@/lib/projects";
-import BackToTop from "@/components/ui/BackToTop";
-import TechIcon from "@/components/ui/TechIcon";
+import BackToTop from "@/components/shared/BackToTop";
+import TechIcon from "@/components/shared/TechIcon";
 
 /* -- Preload all MDX components at module level -------------- */
 const mdxModules: Record<string, React.ComponentType> = {};
@@ -435,7 +435,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
                     <div>
                       <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">Technologies</h3>
                       <div className="flex flex-wrap items-center gap-3">
-                        {project.stack.map(tech => (
+                        {project.stack.map((tech: string) => (
                           <div key={tech} className="group relative flex items-center justify-center cursor-default">
                             <TechIcon tech={tech} size={18} className="text-zinc-400 group-hover:text-white transition-colors" />
                             {/* Tooltip */}

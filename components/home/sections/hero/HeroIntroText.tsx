@@ -3,7 +3,7 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import { IBM_Plex_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import { motion, useAnimationControls } from "framer-motion";
-import SkipIntroButton from "./SkipIntroButton";
+import SkipIntroButton from "@/components/home/SkipIntroButton";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],

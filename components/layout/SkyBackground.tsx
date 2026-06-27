@@ -4,7 +4,7 @@ import { useParallaxDock } from "@/hooks/useParallaxDock";
 import dynamic from "next/dynamic";
 import type { PreloadedAssets } from "@/hooks/usePreloader";
 
-const AsciiClouds = dynamic(() => import("@/components/AsciiClouds/AsciiClouds"), { ssr: false });
+const AsciiClouds = dynamic(() => import("@/components/home/sections/hero/AsciiClouds/AsciiClouds"), { ssr: false });
 
 interface SkyBackgroundProps {
   isReady?: boolean;
@@ -16,7 +16,7 @@ interface SkyBackgroundProps {
 }
 
 export default function SkyBackground({ isReady, preloadedAssets, onIntroComplete, onFirstFrameRendered, heroHeight = "100svh", isMobile = false }: SkyBackgroundProps) {
-  const { parallaxRef } = useParallaxDock({
+  const { parallaxRef, progressRef } = useParallaxDock({
     dockAnchor: "#section-experience",
     target: "#home",
     visibleFrac: 0.3,
@@ -49,6 +49,7 @@ export default function SkyBackground({ isReady, preloadedAssets, onIntroComplet
             preloadedAssets={preloadedAssets}
             onIntroComplete={onIntroComplete}
             onFirstFrameRendered={onFirstFrameRendered}
+            progressRef={progressRef}
           />
         </div>
       </div>

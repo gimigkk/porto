@@ -2,8 +2,10 @@
 
 import { IBM_Plex_Serif } from "next/font/google";
 import { ArrowRight } from "lucide-react";
-import GithubCommitGraph from "@/components/ui/GithubCommitGraph";
-import TechMarquee from "@/components/ui/TechMarquee";
+import Image from "next/image";
+import GithubCommitGraph from "@/components/home/sections/about/GithubCommitGraph";
+import TechMarquee from "@/components/home/sections/about/TechMarquee";
+import ProfileFlipCard from "@/components/home/sections/about/ProfileFlipCard";
 import styles from "@/components/home/SkipIntroButton.module.css";
 import type { GithubGraphDay } from "@/lib/github";
 import { useRef } from "react";
@@ -34,7 +36,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
     <section 
       id="about" 
       ref={ref}
-      className="w-full text-white pt-0 md:pt-8 flex flex-col items-center overflow-hidden"
+      className="w-full text-white pt-0 md:pt-8 flex flex-col items-center"
     >
       {/* Use the exact same container padding and max-width as the Navbar */}
       <div className="w-full max-w-350 mx-auto px-4 md:px-12">
@@ -91,9 +93,9 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
             </div>
           </div>
 
-          <div className="flex-1 flex justify-end">
-            <div className="h-full w-full max-w-[200px] border border-dashed border-zinc-700/50 rounded-lg flex items-center justify-center text-zinc-600 text-[10px]">
-              [ASCII ART]
+          <div className="flex-1 flex justify-end overflow-visible">
+            <div className="relative w-full max-w-[160px] aspect-[4/5] overflow-visible">
+              <ProfileFlipCard src="/mukagw.JPG" alt="Gilang" sizes="(max-width: 768px) 160px, 340px" />
             </div>
           </div>
         </div>
@@ -160,9 +162,9 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
           </div>
 
           {/* Middle Column */}
-          <div className="flex-1 flex justify-center px-4 lg:px-8 h-full">
-            <div className="h-full w-full max-w-[340px] border border-dashed border-zinc-700/50 rounded-lg flex items-center justify-center text-zinc-600 text-sm">
-              [ASCII ART]
+          <div className="flex-1 flex justify-center px-4 lg:px-8 h-full overflow-visible">
+            <div className="relative h-full w-full max-w-[340px] overflow-visible">
+              <ProfileFlipCard src="/mukagw.JPG" alt="Gilang" sizes="(max-width: 768px) 160px, 340px" priority />
             </div>
           </div>
 
