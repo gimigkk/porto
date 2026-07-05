@@ -26,7 +26,7 @@ export default function ExperienceSection() {
             const isFirst = index === 0;
             const isLast = index === experienceData.length - 1;
             const isMiddle = !isFirst && !isLast;
-            const percentage = (index / (experienceData.length - 1)) * 100;
+            const ratio = index / (experienceData.length - 1);
 
             return (
               <div 
@@ -36,7 +36,7 @@ export default function ExperienceSection() {
                   ${isLast ? 'md:right-0' : ''}
                   ${isMiddle ? 'md:-translate-x-1/2' : ''}
                 `}
-                style={isMiddle ? { left: `${percentage}%` } : undefined}
+                style={isMiddle ? { left: `calc(162px + (100% - 324px) * ${ratio})` } : undefined}
               >
                 <ExperienceNode item={item} index={index} total={experienceData.length} />
               </div>
