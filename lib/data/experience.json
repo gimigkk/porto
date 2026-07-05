@@ -1,0 +1,34 @@
+[
+  {
+    "id": "exp-1",
+    "role": "Frontend Developer",
+    "company": "Tech Corp",
+    "startDate": "Jun 2018",
+    "endDate": "Dec 2019",
+    "impressiveness": 2
+  },
+  {
+    "id": "exp-2",
+    "role": "UI/UX Designer",
+    "company": "Creative Agency",
+    "startDate": "Jan 2020",
+    "endDate": "Mar 2021",
+    "impressiveness": 10
+  },
+  {
+    "id": "exp-3",
+    "role": "Senior Frontend Engineer",
+    "company": "Innovate Ltd",
+    "startDate": "Apr 2021",
+    "endDate": "Aug 2023",
+    "impressiveness": 1
+  },
+  {
+    "id": "exp-4",
+    "role": "Lead Product Engineer",
+    "company": "Global Solutions",
+    "startDate": "Sep 2023",
+    "endDate": "Present",
+    "impressiveness": 10
+  }
+]
