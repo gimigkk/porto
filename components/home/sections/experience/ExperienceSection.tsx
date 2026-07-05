@@ -6,7 +6,7 @@ import experienceData from "@/lib/data/experience.json";
 
 export default function ExperienceSection() {
   return (
-    <section className="relative w-full overflow-hidden h-full flex items-center -mt-6 md:-mt-12">
+    <section className="relative w-full overflow-hidden h-full flex items-center [@media(min-height:900px)]:-mt-12">
       <div className="relative mx-auto w-full max-w-350 px-4 md:px-12">
         {/* Desktop: Horizontal line edge to edge with container margin */}
         <div className="hidden md:block absolute bg-neutral-200 dark:bg-neutral-800 -z-10
