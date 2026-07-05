@@ -76,35 +76,53 @@ export function ExperienceNode({ item, index, total }: Props) {
          </div>
       </div>
 
-      {/* MOBILE LAYOUT (Normal flow, horizontal stacking) */}
-      <div className="flex md:hidden flex-row items-center w-full gap-4 pt-4 pb-8 pl-4 relative">
-        {/* Dot container aligns with vertical line at left-8 (32px) */}
-        <div className="flex-none flex items-center justify-center relative w-8 h-8">
-          <div
-            className="bg-neutral-900 dark:bg-white rounded-full z-10"
-            style={{ width: `${dotSize}px`, height: `${dotSize}px` }}
-          />
-          {/* Horizontal flag pole connecting to separator */}
-          <div className="absolute top-1/2 left-1/2 w-8 h-[2px] bg-neutral-300 dark:bg-neutral-700 -translate-y-1/2 -z-10" />
-        </div>
-
-        {/* Dates */}
-        <div className="flex-none flex flex-col text-sm font-medium tracking-wide text-neutral-500 dark:text-neutral-400 text-right whitespace-nowrap">
-          <span>{item.startDate}</span>
-          <span>{item.endDate}</span>
-        </div>
-
-        {/* Separator */}
-        <div className="flex-none w-[2px] h-12 bg-neutral-300 dark:bg-neutral-700" />
-
-        {/* Role */}
-        <div className="flex-1 flex flex-col text-left">
-          <h3 className="text-lg font-bold text-neutral-900 dark:text-white leading-tight">
+      {/* MOBILE LAYOUT (Grid Architecture) */}
+      <div 
+        className="md:hidden grid pt-1 pb-4 relative" 
+        style={{ 
+          gridTemplateColumns: `32px ${12 + ((item.impressiveness - 1) / 9) * 48}px 12px auto 1fr`,
+          alignItems: 'center'
+        }}
+      >
+        {/* Row 1: Role */}
+        <div className="col-start-4 col-end-5 row-start-1 row-end-2 pb-1.5 flex items-end">
+          <h3 className="text-[14px] font-bold text-neutral-900 dark:text-white leading-tight">
             {item.role}
           </h3>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 font-medium mt-1">
+        </div>
+
+        {/* Row 2: Dot, Pole, Gap, Separator */}
+        {/* Dynamic Pole (spans Col 1 & 2, width is 100% - 16px to start exactly at dot center) */}
+        <div className="col-start-1 col-end-3 row-start-2 row-end-3 flex justify-end items-center h-[2px] w-full z-0 relative">
+           <div className="h-full bg-neutral-200 dark:bg-neutral-800 w-[calc(100%-16px)]" />
+        </div>
+
+        {/* Dot container */}
+        <div className="col-start-1 col-end-2 row-start-2 row-end-3 flex items-center justify-center relative w-8 h-[2px] z-10">
+          <div
+            className="bg-neutral-900 dark:bg-white rounded-full flex-shrink-0 absolute"
+            style={{ 
+              width: `${10 + ((item.impressiveness - 1) / 9) * 8}px`, 
+              height: `${10 + ((item.impressiveness - 1) / 9) * 8}px` 
+            }}
+          />
+        </div>
+        
+        {/* Col 3 is the 12px gap, left empty */}
+
+        {/* Separator matches text width */}
+        <div className="col-start-4 col-end-5 row-start-2 row-end-3 h-[2px] bg-neutral-200 dark:bg-neutral-800 w-full" />
+
+        {/* Row 3: Org & Dates */}
+        <div className="col-start-4 col-end-5 row-start-3 row-end-4 pt-1.5 flex flex-col justify-start">
+          <p className="text-[11px] text-neutral-600 dark:text-neutral-400 font-medium leading-tight">
             {item.company}
           </p>
+          <div className="text-[11px] font-semibold tracking-wide text-neutral-500 dark:text-neutral-500 flex flex-wrap gap-x-2 items-center mt-0.5">
+            <span>{item.startDate}</span>
+            <span>—</span>
+            <span>{item.endDate}</span>
+          </div>
         </div>
       </div>
     </motion.div>

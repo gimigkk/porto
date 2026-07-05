@@ -18,15 +18,15 @@ export default function ExperienceSection() {
           {/* Main Continuous Line */}
           {/* Mobile: Vertical line. */}
           <div className="absolute bg-neutral-200 dark:bg-neutral-800 -z-10
-                          left-8 top-0 bottom-0 w-[2px] md:hidden" 
+                          left-[15px] top-4 -bottom-[100vh] w-[2px] md:hidden" 
           />
 
           {/* Nodes */}
-          {experienceData.map((item, index) => {
+          {[...experienceData].reverse().map((item, index, arr) => {
             const isFirst = index === 0;
-            const isLast = index === experienceData.length - 1;
+            const isLast = index === arr.length - 1;
             const isMiddle = !isFirst && !isLast;
-            const ratio = index / (experienceData.length - 1);
+            const ratio = index / (arr.length - 1);
 
             return (
               <div 
@@ -38,7 +38,7 @@ export default function ExperienceSection() {
                 `}
                 style={isMiddle ? { left: `calc(162px + (100% - 324px) * ${ratio})` } : undefined}
               >
-                <ExperienceNode item={item} index={index} total={experienceData.length} />
+                <ExperienceNode item={item} index={index} total={arr.length} />
               </div>
             );
           })}
