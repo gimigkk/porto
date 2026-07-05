@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-
-
 // ─── Types ──────────────────────────────────────────────────────
 
 type ParallaxTarget =
@@ -107,33 +105,44 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
   }, [measure]);
 
   // ── Parallax: quadratic ease-out = linear deceleration, always ──
+  const update = useCallback((scroll: number) => {
+    const dock = dockScrollRef.current;
+    const maxShift = maxShiftRef.current;
+    if (dock === Infinity || dock <= 0 || maxShift <= 0) return;
+
+    const progress = Math.min(scroll / dock, 1);
+    progressRef.current = progress;
+    const eased = 2 * progress - progress * progress; // quadratic ease-out
+    const y = -eased * maxShift;
+    if (y !== currentY.current) {
+      currentY.current = y;
+      applyTransform(y);
+    }
+  }, []);
+
   useEffect(() => {
     if (disabled) {
       if (parallaxRef.current) parallaxRef.current.style.transform = "translateY(0px)";
       return;
     }
 
-    // f(t) = 2t - t². f'(t) = 2 - 2t. Speed drops linearly 2→0. Always decelerates.
-    function update(scroll: number) {
-      const dock = dockScrollRef.current;
-      const maxShift = maxShiftRef.current;
-      if (dock === Infinity || dock <= 0 || maxShift <= 0) return;
+    let rafId: number;
+    let lastScroll = -1;
 
-      const progress = Math.min(scroll / dock, 1);
-      progressRef.current = progress;
-      const eased = 2 * progress - progress * progress; // quadratic ease-out
-      const y = -eased * maxShift;
-      if (y !== currentY.current) {
-        currentY.current = y;
-        applyTransform(y);
+    // Poll scrollY in rAF to bypass the 1-frame dispatch delay of the native 'scroll' event.
+    // This perfectly syncs the JS transform with the compositor's native scroll right before paint.
+    const tick = () => {
+      const scroll = window.scrollY;
+      if (scroll !== lastScroll) {
+        update(scroll);
+        lastScroll = scroll;
       }
-    }
+      rafId = requestAnimationFrame(tick);
+    };
 
-    const onScroll = () => update(window.scrollY);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    update(window.scrollY);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [disabled]);
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [disabled, update]);
 
   return { parallaxRef, progressRef };
 }
