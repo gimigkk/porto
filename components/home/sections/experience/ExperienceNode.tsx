@@ -12,24 +12,30 @@ interface Props {
 export function ExperienceNode({ item, index, total }: Props) {
   const isTop = index % 2 === 0;
 
-  // Dot size ranges from 12px to 32px based on impressiveness (1-10)
-  const dotSize = 12 + ((item.impressiveness - 1) / 9) * 20;
+  // Dot size ranges from 8px to 40px based on impressiveness (1-10)
+  const dotSize = 8 + ((item.impressiveness - 1) / 9) * 32;
+
+  // Pole length ranges from 48px to 144px based on impressiveness
+  const poleHeight = 48 + ((item.impressiveness - 1) / 9) * 96;
+
+  // Calculate distance from dot center to separator center
+  // poleHeight + 12px (gap) + 24px (half of 48px separator)
+  const translateDistance = 36 + poleHeight;
 
   return (
     <motion.div
-      className="w-full md:w-max md:h-[400px] flex-shrink-0"
+      className="w-full md:w-max md:h-[500px] flex-shrink-0"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
       {/* DESKTOP LAYOUT (Fitted Bounding Box: Dates | Dot | Role) */}
-      <div className="hidden md:flex flex-row items-center gap-4 h-full w-max">
+      <div className="hidden md:flex flex-row items-center h-full w-max">
         {/* Dates Column */}
         <div
-          className={`flex flex-col text-base font-medium tracking-wide text-neutral-500 dark:text-neutral-400 text-right whitespace-nowrap
-            ${isTop ? "-translate-y-[76px]" : "translate-y-[76px]"}
-          `}
+          className="flex flex-col text-base font-medium tracking-wide text-neutral-500 dark:text-neutral-400 text-right whitespace-nowrap"
+          style={{ transform: `translateY(${isTop ? -translateDistance : translateDistance}px)` }}
         >
           <span>{item.startDate}</span>
           <span>{item.endDate}</span>
@@ -45,14 +51,14 @@ export function ExperienceNode({ item, index, total }: Props) {
 
           {/* Top/Bottom Stack */}
           {isTop ? (
-            <div className="absolute bottom-[calc(50%+16px)] left-1/2 -translate-x-1/2 flex flex-col items-center">
+            <div className="absolute bottom-1/2 left-1/2 -translate-x-1/2 flex flex-col items-center -z-10">
               <div className="w-[2px] h-12 bg-neutral-300 dark:bg-neutral-700" />
               <div className="w-[2px] h-3 bg-transparent" />
-              <div className="w-[2px] h-6 bg-neutral-300 dark:bg-neutral-700" />
+              <div className="w-[2px] bg-neutral-300 dark:bg-neutral-700" style={{ height: `${poleHeight}px` }} />
             </div>
           ) : (
-            <div className="absolute top-[calc(50%+16px)] left-1/2 -translate-x-1/2 flex flex-col items-center">
-              <div className="w-[2px] h-6 bg-neutral-300 dark:bg-neutral-700" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 flex flex-col items-center -z-10">
+              <div className="w-[2px] bg-neutral-300 dark:bg-neutral-700" style={{ height: `${poleHeight}px` }} />
               <div className="w-[2px] h-3 bg-transparent" />
               <div className="w-[2px] h-12 bg-neutral-300 dark:bg-neutral-700" />
             </div>
@@ -61,9 +67,8 @@ export function ExperienceNode({ item, index, total }: Props) {
 
         {/* Role Column */}
         <div
-          className={`flex flex-col text-left whitespace-nowrap
-            ${isTop ? "-translate-y-[76px]" : "translate-y-[76px]"}
-          `}
+          className="flex flex-col text-left whitespace-nowrap"
+          style={{ transform: `translateY(${isTop ? -translateDistance : translateDistance}px)` }}
         >
           <h3 className="text-xl font-bold text-neutral-900 dark:text-white leading-tight">
             {item.role}
@@ -83,7 +88,7 @@ export function ExperienceNode({ item, index, total }: Props) {
             style={{ width: `${dotSize}px`, height: `${dotSize}px` }}
           />
           {/* Horizontal flag pole connecting to separator */}
-          <div className="absolute top-1/2 left-[calc(50%+4px)] w-4 h-[2px] bg-neutral-300 dark:bg-neutral-700 -translate-y-1/2" />
+          <div className="absolute top-1/2 left-1/2 w-8 h-[2px] bg-neutral-300 dark:bg-neutral-700 -translate-y-1/2 -z-10" />
         </div>
 
         {/* Dates */}
