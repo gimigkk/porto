@@ -10,7 +10,8 @@
   {
     "id": "exp-2",
     "role": "Fullstack Developer",
-    "company": "CompSci Batch 61 Academic Team",
+    "company": "Ilkomers Batch 61 Academic Team",
+    "companyMobile": "Ilkomers 61 Academic Team",
     "startDate": "Jan 2026",
     "endDate": "Present",
     "impressiveness": 10
@@ -19,6 +20,7 @@
     "id": "exp-3",
     "role": "Director of Creative & Marketing",
     "company": "IEEE SB IPB",
+    "companyMobile": "IEEE Student Branch IPB",
     "startDate": "Jan 2026",
     "endDate": "Present",
     "impressiveness": 8

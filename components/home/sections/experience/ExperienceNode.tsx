@@ -24,11 +24,12 @@ export function ExperienceNode({ item, index, total }: Props) {
 
   return (
     <motion.div
-      className="w-full md:w-max md:h-[500px] flex-shrink-0"
+      className="w-full md:w-max md:h-[500px] flex-shrink-0 relative"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
+      style={{ zIndex: total - index }}
     >
       {/* DESKTOP LAYOUT (Dynamic Flex-Stretch Architecture) */}
       <div className="hidden md:flex flex-row h-full w-max">
@@ -87,12 +88,12 @@ export function ExperienceNode({ item, index, total }: Props) {
         {/* Row 1: Role */}
         <div className="col-start-4 col-end-5 row-start-1 row-end-2 pb-1.5 flex items-end">
           <h3 className="text-[14px] font-bold text-neutral-900 dark:text-white leading-tight">
-            {item.role}
+            {item.roleMobile || item.role}
           </h3>
         </div>
 
         {/* Row 2: Dot, Pole, Gap, Separator */}
-        {/* Mobile Vertical Timeline Line Segment (starts perfectly at dot center) */}
+        {/* Mobile Vertical Timeline Line Segment */}
         <div className="col-start-1 col-end-2 row-start-2 row-end-3 flex justify-center w-full h-[2px] z-0 relative">
            <div className="absolute w-[2px] h-[100vh] bg-neutral-200 dark:bg-neutral-800 top-0" />
         </div>
@@ -121,11 +122,11 @@ export function ExperienceNode({ item, index, total }: Props) {
         {/* Row 3: Org & Dates */}
         <div className="col-start-4 col-end-5 row-start-3 row-end-4 pt-1.5 flex flex-col justify-start">
           <p className="text-[11px] text-neutral-600 dark:text-neutral-400 font-medium leading-tight">
-            {item.company}
+            {item.companyMobile || item.company}
           </p>
           <div className="text-[11px] font-semibold tracking-wide text-neutral-500 dark:text-neutral-500 flex flex-wrap gap-x-2 items-center mt-0.5">
             <span>{item.startDate}</span>
-            <span>—</span>
+            <span>to</span>
             <span>{item.endDate}</span>
           </div>
         </div>
