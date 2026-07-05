@@ -30,53 +30,50 @@ export function ExperienceNode({ item, index, total }: Props) {
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      {/* DESKTOP LAYOUT (Fitted Bounding Box: Dates | Dot | Role) */}
-      <div className="hidden md:flex flex-row items-center h-full w-max">
-        {/* Dates Column */}
-        <div
-          className="flex flex-col text-base font-medium tracking-wide text-neutral-500 dark:text-neutral-400 text-right whitespace-nowrap"
-          style={{ transform: `translateY(${isTop ? -translateDistance : translateDistance}px)` }}
-        >
-          <span>{item.startDate}</span>
-          <span>{item.endDate}</span>
-        </div>
-
-        {/* Center Column: Dot, Flag Pole, and Separator */}
-        <div className="relative w-8 h-full flex-none">
-          {/* The Dot */}
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-neutral-900 dark:bg-white rounded-full z-10"
-            style={{ width: `${dotSize}px`, height: `${dotSize}px` }}
-          />
-
-          {/* Top/Bottom Stack */}
-          {isTop ? (
-            <div className="absolute bottom-1/2 left-1/2 -translate-x-1/2 flex flex-col items-center -z-10">
-              <div className="w-[2px] h-12 bg-neutral-300 dark:bg-neutral-700" />
-              <div className="w-[2px] h-3 bg-transparent" />
-              <div className="w-[2px] bg-neutral-300 dark:bg-neutral-700" style={{ height: `${poleHeight}px` }} />
+      {/* DESKTOP LAYOUT (Dynamic Flex-Stretch Architecture) */}
+      <div className="hidden md:flex flex-row h-full w-max">
+         <div 
+            className={`flex flex-row items-start ${isTop ? 'self-end' : 'self-start'}`}
+            style={isTop ? { marginBottom: `${250 + poleHeight + 12}px` } : { marginTop: `${250 + poleHeight + 12}px` }}
+         >
+            {/* Dates Column */}
+            <div className="flex flex-col text-base font-medium tracking-wide text-neutral-500 dark:text-neutral-400 text-right pr-3 pt-[3px]">
+               <span>{item.startDate}</span>
+               <span>{item.endDate}</span>
             </div>
-          ) : (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 flex flex-col items-center -z-10">
-              <div className="w-[2px] bg-neutral-300 dark:bg-neutral-700" style={{ height: `${poleHeight}px` }} />
-              <div className="w-[2px] h-3 bg-transparent" />
-              <div className="w-[2px] h-12 bg-neutral-300 dark:bg-neutral-700" />
-            </div>
-          )}
-        </div>
 
-        {/* Role Column */}
-        <div
-          className="flex flex-col text-left whitespace-nowrap"
-          style={{ transform: `translateY(${isTop ? -translateDistance : translateDistance}px)` }}
-        >
-          <h3 className="text-xl font-bold text-neutral-900 dark:text-white leading-tight">
-            {item.role}
-          </h3>
-          <p className="text-base text-neutral-600 dark:text-neutral-400 font-medium mt-1">
-            {item.company}
-          </p>
-        </div>
+            {/* Dynamic Separator, Pole, and Dot */}
+            <div className="relative w-[2px] bg-neutral-300 dark:bg-neutral-700 self-stretch">
+               {/* The Pole (with 12px gap from separator) */}
+               {isTop ? (
+                  <div className="absolute left-0 w-full bg-neutral-300 dark:bg-neutral-700 -z-10" style={{ top: 'calc(100% + 12px)', height: `${poleHeight}px` }} />
+               ) : (
+                  <div className="absolute left-0 w-full bg-neutral-300 dark:bg-neutral-700 -z-10" style={{ bottom: 'calc(100% + 12px)', height: `${poleHeight}px` }} />
+               )}
+
+               {/* The Dot */}
+               <div 
+                  className="absolute left-1/2 bg-neutral-900 dark:bg-white rounded-full z-10"
+                  style={{ 
+                     width: `${dotSize}px`, height: `${dotSize}px`,
+                     ...(isTop 
+                        ? { top: `calc(100% + ${poleHeight + 12}px)`, transform: 'translate(-50%, -50%)' }
+                        : { bottom: `calc(100% + ${poleHeight + 12}px)`, transform: 'translate(-50%, 50%)' }
+                     )
+                  }}
+               />
+            </div>
+
+            {/* Role Column */}
+            <div className="flex flex-col text-left pl-3">
+               <h3 className="text-xl font-bold text-neutral-900 dark:text-white leading-tight max-w-[200px]" style={{ textWrap: 'balance' }}>
+                  {item.role}
+               </h3>
+               <p className="text-base text-neutral-600 dark:text-neutral-400 font-medium mt-1 max-w-[200px]" style={{ textWrap: 'balance' }}>
+                  {item.company}
+               </p>
+            </div>
+         </div>
       </div>
 
       {/* MOBILE LAYOUT (Normal flow, horizontal stacking) */}
