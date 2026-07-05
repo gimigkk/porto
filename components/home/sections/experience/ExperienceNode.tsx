@@ -78,7 +78,7 @@ export function ExperienceNode({ item, index, total }: Props) {
 
       {/* MOBILE LAYOUT (Grid Architecture) */}
       <div 
-        className="md:hidden grid pt-1 pb-4 relative" 
+        className="md:hidden grid relative" 
         style={{ 
           gridTemplateColumns: `32px ${12 + ((item.impressiveness - 1) / 9) * 48}px 12px auto 1fr`,
           alignItems: 'center'
@@ -92,6 +92,11 @@ export function ExperienceNode({ item, index, total }: Props) {
         </div>
 
         {/* Row 2: Dot, Pole, Gap, Separator */}
+        {/* Mobile Vertical Timeline Line Segment (starts perfectly at dot center) */}
+        <div className="col-start-1 col-end-2 row-start-2 row-end-3 flex justify-center w-full h-[2px] z-0 relative">
+           <div className="absolute w-[2px] h-[100vh] bg-neutral-200 dark:bg-neutral-800 top-0" />
+        </div>
+
         {/* Dynamic Pole (spans Col 1 & 2, width is 100% - 16px to start exactly at dot center) */}
         <div className="col-start-1 col-end-3 row-start-2 row-end-3 flex justify-end items-center h-[2px] w-full z-0 relative">
            <div className="h-full bg-neutral-200 dark:bg-neutral-800 w-[calc(100%-16px)]" />
