@@ -22,12 +22,16 @@ export default function ExperienceSection() {
         </div>
 
         {/* Desktop: Horizontal line edge to edge with container margin */}
-        <div className="hidden md:block absolute bg-neutral-200 dark:bg-neutral-800 -z-10
+        <div className="hidden md:block absolute border-t-[2px] border-dotted border-neutral-300 dark:border-neutral-700 -z-10
                         left-4 right-4 md:left-12 md:right-12 
-                        top-1/2 h-[2px] -translate-y-1/2"
+                        top-1/2 -translate-y-1/2"
         />
 
         <div className="relative flex flex-col-reverse justify-between h-full max-h-[650px] md:max-h-none md:block w-full pt-2 pb-12 md:pt-0 md:pb-0 md:h-[500px] gap-4 md:gap-0">
+          
+          {/* Mobile: Unified Vertical Timeline Line */}
+          <div className="md:hidden absolute left-[15px] top-2 bottom-12 border-l-[2px] border-dotted border-neutral-300 dark:border-neutral-700 -z-10" />
+
           {/* Nodes */}
           {experienceData.map((item, index, arr) => {
             const isFirst = index === 0;

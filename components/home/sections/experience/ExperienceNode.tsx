@@ -93,9 +93,8 @@ export function ExperienceNode({ item, index, total }: Props) {
         </div>
 
         {/* Row 2: Dot, Pole, Gap, Separator */}
-        {/* Mobile Vertical Timeline Line Segment */}
+        {/* Mobile Vertical Timeline Line Segment is now handled by a single line in ExperienceSection.tsx to prevent overlapping dots */}
         <div className="col-start-1 col-end-2 row-start-2 row-end-3 flex justify-center w-full h-[2px] z-0 relative">
-           <div className="absolute w-[2px] h-[100vh] bg-neutral-200 dark:bg-neutral-800 top-0" />
         </div>
 
         {/* Dynamic Pole (spans Col 1 & 2, width is 100% - 16px to start exactly at dot center) */}
