@@ -43,55 +43,55 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 	// Mobile: Lenis-driven scroll progress (useScroll goes stale with sticky + Lenis)
 	const lenis = useLenis();
 
-  useEffect(() => {
-    if (!isMobile) return;
+	useEffect(() => {
+		if (!isMobile) return;
 
-    let cachedTop = 0;
-    let cachedHeight = 0;
-    let cachedVh = 0;
-    const el = containerRef.current;
+		let cachedTop = 0;
+		let cachedHeight = 0;
+		let cachedVh = 0;
+		const el = containerRef.current;
 
-    const updateMetrics = () => {
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      cachedTop = rect.top + window.scrollY;
-      cachedHeight = rect.height;
-      cachedVh = window.innerHeight;
-    };
+		const updateMetrics = () => {
+			if (!el) return;
+			const rect = el.getBoundingClientRect();
+			cachedTop = rect.top + window.scrollY;
+			cachedHeight = rect.height;
+			cachedVh = window.innerHeight;
+		};
 
-    // Initialize metrics
-    updateMetrics();
-    window.addEventListener("resize", updateMetrics);
+		// Initialize metrics
+		updateMetrics();
+		window.addEventListener("resize", updateMetrics);
 
-    const onScroll = () => {
-      if (!el) return;
-      const distance = cachedHeight - cachedVh;
-      if (distance <= 0) {
-        mobileProgress.set(0);
-        return;
-      }
-      
-      const currentScrollY = window.scrollY;
-      const currentTop = cachedTop - currentScrollY;
-      
-      mobileProgress.set(Math.max(0, Math.min(1, -currentTop / distance)));
-    };
+		const onScroll = () => {
+			if (!el) return;
+			const distance = cachedHeight - cachedVh;
+			if (distance <= 0) {
+				mobileProgress.set(0);
+				return;
+			}
 
-    if (lenis) lenis.on("scroll", onScroll);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll(); // set initial value
+			const currentScrollY = window.scrollY;
+			const currentTop = cachedTop - currentScrollY;
 
-    return () => {
-      if (lenis) lenis.off("scroll", onScroll);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", updateMetrics);
-    };
-  }, [lenis, isMobile, mobileProgress]);
+			mobileProgress.set(Math.max(0, Math.min(1, -currentTop / distance)));
+		};
+
+		if (lenis) lenis.on("scroll", onScroll);
+		window.addEventListener("scroll", onScroll, { passive: true });
+		onScroll(); // set initial value
+
+		return () => {
+			if (lenis) lenis.off("scroll", onScroll);
+			window.removeEventListener("scroll", onScroll);
+			window.removeEventListener("resize", updateMetrics);
+		};
+	}, [lenis, isMobile, mobileProgress]);
 
 	return (
 		/* FIXED: Pulled up by -mt-[56px] to hide the light blue behind the rounded corners */
-		<motion.div 
-			ref={containerRef} 
+		<motion.div
+			ref={containerRef}
 			id="stacked-sections"
 			className="relative z-9999 w-full -mt-14 -mb-20"
 			initial={{ y: 200 }}
@@ -108,7 +108,7 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 				parallaxOffset={-40}
 				scrollOffset={-80}
 				fadeRange={[0, 0.6]}
-				bgBase="#141416"
+				bgBase="#09090b"
 				bgFaded="#1c2029"
 			>
 				<AboutSection githubGraph={githubGraph} />
@@ -124,8 +124,8 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 				parallaxOffset={-60}
 				scrollOffset={-120}
 				fadeRange={[0.4, 1]}
-				bgBase="#0e0e10"
-				bgFaded="#0f1117"
+				bgBase="#09090b"
+				bgFaded="#161820ff"
 			>
 				<ExperienceSection />
 			</FolderSection>
