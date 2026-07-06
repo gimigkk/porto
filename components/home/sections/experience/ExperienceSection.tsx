@@ -6,8 +6,21 @@ import experienceData from "@/lib/data/experience.json";
 
 export default function ExperienceSection() {
   return (
-    <section className="relative w-full overflow-hidden h-full flex items-start md:items-center [@media(min-height:900px)]:-mt-12">
+    <section className="relative w-full overflow-hidden h-full flex flex-col items-start md:justify-center [@media(min-height:900px)]:-mt-12">
       <div className="relative mx-auto w-full max-w-350 px-4 md:px-12 h-full md:h-auto">
+
+        {/* -- Desktop Header (Absolutely positioned to overlap the empty space above the graph, preventing section overflow) -- */}
+        <div className="hidden md:flex absolute -top-1 left-0 w-full px-12 flex-row items-end justify-between gap-6 pointer-events-auto z-20">
+          <div className="text-left">
+            <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-2">
+              Experience
+            </h2>
+            <p className="text-neutral-600 dark:text-neutral-400 text-sm max-w-md" style={{ textWrap: 'balance' }}>
+              A timeline of my semi-professional journey, roles, and major contributions in the field of Computer Science.
+            </p>
+          </div>
+        </div>
+
         {/* Desktop: Horizontal line edge to edge with container margin */}
         <div className="hidden md:block absolute bg-neutral-200 dark:bg-neutral-800 -z-10
                         left-4 right-4 md:left-12 md:right-12 
