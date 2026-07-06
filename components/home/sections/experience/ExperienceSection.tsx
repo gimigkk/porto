@@ -11,8 +11,8 @@ export default function ExperienceSection() {
       <div className="relative mx-auto w-full max-w-350 px-4 md:px-12 h-full md:h-auto">
 
         {/* -- Desktop Header (Absolutely positioned to overlap the empty space above the graph, preventing section overflow) -- */}
-        <div className="hidden md:flex absolute -top-4 left-0 w-full px-12 flex-row items-end justify-between gap-6 pointer-events-auto z-20">
-          <div className="text-left">
+        <div className="hidden md:flex absolute -top-4 left-0 w-full px-12 flex-row items-end justify-between gap-6 pointer-events-none z-20">
+          <div className="text-left pointer-events-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-2">
               Experience
             </h2>
@@ -44,7 +44,7 @@ export default function ExperienceSection() {
             return (
               <div
                 key={item.id}
-                className={`w-full md:w-max md:absolute md:top-0 md:h-full
+                className={`w-full md:w-max md:absolute md:top-0 md:h-full pointer-events-none
                   ${isFirst ? 'md:left-0' : ''}
                   ${isLast ? 'md:right-0' : ''}
                   ${isMiddle ? 'md:-translate-x-1/2' : ''}
@@ -56,6 +56,13 @@ export default function ExperienceSection() {
             );
           })}
         </div>
+      </div>
+      
+      {/* Hidden Image Preloader for Tooltips */}
+      <div className="hidden">
+        {experienceData.map((item) => (
+          item.image && <img key={item.id} src={item.image} alt="preload" />
+        ))}
       </div>
     </section>
   );

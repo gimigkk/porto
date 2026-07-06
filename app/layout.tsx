@@ -4,6 +4,8 @@ import "./globals.css";
 import LenisProvider from "@/components/providers/LenisProvider";
 import Navbar from "@/components/layout/Navbar";
 import NextTopLoader from 'nextjs-toploader';
+import { TooltipProvider } from "@/components/providers/TooltipProvider";
+import { TooltipRenderer } from "@/components/ui/tooltip/TooltipRenderer";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
@@ -80,8 +82,11 @@ export default function RootLayout({
           shadow="none"
           zIndex={10001}
         />
-        <Navbar />
-        <LenisProvider>{children}</LenisProvider>
+        <TooltipProvider>
+          <TooltipRenderer />
+          <Navbar />
+          <LenisProvider>{children}</LenisProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

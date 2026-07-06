@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { ExperienceItem } from "@/types/experience";
+import { useTooltip } from "@/components/providers/TooltipProvider";
+import { ExperienceTooltipContent } from "./ExperienceTooltipContent";
 
 interface Props {
   item: ExperienceItem;
@@ -10,6 +12,7 @@ interface Props {
 }
 
 export function ExperienceNode({ item, index, total }: Props) {
+  const { showTooltip, hideTooltip } = useTooltip();
   const isTop = index % 2 === 0;
 
   // Dot size ranges from 8px to 40px based on impressiveness (1-10)
@@ -24,7 +27,7 @@ export function ExperienceNode({ item, index, total }: Props) {
 
   return (
     <motion.div
-      className="w-full md:w-max md:h-[500px] flex-shrink-0 relative"
+      className="w-full md:w-max md:h-[500px] flex-shrink-0 relative pointer-events-none"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-100px" }}
@@ -34,8 +37,10 @@ export function ExperienceNode({ item, index, total }: Props) {
       {/* DESKTOP LAYOUT (Dynamic Flex-Stretch Architecture) */}
       <div className="hidden md:flex flex-row h-full w-max">
          <div 
-            className={`flex flex-row items-start ${isTop ? 'self-end' : 'self-start'}`}
-            style={isTop ? { marginBottom: `${250 + poleHeight + 12}px` } : { marginTop: `${250 + poleHeight + 12}px` }}
+            className={`flex flex-row items-start ${isTop ? 'self-end' : 'self-start'} relative p-2 -m-2 cursor-pointer rounded-xl pointer-events-auto`}
+            style={isTop ? { marginBottom: `${250 + poleHeight + 12 - 8}px` } : { marginTop: `${250 + poleHeight + 12 - 8}px` }}
+            onMouseEnter={() => showTooltip(<ExperienceTooltipContent item={item} />)}
+            onMouseLeave={hideTooltip}
          >
             {/* Dates Column */}
             <div className="flex flex-col text-base font-medium tracking-wide text-neutral-500 dark:text-neutral-400 text-right pr-3 pt-[3px]">
@@ -47,14 +52,14 @@ export function ExperienceNode({ item, index, total }: Props) {
             <div className="relative w-[2px] bg-neutral-300 dark:bg-neutral-700 self-stretch">
                {/* The Pole (with 12px gap from separator) */}
                {isTop ? (
-                  <div className="absolute left-0 w-full bg-neutral-300 dark:bg-neutral-700 -z-10" style={{ top: 'calc(100% + 12px)', height: `${poleHeight}px` }} />
+                  <div className="absolute left-0 w-full bg-neutral-300 dark:bg-neutral-700 -z-10 pointer-events-none" style={{ top: 'calc(100% + 12px)', height: `${poleHeight}px` }} />
                ) : (
-                  <div className="absolute left-0 w-full bg-neutral-300 dark:bg-neutral-700 -z-10" style={{ bottom: 'calc(100% + 12px)', height: `${poleHeight}px` }} />
+                  <div className="absolute left-0 w-full bg-neutral-300 dark:bg-neutral-700 -z-10 pointer-events-none" style={{ bottom: 'calc(100% + 12px)', height: `${poleHeight}px` }} />
                )}
 
                {/* The Dot */}
                <div 
-                  className="absolute left-1/2 bg-neutral-900 dark:bg-white rounded-full z-10"
+                  className="absolute left-1/2 bg-neutral-900 dark:bg-white rounded-full z-10 pointer-events-none"
                   style={{ 
                      width: `${dotSize}px`, height: `${dotSize}px`,
                      ...(isTop 

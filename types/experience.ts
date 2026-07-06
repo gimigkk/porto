@@ -7,4 +7,6 @@ export interface ExperienceItem {
   startDate: string;
   endDate: string;
   impressiveness: number; // 1 to 10 scale
+  description: string;
+  image?: string;
 }

@@ -5,7 +5,9 @@
     "company": "IEEE Student Branch IPB",
     "startDate": "Feb 2025",
     "endDate": "Dec 2025",
-    "impressiveness": 2
+    "impressiveness": 2,
+    "description": "Designed and managed creative assets for various IEEE events.",
+    "image": "https://picsum.photos/seed/ieee1/400/200"
   },
   {
     "id": "exp-2",
@@ -14,7 +16,9 @@
     "companyMobile": "Ilkomers 61 Academic Team",
     "startDate": "Jan 2026",
     "endDate": "Present",
-    "impressiveness": 10
+    "impressiveness": 10,
+    "description": "Built and maintained the academic platform for computer science students using modern web technologies.",
+    "image": "https://picsum.photos/seed/academic/400/200"
   },
   {
     "id": "exp-3",
@@ -23,7 +27,9 @@
     "companyMobile": "IEEE Student Branch IPB",
     "startDate": "Jan 2026",
     "endDate": "Present",
-    "impressiveness": 8
+    "impressiveness": 8,
+    "description": "Led the creative marketing team, organizing campaigns and standardizing brand identity across the student branch.",
+    "image": "https://picsum.photos/seed/ieee2/400/200"
   },
   {
     "id": "exp-4",
@@ -31,7 +37,9 @@
     "company": "IPB Web Dev Community",
     "startDate": "Mar 2026",
     "endDate": "Present",
-    "impressiveness": 6
+    "impressiveness": 6,
+    "description": "Developed internal tools and landing pages for the university's web development community.",
+    "image": "https://picsum.photos/seed/webdev/400/200"
   },
   {
     "id": "exp-5",
@@ -39,6 +47,8 @@
     "company": "NoBrainDev Studio",
     "startDate": "May 2026",
     "endDate": "Present",
-    "impressiveness": 8
+    "impressiveness": 8,
+    "description": "Implemented core gameplay mechanics and systems in Godot for upcoming indie titles.",
+    "image": "https://picsum.photos/seed/gamedev/400/200"
   }
 ]
