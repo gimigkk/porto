@@ -12,6 +12,7 @@ export function TooltipRenderer() {
   const lastMouse = useRef({ x: 0, y: 0 });
   const [flipX, setFlipX] = useState(false);
   const [flipY, setFlipY] = useState(false);
+  const contentSize = useRef({ width: 0, height: 0 });
   
   // Create separated motion values for cursor and offset
   const cursorX = useMotionValue(0);
@@ -38,24 +39,25 @@ export function TooltipRenderer() {
     let yOffset = 15;
     
     if (contentRef.current) {
-      const rect = contentRef.current.getBoundingClientRect();
+      // Use cached dimensions to avoid layout thrashing during parent width/height animations
+      const { width, height } = contentSize.current;
       let newFlipX = false;
       let newFlipY = false;
       
       // Flip left if cut off on the right
-      if (lastMouse.current.x + 15 + rect.width > window.innerWidth - 10) {
-        xOffset = -(rect.width + 15);
+      if (lastMouse.current.x + 15 + width > window.innerWidth - 10) {
+        xOffset = -(width + 15);
         newFlipX = true;
       }
       
       // Flip up if cut off on the bottom
-      if (lastMouse.current.y + 15 + rect.height > window.innerHeight - 10) {
-        yOffset = -(rect.height + 15);
+      if (lastMouse.current.y + 15 + height > window.innerHeight - 10) {
+        yOffset = -(height + 15);
         newFlipY = true;
       }
 
-      setFlipX(newFlipX);
-      setFlipY(newFlipY);
+      setFlipX((prev) => (prev !== newFlipX ? newFlipX : prev));
+      setFlipY((prev) => (prev !== newFlipY ? newFlipY : prev));
     }
 
     cursorX.set(lastMouse.current.x);
@@ -80,10 +82,30 @@ export function TooltipRenderer() {
 
   // Recalculate immediately when content mounts or changes
   useEffect(() => {
-    if (isVisible && content) {
+    if (isVisible && content && contentRef.current) {
+      // Initial synchronous read is okay when first showing
+      contentSize.current = {
+        width: contentRef.current.offsetWidth,
+        height: contentRef.current.offsetHeight,
+      };
+      
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          contentSize.current = {
+            width: (entry.target as HTMLElement).offsetWidth,
+            height: (entry.target as HTMLElement).offsetHeight,
+          };
+        }
+        updatePosition();
+      });
+      
+      observer.observe(contentRef.current);
+      
       requestAnimationFrame(() => {
         updatePosition();
       });
+      
+      return () => observer.disconnect();
     }
   }, [isVisible, content, updatePosition]);
 
