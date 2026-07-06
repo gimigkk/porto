@@ -43,12 +43,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
 
     const renderer = new AsciiRenderer(canvas);
     
-    let startTime = performance.now();
-    let lastPhysicsTime = performance.now();
-    let lastRenderTime = performance.now();
-    /** Accumulated pause time so animation resumes without a time jump */
-    let pauseAccum = 0;
-    let pauseStart = 0;
+    let simTimeMs = 0;
+    let lastRealTime = performance.now();
+    let lastPhysicsTime = 0;
+    let lastRenderTime = 0;
 
     const mouse: MouseState = { x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0, active: false, hasMoved: false };
     const state: CloudState = {
@@ -92,13 +90,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       const shouldPause = !pauseFlags.visible || pauseFlags.tab || pauseFlags.ascii;
       if (shouldPause && !pausedRef.current) {
         pausedRef.current = true;
-        pauseStart = performance.now();
         cancelAnimationFrame(rafRef.current);
       } else if (!shouldPause && pausedRef.current) {
         pausedRef.current = false;
-        pauseAccum += performance.now() - pauseStart;
-        lastPhysicsTime = performance.now() - (1000 / 30);
-        lastRenderTime = performance.now() - (1000 / 60);
+        lastRealTime = performance.now();
         rafRef.current = requestAnimationFrame(loop);
       }
     }
@@ -138,13 +133,23 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     function loop(now: number) {
       rafRef.current = requestAnimationFrame(loop);
 
-      // Subtract accumulated pause time so animation doesn't jump
-      const adjustedNow = now - pauseAccum;
-      const t = (adjustedNow - startTime) / 1000;
+      let realDt = now - lastRealTime;
+      if (realDt < 0) realDt = 0;
+      if (realDt > 100) realDt = 100;
+      lastRealTime = now;
 
       const W = renderer.currentW;
       const H = renderer.currentH;
       if (W === 0 || H === 0) return;
+
+      let speedScale = 1.0;
+      if (progressRef) {
+        speedScale = Math.max(0, Math.pow(1 - progressRef.current, 3));
+      }
+      if (speedScale <= 0.001) return;
+
+      simTimeMs += realDt * speedScale;
+      const t = simTimeMs / 1000;
 
       const isIntro = t < CONFIG.introDuration;
 
@@ -172,11 +177,11 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       const cols = Math.max(1, Math.floor(W / currentCellSize));
       const rows = Math.max(1, Math.floor(H / currentCellSize));
 
-      // Physics at 30fps max, render at target. Decoupled so expensive frames don't stack.
+      // Physics coupled to simTimeMs. Still ticks at 30Hz of *simulated* time.
       const physicsInterval = 1000 / 30;
-      if (now - lastPhysicsTime >= physicsInterval) {
-        const physDt = Math.min((now - lastPhysicsTime) / 1000, 0.05);
-        lastPhysicsTime = now - ((now - lastPhysicsTime) % physicsInterval);
+      if (simTimeMs - lastPhysicsTime >= physicsInterval) {
+        const physDt = Math.min((simTimeMs - lastPhysicsTime) / 1000, 0.05);
+        lastPhysicsTime = simTimeMs - ((simTimeMs - lastPhysicsTime) % physicsInterval);
 
         updateDisruptions(state, mouse, physDt, cols, rows, W, H);
         updateBlobs(state, mouse, physDt, t, cols, isIntro, W, H, renderer.imgData, renderer.imgW, renderer.imgH);
@@ -193,20 +198,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
         targetFps = 30;
       }
 
-      // Optimization: Lerp FPS towards 0 based on the main scroll progress curve.
-      // Ease-out curve (cubic) so FPS drops fast at the beginning of scrolling/docking.
-      if (progressRef) {
-        const p = progressRef.current;
-        targetFps = Math.max(0, targetFps * Math.pow(1 - p, 3));
-      }
-
-      // If FPS hits 0, skip render entirely
-      if (targetFps === 0) return;
-
       const renderInterval = 1000 / targetFps;
-      if (now - lastRenderTime >= renderInterval) {
-        lastRenderTime = now - ((now - lastRenderTime) % renderInterval);
-        renderer.render(state, now, startTime, isIntro, introOffsetNorm, cols, rows);
+      if (simTimeMs - lastRenderTime >= renderInterval) {
+        lastRenderTime = simTimeMs - ((simTimeMs - lastRenderTime) % renderInterval);
+        renderer.render(state, simTimeMs, 0, isIntro, introOffsetNorm, cols, rows);
 
         if (!firstFrameRef.current) {
           firstFrameRef.current = true;
@@ -216,10 +211,11 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     }
 
     function startLoop() {
-      startTime = performance.now();
+      lastRealTime = performance.now();
+      simTimeMs = 0;
       // Offset so physics + render fire on first frame
-      lastPhysicsTime = startTime - (1000 / 30);
-      lastRenderTime = startTime - (1000 / 60);
+      lastPhysicsTime = -(1000 / 30);
+      lastRenderTime = -(1000 / 60);
       rafRef.current = requestAnimationFrame(loop);
     }
 
