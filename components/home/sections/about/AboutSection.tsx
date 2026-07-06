@@ -57,7 +57,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
               </div>
 
               <div className="overflow-hidden pb-2 mb-3 w-max">
-                <p style={getTransition(2)} className="text-[11px] leading-tight text-zinc-300 whitespace-nowrap w-max">
+                <p style={getTransition(2)} className="text-[11px] leading-tight text-zinc-400 whitespace-nowrap w-max">
                   Undergraduate at <a href="https://ipb.ac.id/" target="_blank" rel="noopener noreferrer" className="group hover:text-white transition-colors">IPB University<sup className="text-[8px] ml-0.5 text-zinc-500 group-hover:text-zinc-300 transition-colors cursor-help inline-block">[?]</sup></a>.<br />
                   Building web applications, internal tools,<br />
                   event platforms, and digital experiences.<br />
@@ -82,7 +82,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
               </div>
             </div>
 
-            <div className="flex flex-col items-start gap-0.5 text-[11px] leading-none text-zinc-200">
+            <div className="flex flex-col items-start gap-0.5 text-[11px] leading-none text-zinc-400">
               {["Fullstack Platform", "Company Website", "Event Website", "Internal Tools"].map((cat, i) => (
                 <div key={cat} className="overflow-hidden pb-1 -mb-1">
                   <span style={getTransition(4 + i)} className={`${ibmPlexSerif.className} block`}>
