@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Baby, Bed } from "lucide-react";
 import { ExperienceNode } from "./ExperienceNode";
 import experienceData from "@/lib/data/experience.json";
 
@@ -10,7 +11,7 @@ export default function ExperienceSection() {
       <div className="relative mx-auto w-full max-w-350 px-4 md:px-12 h-full md:h-auto">
 
         {/* -- Desktop Header (Absolutely positioned to overlap the empty space above the graph, preventing section overflow) -- */}
-        <div className="hidden md:flex absolute -top-1 left-0 w-full px-12 flex-row items-end justify-between gap-6 pointer-events-auto z-20">
+        <div className="hidden md:flex absolute -top-4 left-0 w-full px-12 flex-row items-end justify-between gap-6 pointer-events-auto z-20">
           <div className="text-left">
             <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-2">
               Experience
@@ -21,11 +22,12 @@ export default function ExperienceSection() {
           </div>
         </div>
 
-        {/* Desktop: Horizontal line edge to edge with container margin */}
-        <div className="hidden md:block absolute border-t-[2px] border-dotted border-neutral-300 dark:border-neutral-700 -z-10
-                        left-4 right-4 md:left-12 md:right-12 
-                        top-1/2 -translate-y-1/2"
-        />
+        {/* Desktop: Horizontal line edge to edge with start/end icons */}
+        <div className="hidden md:flex absolute left-4 right-4 md:left-12 md:right-12 top-1/2 -translate-y-1/2 items-center -z-10">
+          <Baby className="w-5 h-5 text-neutral-400 dark:text-neutral-600 shrink-0" />
+          <div className="w-full border-t-[2px] border-dotted border-neutral-300 dark:border-neutral-700 mx-3" />
+          <Bed className="w-5 h-5 text-neutral-400 dark:text-neutral-600 shrink-0" />
+        </div>
 
         <div className="relative flex flex-col-reverse justify-between h-full max-h-[650px] md:max-h-none md:block w-full pt-2 pb-12 md:pt-0 md:pb-0 md:h-[500px] gap-4 md:gap-0">
           
