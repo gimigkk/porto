@@ -52,7 +52,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
               <div className="overflow-hidden pb-3 -mb-3">
                 <h2 style={getTransition(0)} className={`${ibmPlexSerif.className} text-3xl font-bold mb-1 tracking-tight leading-none text-zinc-100`}>
                   <span 
-                    className="cursor-pointer"
+                    className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
                     onMouseLeave={hideTooltip}
                   >
@@ -63,7 +63,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
               <div className="overflow-hidden pb-3 mb-3">
                 <p style={getTransition(1)} className={`${ibmPlexSerif.className} text-sm leading-none text-zinc-300`}>
                   <span 
-                    className="cursor-pointer"
+                    className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
                     onMouseLeave={hideTooltip}
                   >
@@ -145,7 +145,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
               <div className="overflow-hidden pb-4 -mb-4">
                 <h2 style={getTransition(0)} className={`${ibmPlexSerif.className} text-6xl lg:text-7xl font-bold mb-1 tracking-tight text-zinc-100`}>
                   <span 
-                    className="cursor-pointer"
+                    className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
                     onMouseLeave={hideTooltip}
                   >
@@ -156,7 +156,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
               <div className="overflow-hidden pb-4 -mb-4">
                 <p style={getTransition(1)} className={`${ibmPlexSerif.className} text-2xl lg:text-3xl text-zinc-300`}>
                   <span 
-                    className="cursor-pointer"
+                    className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
                     onMouseLeave={hideTooltip}
                   >

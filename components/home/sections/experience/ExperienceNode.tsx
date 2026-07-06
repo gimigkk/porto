@@ -37,7 +37,7 @@ export function ExperienceNode({ item, index, total }: Props) {
       {/* DESKTOP LAYOUT (Dynamic Flex-Stretch Architecture) */}
       <div className="hidden md:flex flex-row h-full w-max">
          <div 
-            className={`flex flex-row items-start ${isTop ? 'self-end' : 'self-start'} relative p-2 -m-2 cursor-pointer rounded-xl pointer-events-auto`}
+            className={`flex flex-row items-start ${isTop ? 'self-end' : 'self-start'} relative p-2 -m-2 cursor-default rounded-xl pointer-events-auto`}
             style={isTop ? { marginBottom: `${250 + poleHeight + 12 - 8}px` } : { marginTop: `${250 + poleHeight + 12 - 8}px` }}
             onMouseEnter={() => showTooltip(<ExperienceTooltipContent item={item} />)}
             onMouseLeave={hideTooltip}

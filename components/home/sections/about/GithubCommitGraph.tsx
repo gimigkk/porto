@@ -86,7 +86,7 @@ export default function GithubCommitGraph({ data, delayBase = 0, trigger }: { da
             {week.map((day, dIndex) => (
               <div
                 key={dIndex}
-                className="w-[8px] h-[8px] md:w-[12px] md:h-[12px] rounded-[1px] md:rounded-[2px] cursor-pointer pointer-events-auto"
+                className="w-[8px] h-[8px] md:w-[12px] md:h-[12px] rounded-[1px] md:rounded-[2px] cursor-default pointer-events-auto"
                 style={{
                   ...getDayStyle(day.count),
                   transform: isInView ? "scale(1)" : "scale(0)",
