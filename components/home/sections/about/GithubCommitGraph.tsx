@@ -3,11 +3,15 @@
 import type { GithubGraphDay } from "@/lib/github";
 import { useRef, useMemo } from "react";
 import { useInView } from "framer-motion";
+import { useTooltip } from "@/components/providers/TooltipProvider";
+import { GithubTooltipContent } from "./tooltips/GithubTooltipContent";
 
 export default function GithubCommitGraph({ data, delayBase = 0, trigger }: { data: GithubGraphDay[][], delayBase?: number, trigger?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const internalInView = useInView(ref, { once: true, margin: "-50px" });
   const isInView = trigger !== undefined ? trigger : internalInView;
+  const { showTooltip, hideTooltip } = useTooltip();
+  
   // Mathematical linear curve mapper and Month Labels cached via useMemo
   const { maxLinear, monthLabels } = useMemo(() => {
     // 1. Calculate Mean & StdDev
@@ -82,19 +86,15 @@ export default function GithubCommitGraph({ data, delayBase = 0, trigger }: { da
             {week.map((day, dIndex) => (
               <div
                 key={dIndex}
-                className="group relative w-[8px] h-[8px] md:w-[12px] md:h-[12px] rounded-[1px] md:rounded-[2px]"
+                className="w-[8px] h-[8px] md:w-[12px] md:h-[12px] rounded-[1px] md:rounded-[2px] cursor-pointer pointer-events-auto"
                 style={{
                   ...getDayStyle(day.count),
                   transform: isInView ? "scale(1)" : "scale(0)",
                   transition: `transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${delayBase + ((data.length - 1 - wIndex) * 0.015) + ((6 - dIndex) * 0.015)}s`
                 }}
-              >
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1.5 bg-zinc-700/95 text-zinc-100 text-[11px] font-medium rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                  {day.text}
-                  {/* Tooltip triangle indicator */}
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-4 border-transparent border-t-zinc-700/95" />
-                </div>
-              </div>
+                onMouseEnter={() => showTooltip(<GithubTooltipContent text={day.text} />)}
+                onMouseLeave={hideTooltip}
+              />
             ))}
           </div>
         ))}

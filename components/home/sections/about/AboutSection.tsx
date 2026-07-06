@@ -10,6 +10,9 @@ import styles from "@/components/home/SkipIntroButton.module.css";
 import type { GithubGraphDay } from "@/lib/github";
 import { useRef } from "react";
 import { useInView } from "framer-motion";
+import { useTooltip } from "@/components/providers/TooltipProvider";
+import { NameTooltipContent } from "./tooltips/NameTooltipContent";
+import { CampusTooltipContent } from "./tooltips/CampusTooltipContent";
 
 const ibmPlexSerif = IBM_Plex_Serif({
   subsets: ["latin"],
@@ -20,6 +23,7 @@ const ibmPlexSerif = IBM_Plex_Serif({
 export default function AboutSection({ githubGraph }: { githubGraph: GithubGraphDay[][] }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { showTooltip, hideTooltip } = useTooltip();
 
   const getTransition = (index: number) => ({
     transform: isInView ? "translateY(0%)" : "translateY(150%)",
@@ -47,18 +51,33 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
             <div>
               <div className="overflow-hidden pb-3 -mb-3">
                 <h2 style={getTransition(0)} className={`${ibmPlexSerif.className} text-3xl font-bold mb-1 tracking-tight leading-none text-zinc-100`}>
-                  Gilang
+                  <span 
+                    className="cursor-pointer"
+                    onMouseEnter={() => showTooltip(<NameTooltipContent />)}
+                    onMouseLeave={hideTooltip}
+                  >
+                    Gilang
+                  </span>
                 </h2>
               </div>
               <div className="overflow-hidden pb-3 mb-3">
                 <p style={getTransition(1)} className={`${ibmPlexSerif.className} text-sm leading-none text-zinc-300`}>
-                  /ɡˈi.laŋ/
+                  <span 
+                    className="cursor-pointer"
+                    onMouseEnter={() => showTooltip(<NameTooltipContent />)}
+                    onMouseLeave={hideTooltip}
+                  >
+                    /ɡˈi.laŋ/
+                  </span>
                 </p>
               </div>
 
               <div className="overflow-hidden pb-2 mb-3 w-max">
                 <p style={getTransition(2)} className="text-[11px] leading-tight text-zinc-400 whitespace-nowrap w-max">
-                  Undergraduate at <a href="https://ipb.ac.id/" target="_blank" rel="noopener noreferrer" className="group hover:text-white transition-colors">IPB University<sup className="text-[8px] ml-0.5 text-zinc-500 group-hover:text-zinc-300 transition-colors cursor-help inline-block">[?]</sup></a>.<br />
+                  Undergraduate at <span 
+                    onMouseEnter={() => showTooltip(<CampusTooltipContent />)}
+                    onMouseLeave={hideTooltip}
+                  ><a href="https://ipb.ac.id/" target="_blank" rel="noopener noreferrer" className="group hover:text-white transition-colors">IPB University<sup className="text-[8px] ml-0.5 text-zinc-500 group-hover:text-zinc-300 transition-colors cursor-help inline-block">[?]</sup></a></span>.<br />
                   Building web applications, internal tools,<br />
                   event platforms, and digital experiences.<br />
                   Interested in engineering, and design.
@@ -125,19 +144,34 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
             <div>
               <div className="overflow-hidden pb-4 -mb-4">
                 <h2 style={getTransition(0)} className={`${ibmPlexSerif.className} text-6xl lg:text-7xl font-bold mb-1 tracking-tight text-zinc-100`}>
-                  Gilang
+                  <span 
+                    className="cursor-pointer"
+                    onMouseEnter={() => showTooltip(<NameTooltipContent />)}
+                    onMouseLeave={hideTooltip}
+                  >
+                    Gilang
+                  </span>
                 </h2>
               </div>
               <div className="overflow-hidden pb-4 -mb-4">
                 <p style={getTransition(1)} className={`${ibmPlexSerif.className} text-2xl lg:text-3xl text-zinc-300`}>
-                  /ɡˈi.laŋ/
+                  <span 
+                    className="cursor-pointer"
+                    onMouseEnter={() => showTooltip(<NameTooltipContent />)}
+                    onMouseLeave={hideTooltip}
+                  >
+                    /ɡˈi.laŋ/
+                  </span>
                 </p>
               </div>
             </div>
 
             <div className="overflow-hidden mt-[136px] pb-4 -mb-4 w-max">
               <p style={getTransition(2)} className="text-lg lg:text-xl leading-snug text-zinc-300 w-max">
-                Undergraduate at <a href="https://ipb.ac.id/" target="_blank" rel="noopener noreferrer" className="group hover:text-white transition-colors">IPB University<sup className="text-[10px] ml-0.5 text-zinc-500 group-hover:text-zinc-300 transition-colors cursor-help inline-block">[?]</sup></a>.<br />
+                Undergraduate at <span 
+                  onMouseEnter={() => showTooltip(<CampusTooltipContent />)}
+                  onMouseLeave={hideTooltip}
+                ><a href="https://ipb.ac.id/" target="_blank" rel="noopener noreferrer" className="group hover:text-white transition-colors">IPB University<sup className="text-[10px] ml-0.5 text-zinc-500 group-hover:text-zinc-300 transition-colors cursor-help inline-block">[?]</sup></a></span>.<br />
                 Building web applications, internal tools,<br />
                 event platforms, and digital experiences.<br />
                 Interested in engineering, and design.
@@ -196,6 +230,11 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
         </div>
 
+      </div>
+      
+      {/* Hidden Image Preloader for About Section */}
+      <div className="hidden">
+        <img src="/ipb-drone.png" alt="preload" />
       </div>
     </section>
   );

@@ -15,8 +15,13 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
   const [isVisible, setIsVisible] = useState(false);
   const [content, setContent] = useState<ReactNode | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const showTooltip = (newContent: ReactNode) => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -26,14 +31,23 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
   };
 
   const hideTooltip = () => {
-    setIsVisible(false);
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
     }
-    // Delay clearing content so exit animation can play
-    timeoutRef.current = setTimeout(() => {
-      setContent(null);
-    }, 200); 
+    
+    // 50ms buffer so rapid transitions (like moving mouse across a tiny gap) don't trigger the exit animation
+    hideTimeoutRef.current = setTimeout(() => {
+      setIsVisible(false);
+      
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      
+      // Delay clearing content so exit animation can play
+      timeoutRef.current = setTimeout(() => {
+        setContent(null);
+      }, 200); 
+    }, 50);
   };
 
   return (

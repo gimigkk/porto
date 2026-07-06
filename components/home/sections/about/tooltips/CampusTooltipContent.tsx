@@ -1,0 +1,25 @@
+import { ExternalLink } from "lucide-react";
+
+export function CampusTooltipContent() {
+  return (
+    <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-300/80 dark:border-neutral-600/80 rounded-xl rounded-tl-sm p-4 shadow-2xl shadow-black/10 dark:shadow-black/40 max-w-xs flex flex-col gap-3">
+      <div className="relative w-full h-32 rounded-lg overflow-hidden shrink-0 bg-neutral-200 dark:bg-neutral-800">
+        <img 
+          src="/ipb-drone.png" 
+          alt="IPB University Campus" 
+          className="object-cover w-full h-full"
+        />
+      </div>
+      
+      <div>
+        <h4 className="font-bold text-neutral-900 dark:text-white mb-1 flex items-center gap-1.5">
+          IPB University
+          <ExternalLink className="w-3 h-3 text-neutral-500" />
+        </h4>
+        <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed line-clamp-4">
+          IPB University, formerly known as Bogor Agricultural University, is a state-run university located in Bogor, West Java, Indonesia. Originally the Faculty of Agriculture at the University of Indonesia, it officially became an independent agricultural institute in 1963. It is widely recognized for its expertise in tropical agriculture, life sciences, and food security.
+        </p>
+      </div>
+    </div>
+  );
+}
