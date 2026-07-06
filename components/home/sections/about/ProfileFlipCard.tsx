@@ -13,7 +13,7 @@ interface ProfileFlipCardProps {
 }
 
 // Shared spring — everything syncs to this bounce feel
-const FLIP_SPRING = { stiffness: 80, damping: 14, mass: 1.5 };
+const FLIP_SPRING = { stiffness: 120, damping: 15, mass: 1.0 };
 const TILT_SPRING = { stiffness: 300, damping: 30 };
 const SHIFT_SPRING = { stiffness: 120, damping: 20 }; // softer than tilt so the drift is visibly smooth
 
@@ -51,18 +51,6 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
     [liftY, shiftY],
     ([ly, sy]: number[]) => ly + sy
   );
-  // Dynamic drop shadow using CSS filter so it accurately tracks the 3D projected shape
-  // Note: The card moves UP by 50px (y: -50), so the shadow's Y-offset must compensate by moving DOWN by >50px 
-  // to stay on the desk.
-  const deskDropShadow = useTransform(
-    liftY,
-    [0, -50],
-    [
-      "drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.4))",
-      "drop-shadow(40px 95px 30px rgba(0, 0, 0, 0.2))"
-    ]
-  );
-
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     if (isMobile || !wrapperRef.current) return;
     const rect = wrapperRef.current.getBoundingClientRect();
@@ -118,14 +106,13 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
   return (
     <motion.div
       ref={wrapperRef}
-      className="relative w-full h-full cursor-default"
+      className="relative w-full h-full cursor-default rounded-lg"
       style={{
         perspective: 1000,
         overflow: "visible",
         x: shiftX,
         y: combinedY,
-        filter: deskDropShadow,
-        willChange: "transform, filter",
+        willChange: "transform",
       }}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
@@ -154,10 +141,10 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
         {/* === FRONT === */}
         <div
           className="absolute inset-0 rounded-lg overflow-hidden border border-zinc-800"
-          style={{ 
-            backfaceVisibility: "hidden", 
+          style={{
+            backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
-            transform: "translateZ(4px)",
+            transform: "translateZ(8px)",
           }}
         >
           <Image src={src} alt={alt} fill sizes={sizes} className="object-cover pointer-events-none" priority={priority} />
@@ -174,12 +161,13 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
         </div>
 
         {/* === THICKNESS LAYERS (THE EDGE) === */}
-        {Array.from({ length: 8 }).map((_, i) => (
+        {/* Reduced from 8 to 4 for performance while maintaining depth illusion */}
+        {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={`thickness-${i}`}
             className="absolute inset-0 rounded-lg border border-zinc-800 bg-[#0e0e0e]"
             style={{
-              transform: `translateZ(${3 - i}px)`,
+              transform: `translateZ(${6 - (i * 4)}px)`, // Spread them out significantly
             }}
           />
         ))}
@@ -191,7 +179,7 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
-            transform: "rotateY(180deg) translateZ(4px)",
+            transform: "rotateY(180deg) translateZ(8px)",
             background: "#0e0e0e",
             transformStyle: "preserve-3d",
           }}
@@ -216,31 +204,20 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
             className="absolute pointer-events-none"
             style={{
               transform: "translateZ(200px)",
-              top: "50%",
+              top: "45%",
               left: "50%",
               translate: "-50% -50%",
-              width: "95%",
+              width: "85%",
               aspectRatio: "1 / 1",
             }}
           >
-            {/* Bloom layer — blurred duplicate behind the main GIF */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/goyang2.gif"
-              alt=""
-              className="absolute inset-0 w-full h-full object-contain"
-              style={{
-                filter: "brightness(1.1) blur(12px)",
-                opacity: 0.2,
-              }}
-            />
-            {/* Main GIF — slightly brighter */}
+            {/* Raw GIF without any CSS filters or blooms for maximum performance */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/goyang2.gif"
               alt=""
               className="relative w-full h-full object-contain"
-              style={{ filter: "brightness(1.2)" }}
+              style={{ filter: "brightness(1.35)" }}
             />
           </div>
         </div>
