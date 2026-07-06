@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, MouseEvent } from "react";
 import Image from "next/image";
 import { motion, useSpring, useTransform } from "framer-motion";
+import SpotifyBackside from "./SpotifyBackside";
 
 interface ProfileFlipCardProps {
   src: string;
@@ -153,7 +154,11 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
         {/* === FRONT === */}
         <div
           className="absolute inset-0 rounded-lg overflow-hidden border border-zinc-800"
-          style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
+          style={{ 
+            backfaceVisibility: "hidden", 
+            WebkitBackfaceVisibility: "hidden",
+            transform: "translateZ(4px)",
+          }}
         >
           <Image src={src} alt={alt} fill sizes={sizes} className="object-cover pointer-events-none" priority={priority} />
           {/* Top-down light reflection */}
@@ -168,6 +173,17 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
           />
         </div>
 
+        {/* === THICKNESS LAYERS (THE EDGE) === */}
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={`thickness-${i}`}
+            className="absolute inset-0 rounded-lg border border-zinc-800 bg-[#0e0e0e]"
+            style={{
+              transform: `translateZ(${3 - i}px)`,
+            }}
+          />
+        ))}
+
         {/* === BACK === */}
         {/* Wrapper at rotateY(180deg) — must NOT have overflow-hidden so the hologram can protrude via translateZ */}
         <div
@@ -175,24 +191,14 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
-            transform: "rotateY(180deg)",
+            transform: "rotateY(180deg) translateZ(4px)",
             background: "#0e0e0e",
             transformStyle: "preserve-3d",
           }}
         >
           {/* Inner clip wrapper keeps the blurred photo and overlays clipped */}
           <div className="absolute inset-0 rounded-lg overflow-hidden">
-            {/* Forced GPU layer for blur to prevent re-rasterization during 3D rotation */}
-            <div
-              className="absolute inset-0 scale-110 pointer-events-none"
-              style={{
-                filter: "blur(16px)",
-                transform: "translateZ(0)",
-                willChange: "transform"
-              }}
-            >
-              <Image src={src} alt="" fill sizes={sizes} className="object-cover" unoptimized />
-            </div>
+            <SpotifyBackside />
             {/* Top-down light reflection */}
             <motion.div
               className="absolute inset-0 bg-white pointer-events-none mix-blend-overlay"
