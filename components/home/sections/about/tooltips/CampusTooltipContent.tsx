@@ -2,7 +2,7 @@ import { ExternalLink } from "lucide-react";
 
 export function CampusTooltipContent() {
   return (
-    <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-300/80 dark:border-neutral-600/80 rounded-xl rounded-tl-sm p-4 shadow-2xl shadow-black/10 dark:shadow-black/40 max-w-xs flex flex-col gap-3">
+    <div className="max-w-xs flex flex-col gap-3 p-4">
       <div className="relative w-full h-32 rounded-lg overflow-hidden shrink-0 bg-neutral-200 dark:bg-neutral-800">
         <img 
           src="/ipb-drone.png" 
