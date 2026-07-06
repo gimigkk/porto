@@ -11,6 +11,7 @@ interface SubLink {
   target: string;
   href?: string;
   external?: boolean;
+  icon?: string;
 }
 
 interface NavItem {
@@ -58,6 +59,13 @@ const NAV_ITEMS: NavItem[] = [
       { label: "All Projects", target: "all-projects" },
       { label: "Case Studies", target: "case-studies" },
       { label: "Side Projects", target: "side-projects" },
+    ],
+  },
+  {
+    label: "Curriculum Vitae",
+    target: "cv",
+    sublinks: [
+      { label: "SWE Resume", target: "swe-resume", href: "/swe-resume.pdf", external: true, icon: "download" },
     ],
   },
 ];
@@ -223,6 +231,7 @@ export default function Navbar() {
 
   const scrollTo = useCallback(
     (target: string) => {
+      if (target === "cv") return;
       const sectionId = TARGET_ID_MAP[target] || target;
 
       if (sectionId === "home") {
@@ -319,9 +328,9 @@ export default function Navbar() {
                 <img src="/gimigkk-black.svg" alt="@gimigkk" className="h-[22px] w-auto object-contain " />
               </button>
 
-              {/* Other nav items - desktop only */}
+              {/* Main nav items - desktop only */}
               <div className="hidden md:flex items-center gap-8">
-                {NAV_ITEMS.slice(1).map((item, idx) => {
+                {NAV_ITEMS.slice(1, -1).map((item, idx) => {
                   const i = idx + 1;
                   const isHovered = hoveredIndex === i;
                   return (
@@ -345,30 +354,47 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* Right: hamburger (mobile only) */}
-            <button
-              type="button"
-              onClick={toggleMobileMenu}
-              className="md:hidden flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none"
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {mobileMenuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
-            </button>
+            {/* Right container */}
+            <div className="flex items-center gap-4">
+              {/* CV item - desktop only */}
+              <div className="hidden md:flex items-center">
+                {NAV_ITEMS.slice(-1).map((item) => {
+                  const i = NAV_ITEMS.length - 1;
+                  const isHovered = hoveredIndex === i;
+                  return (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => scrollTo(item.target)}
+                      onMouseEnter={(e) => handleNavEnter(i, e)}
+                      className="group/navlink flex items-center gap-1.5 text-sm font-medium text-zinc-700 transition-colors duration-200 tracking-tight px-3 py-1.5 rounded-full hover:bg-zinc-100 cursor-pointer focus:outline-none"
+                    >
+                      <span className={isHovered ? "text-zinc-950" : ""}>
+                        {item.label}
+                      </span>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-300 ease-out ${isHovered ? "rotate-180" : "rotate-0"
+                          }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
 
-            {/* Right: CV button (desktop only) */}
-            <a
-              href="/cv.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors duration-200"
-            >
-              <Download className="w-4 h-4" />
-              <span>Curriculum Vitae</span>
-            </a>
+              {/* Right: hamburger (mobile only) */}
+              <button
+                type="button"
+                onClick={toggleMobileMenu}
+                className="md:hidden flex items-center gap-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none"
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -408,9 +434,10 @@ export default function Navbar() {
                         type="button"
                         variants={itemVariants}
                         onClick={() => handleSublinkClick(sublink)}
-                        className="text-left text-base font-medium text-zinc-600 hover:text-zinc-950 transition-colors duration-200 tracking-tight w-fit cursor-pointer focus:outline-none"
+                        className="text-left text-base font-medium text-zinc-600 hover:text-zinc-950 transition-colors duration-200 tracking-tight w-fit cursor-pointer focus:outline-none flex items-center gap-2.5 pr-2"
                       >
-                        {sublink.label}
+                        <span>{sublink.label}</span>
+                        {sublink.icon === "download" && <Download className="w-4 h-4" />}
                       </motion.button>
                     ))}
                   </motion.div>
@@ -501,7 +528,7 @@ export default function Navbar() {
                     // Navigate to route + expand this accordion
                     if (item.target === "projects") {
                       router.push("/projects");
-                    } else {
+                    } else if (item.target !== "cv") {
                       router.push("/");
                     }
                     setActiveAccordion(i);
@@ -532,9 +559,10 @@ export default function Navbar() {
                             handleSublinkClick(sublink);
                             closeMobileMenu();
                           }}
-                          className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
+                          className="flex items-center justify-between w-full text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
                         >
-                          {sublink.label}
+                          <span>{sublink.label}</span>
+                          {sublink.icon === "download" && <Download className="w-4 h-4 mr-2" />}
                         </button>
                       ))}
                     </div>
@@ -543,20 +571,6 @@ export default function Navbar() {
               </div>
             );
           })}
-
-          {/* CV button for mobile */}
-          <div className="mt-3 pt-3 border-t border-zinc-100">
-            <a
-              href="/cv.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={closeMobileMenu}
-              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors duration-200"
-            >
-              <Download className="w-4 h-4" />
-              <span>Curriculum Vitae</span>
-            </a>
-          </div>
         </div>
       </>
     </>
