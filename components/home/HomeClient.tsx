@@ -7,6 +7,7 @@ import LoadingScreen from "@/components/home/LoadingScreen";
 import SkyBackground from "@/components/layout/SkyBackground";
 import HeroContent from "@/components/home/sections/hero/HeroContent";
 import HeroIntroText from "@/components/home/sections/hero/HeroIntroText";
+import BrowserWarning from "@/components/home/sections/hero/BrowserWarning";
 import dynamic from "next/dynamic";
 import StackedSections from "@/components/layout/StackedSections";
 import BackToTop from "@/components/shared/BackToTop";
@@ -80,9 +81,30 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
 
   // Detect mobile and update on resize
   const [isMobile, setIsMobile] = useState(false);
+  const [isChromium, setIsChromium] = useState(true);
+  const [warningResolved, setWarningResolved] = useState(true);
+  const [needsWarning, setNeedsWarning] = useState(false);
+
   useEffect(() => {
+    const mobileMatch = window.matchMedia('(max-width: 768px)').matches;
+    const chromeMatch = !!(window as any).chrome;
+    
+    setIsMobile(mobileMatch);
+    setIsChromium(chromeMatch);
+
+    if (mobileMatch || !chromeMatch) {
+      const isDismissed = sessionStorage.getItem('browser-warning-dismissed');
+      if (isDismissed) {
+        setWarningResolved(true);
+      } else {
+        setNeedsWarning(true);
+        setWarningResolved(false);
+      }
+    } else {
+      setWarningResolved(true);
+    }
+
     const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
-    checkMobile(); // Check on mount
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
@@ -141,6 +163,22 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
     }
   }, []);
 
+  // Disable scrolling until intro is completely finished
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!introComplete) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [introComplete]);
+
   const handleLoadingComplete = useCallback(() => {
     setLoadingComplete(true);
     // Double-ensure we are at top when entering page
@@ -196,8 +234,21 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
             {/* PROGRESSIVE BLUR STACK — hidden on mobile & Firefox to avoid compositing jank */}
             <BlurStack />
 
+            {/* Warning Screen - intercepts before intro text if needed */}
+            {needsWarning && !warningResolved && (
+              <BrowserWarning
+                isReady={heroAnimationReady}
+                isMobile={isMobile}
+                isChromium={isChromium}
+                onComplete={() => {
+                  sessionStorage.setItem('browser-warning-dismissed', 'true');
+                  setWarningResolved(true);
+                }}
+              />
+            )}
+
             {/* Intro text overlay — centered, disappears after outro */}
-            {!introComplete && (
+            {!introComplete && warningResolved && (
               <HeroIntroText
                 isReady={heroAnimationReady}
                 sequenced={isMobile}
