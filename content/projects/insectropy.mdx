@@ -1,0 +1,60 @@
+export const metadata = {
+  title: "Insectropy",
+  slug: "insectropy",
+  description:
+    "A tactical isometric turn-based roguelike built for the GameSeed game jam. I served as the primary Programmer, VFX Artist, and UI/UX Designer, crafting the core tactical gameplay and AI.",
+  stack: ["godot"],
+  year: "2026",
+  category: "Game Development",
+  accent: "#e11d48",
+  thumbnail: "/projects/insectropy/trailer.mp4",
+  links: [
+    { url: "https://hamgarian.itch.io/insectropy", label: "Play Game", icon: "gamepad" }
+  ],
+  weight: 2,
+};
+
+## GameSeed Jam Submission
+
+*Insectropy* is a **local splitscreen tactical turn-based roguelike** developed under rigorous time constraints for the **GameSeed 2026** game jam. You control two ants (a Fighter and a Wizard) battling through a grid arena to slay the Seven Deadly Sins (reimagined as apocalyptic backyard bugs). 
+
+I served as the core gameplay engineer, UI/UX designer, and VFX artist. My mandate was to ensure the split-screen tactical layer felt tight and responsive while building robust systems that could scale despite the short development window.
+
+---
+
+### 1. Tactical Grid & Architecture
+
+Building a split-screen turn-based tactical system in a game jam is notoriously prone to edge-case bugs. I engineered a strict, state-driven combat core to handle grid logic, dice rolls, and prevent soft-locks.
+
+- **Isometric Tactical Combat**: Implemented grid-based positioning and telegraphing logic. Enemies display orange danger tiles before movement and red attack tiles before striking, allowing both players to plan their turns strategically.
+- **Dice-Roll Mechanics**: Built the core logic for the "Roll Dice to Hit or Miss" mechanic, ensuring fair RNG distribution and snappy visual feedback during attacks.
+- **Asynchronous State Management**: Engineered rigid animation barriers and phase transitions for the turn-based action queue. This prevented catastrophic edge cases, like targets dying mid-attack or inputs soft-locking during overlapping turn resolutions.
+- **Data-Driven Abilities**: Using Godot's `.tres` data structures, I authored **over 30 unique abilities** (e.g., *Kitin Bomb*, *Pollen Gust*, *Divine Departure*) to allow for rapid iteration without touching core logic.
+
+### 2. Roguelike Progression
+
+To make each run unique, I implemented a robust roguelike progression system managed by a central `RunManager`.
+
+- **Dynamic Depth Scaling**: Added depth-based encounter profiles and light AC/Resist scaling to ensure battles remain challenging and less repetitive as the player progresses.
+- **Milestone Unlocks**: Built staged skill unlocks, offering players 1-of-4 ability choices after completed nodes, alongside milestone perk choices (such as *Iron Vow* and *Lucky Charm*) that integrate into a persistent modifier pipeline.
+
+### 3. Artificial Intelligence
+
+A tactical game relies entirely on its enemies. Rather than relying on simple state machines, I developed 4 distinct, modular AI profiles:
+
+- **Custom Enemy Brains**: Implemented the `SimpleMeleeBrain`, `SimpleRangedBrain`, `DungslayerBrain`, and the complex `BossButterflyBrain`.
+- **Dynamic Pathfinding**: Enemy units don't just blindly move towards the player. For example, the melee brain features pathfinding logic that attempts to move as close as possible when its primary path is blocked.
+
+### 4. User Experience (UI/UX) & Polish
+
+A major challenge for split-screen tactical games is communicating complex mechanics clearly without cluttering half a screen. I completely overhauled the UI to create a snappy, guided experience.
+
+- **Split-Screen HUD & Action Wheels**: Built responsive `BattleActionWheelController`s and dynamic status overlays that visually indicate when a unit is restricted (e.g., *Stunned* or *Frozen*) for each player independently.
+- **Guided Feedback**: Implemented a tutorial overlay with arrow indicators, gacha-style relic reveal animations in the Loot Screen, and contextual cancel actions.
+- **Ability VFX**: My VFX work was strictly focused on combat abilities. I integrated custom shaders (dithered fire, god rays, teleport effects) directly into the ability execution pipeline to give every attack a satisfying punch, while the rest of the environmental effects were handled elsewhere.
+
+---
+
+### A Collaborative Effort
+
+Game development is a massive collaborative undertaking. While I handled the core mechanical engineering and systems design, the final, crucial step of **game balancing** (fine-tuning damage numbers, health pools, and ability cooldowns) was executed by my talented teammates following rigorous playtesting sessions.

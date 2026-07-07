@@ -158,7 +158,7 @@ export default function ProjectCards({
                 </div>
 
                 {/* Description */}
-                <p className="text-xs text-zinc-400 md:text-zinc-300 leading-snug mb-2 line-clamp-2">
+                <p className="text-xs text-zinc-400 md:text-zinc-300 leading-snug mb-2 truncate">
                   {project.description}
                 </p>
 

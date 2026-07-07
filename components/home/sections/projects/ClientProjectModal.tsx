@@ -6,6 +6,7 @@ import { useLenis } from "lenis/react";
 import NProgress from "nprogress";
 import Image from "next/image";
 import { useInView } from "framer-motion";
+import { Gamepad2, ExternalLink } from "lucide-react";
 import type { ProjectMeta } from "@/lib/projects";
 import BackToTop from "@/components/shared/BackToTop";
 import TechIcon from "@/components/shared/TechIcon";
@@ -339,7 +340,7 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
       {/* Backdrop */}
       <div
         onClick={close}
-        className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity"
+        className="absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity"
         style={{
           opacity: isAnimating ? 1 : 0,
           transitionDuration: isAnimating ? "300ms" : "200ms",
@@ -489,6 +490,44 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
                         ))}
                       </div>
                     </div>
+                    
+                    {/* External Links */}
+                    {(project.github || (project.links && project.links.length > 0)) && (
+                      <div>
+                        <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">Links</h3>
+                        <div className="flex flex-wrap items-center gap-3">
+                          {project.github && (!project.links || project.links.length === 0) && (
+                            <a
+                              href={project.github}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="group flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800/50 transition-colors text-xs text-zinc-300 hover:text-white"
+                            >
+                              <TechIcon tech="github" size={14} className="text-zinc-400 group-hover:text-white transition-colors" />
+                              Source Code
+                            </a>
+                          )}
+                          {project.links?.map((link, idx) => (
+                            <a
+                              key={idx}
+                              href={link.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="group flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800/50 transition-colors text-xs text-zinc-300 hover:text-white"
+                            >
+                              {link.icon === "gamepad" ? (
+                                <Gamepad2 className="w-3.5 h-3.5" style={{ color: project.accent }} />
+                              ) : link.icon === "github" ? (
+                                <TechIcon tech="github" size={14} className="text-zinc-400 group-hover:text-white transition-colors" />
+                              ) : (
+                                <ExternalLink className="w-3.5 h-3.5" style={{ color: project.accent }} />
+                              )}
+                              {link.label}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Table of Contents */}

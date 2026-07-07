@@ -16,6 +16,12 @@ export interface ProjectMeta {
   accent: string;
   thumbnail: string;
   github?: string;
+  links?: {
+    url: string;
+    label: string;
+    icon: string;
+  }[];
+  weight?: number;
 }
 
 /**
@@ -66,6 +72,9 @@ export function getAllProjects(): ProjectMeta[] {
   }
 
   return projects.sort((a, b) => {
+    const weightA = a.weight ?? 999;
+    const weightB = b.weight ?? 999;
+    if (weightA !== weightB) return weightA - weightB;
     if (a.year !== b.year) return b.year.localeCompare(a.year);
     return a.title.localeCompare(b.title);
   });
