@@ -108,7 +108,7 @@ export default function FolderSection({
 
           {/* Main Body */}
           <div
-            className={`flex-1 w-full ${bodyRadius} py-8 flex flex-col items-center justify-center relative z-20 max-md:border max-md:border-t-0 max-md:border-zinc-800`}
+            className={`flex-1 w-full ${bodyRadius} py-8 flex flex-col items-center justify-center relative z-20`}
           >
             {/* Top gap bridges for mobile border continuity (draws border ONLY where tab isn't) */}
             {tabPosition === "left" && (
