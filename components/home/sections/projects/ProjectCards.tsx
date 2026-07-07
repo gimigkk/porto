@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useInView } from "framer-motion";
 import type { ProjectMeta } from "@/lib/projects";
-import { ChevronRight, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import TechIcon from "@/components/shared/TechIcon";
@@ -128,19 +128,27 @@ export default function ProjectCards({
               </div>
               <div className="hidden md:block absolute inset-x-0 bottom-0 h-1/2 rounded-[inherit] bg-linear-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
               {/* -- Meta -- */}
-              <div className="relative z-10 flex flex-col px-1 pt-2 pb-1 md:p-3 md:pt-12">
-                {/* Title row: title left, stack right (mobile) | title + chevron (desktop) */}
-                <div className="flex items-center gap-2 mb-1 md:mb-1">
-                  <h3
-                    className="text-sm md:text-base font-bold md:group-hover:brightness-125 text-white truncate md:line-clamp-2 md:whitespace-normal min-w-0"
-                    style={{ transition: "filter 0.3s" }}
-                  >
-                    {project.title}
-                  </h3>
+              <div className="relative z-10 w-full flex items-end justify-between gap-3 px-1 pt-2 pb-1 md:p-3 md:pt-12">
+                {/* Left side: Title & Description */}
+                <div className="flex flex-col flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <h3
+                      className="text-sm md:text-base font-bold md:group-hover:brightness-125 text-white truncate min-w-0"
+                      style={{ transition: "filter 0.3s" }}
+                    >
+                      {project.title}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-zinc-400 md:text-zinc-300 leading-snug truncate">
+                    {project.description}
+                  </p>
+                </div>
 
-                  {/* Tech stack — inline on mobile */}
-                  <div className="md:hidden flex items-center gap-1.5 shrink-0 ml-auto overflow-hidden">
-                    {project.stack.slice(0, 4).map((tech) => (
+                {/* Right side: Tech & Actions */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Tech stack — Mobile (limited) */}
+                  <div className="md:hidden flex items-center gap-1.5 overflow-hidden">
+                    {project.stack.slice(0, 3).map((tech) => (
                       <TechIcon
                         key={tech}
                         tech={tech}
@@ -150,22 +158,9 @@ export default function ProjectCards({
                     ))}
                   </div>
 
-                  <ChevronRight
-                    className="hidden md:block w-4 h-4 ml-auto shrink-0 text-zinc-400 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0"
-                    style={{ transition: "opacity 0.3s, transform 0.3s" }}
-                    strokeWidth={2}
-                  />
-                </div>
-
-                {/* Description */}
-                <p className="text-xs text-zinc-400 md:text-zinc-300 leading-snug mb-2 truncate">
-                  {project.description}
-                </p>
-
-                {/* Tech stack — desktop full row */}
-                <div className="hidden md:flex items-center gap-2 pt-1.5 border-t border-white/10">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {project.stack.map((tech) => (
+                  {/* Tech stack — Desktop */}
+                  <div className="hidden md:flex flex-wrap-reverse justify-end gap-2 shrink-0 w-[36px]">
+                    {project.stack.slice(0, 4).map((tech) => (
                       <TechIcon
                         key={tech}
                         tech={tech}
@@ -174,18 +169,6 @@ export default function ProjectCards({
                       />
                     ))}
                   </div>
-
-                  {/* GitHub Button — desktop only */}
-                  <a
-                    href={project.github ?? `https://github.com/gimigkk/${project.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="ml-auto flex items-center justify-center w-5.5 h-5.5 rounded-[5px] border border-zinc-500 text-zinc-300 hover:text-white hover:border-zinc-300 transition-colors z-20 shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                    title="View Source"
-                  >
-                    <TechIcon tech="github" size={13} className="text-inherit" />
-                  </a>
                 </div>
               </div>
             </div>
