@@ -14,8 +14,10 @@ export default function SkipIntroButton({ onClick, label = 'SPACE to SKIP', clas
     <button className={`${styles.pushable} ${isActive ? styles.simulateActive : ''} ${isReady ? styles.animateIntro : ''} ${className}`} onClick={onClick} aria-label="Skip Intro">
       <span className={styles.shadow}></span>
       <span className={styles.edge}></span>
-      <span className={styles.front}>
-        {label}
+      <span className={styles.animator}>
+        <span className={styles.front}>
+          {label}
+        </span>
       </span>
     </button>
   );

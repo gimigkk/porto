@@ -10,6 +10,17 @@ export default function LenisProvider({ children }: { children: any }) {
   useEffect(() => {
     setIsClient(true);
     setIsFirefox(navigator.userAgent.includes("Firefox"));
+
+    const disableSpaceScroll = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        const target = e.target as HTMLElement;
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+        }
+      }
+    };
+    window.addEventListener('keydown', disableSpaceScroll);
+    return () => window.removeEventListener('keydown', disableSpaceScroll);
   }, []);
 
   // Server & first hydration render: always wrap with Lenis to match.

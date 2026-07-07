@@ -93,10 +93,19 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
     contactControls.forEach(ctrl => ctrl.stop());
     skipButtonControl.stop();
 
+    if (!isReady) {
+      onComplete?.();
+      return;
+    }
+
+    // Safety timeout in case Framer Motion promises hang after interruption
+    const fallback = setTimeout(() => onComplete?.(), 1000);
+
     await triggerOutro();
+    clearTimeout(fallback);
     onComplete?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [triggerOutro, onComplete]);
+  }, [triggerOutro, onComplete, isReady]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
