@@ -12,6 +12,7 @@ interface FolderSectionProps {
   tabTitle: string;
   children: ReactNode;
   scrollYProgress?: MotionValue<number>;
+  customFadeProgress?: MotionValue<number>;
   parallaxOffset?: number;
   scrollOffset?: number;
   fadeRange?: [number, number];
@@ -27,6 +28,7 @@ export default function FolderSection({
   tabTitle,
   children,
   scrollYProgress,
+  customFadeProgress,
   parallaxOffset = 0,
   scrollOffset = 0,
   fadeRange,
@@ -37,7 +39,8 @@ export default function FolderSection({
   const source = scrollYProgress || fallbackProgress;
 
   const y = useTransform(source, [0, 1], [0, parallaxOffset]);
-  const progress = useTransform(source, fadeRange || [0, 0], [0, 1]);
+  const defaultProgress = useTransform(source, fadeRange || [0, 0], [0, 1]);
+  const progress = customFadeProgress || defaultProgress;
   const overlayOpacity = useTransform(progress, [0, 1], [0, 1]);
 
   const bodyRadius = "rounded-t-lg sm:rounded-t-xl md:rounded-t-2xl";

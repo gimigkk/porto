@@ -20,6 +20,8 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [isMobile, setIsMobile] = useState(false);
 	const mobileProgress = useMotionValue(0);
+	const mobileAboutFade = useMotionValue(0);
+	const mobileExpFade = useMotionValue(0);
 
 	// Detect mobile viewport — never touch desktop path
 	useEffect(() => {
@@ -65,16 +67,25 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 
 		const onScroll = () => {
 			if (!el) return;
-			const distance = cachedHeight - cachedVh;
-			if (distance <= 0) {
-				mobileProgress.set(0);
-				return;
-			}
+			// Use real-time rect to avoid stale cachedTop from Hero shrinking animation
+			const currentTop = el.getBoundingClientRect().top;
+			
+			// About folder docks at top-12 (48px). Start progress exactly here.
+			const scrolled = 48 - currentTop;
 
-			const currentScrollY = window.scrollY;
-			const currentTop = cachedTop - currentScrollY;
+			// Projects reaches its natural header position (128px) after 2*vh - 216px of scroll
+			const totalStackScroll = Math.max(1, (2 * cachedVh) - 216);
 
-			mobileProgress.set(Math.max(0, Math.min(1, -currentTop / distance)));
+			// Global parallax completes exactly when Projects arrives
+			mobileProgress.set(Math.max(0, Math.min(1, scrolled / totalStackScroll)));
+
+			// Experience docks at top-[88px], exactly when scrolled = cachedVh - 88
+			const scrollAboutDock = Math.max(1, cachedVh - 88);
+			mobileAboutFade.set(Math.max(0, Math.min(1, scrolled / scrollAboutDock)));
+			
+			// Experience fades from when it docks, until Projects arrives
+			const expP = (scrolled - scrollAboutDock) / (totalStackScroll - scrollAboutDock);
+			mobileExpFade.set(Math.max(0, Math.min(1, expP)));
 		};
 
 		if (lenis) lenis.on("scroll", onScroll);
@@ -105,6 +116,7 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 				fillClass="fill-[#141416]"
 				stickyClass="h-[calc(100svh-3rem)] md:h-[calc(100svh-5rem)] sticky top-12 md:top-20"
 				scrollYProgress={effectiveProgress}
+				customFadeProgress={isMobile ? mobileAboutFade : undefined}
 				parallaxOffset={-40}
 				scrollOffset={-80}
 				fadeRange={[0, 0.6]}
@@ -121,6 +133,7 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 				fillClass="fill-[#0e0e10]"
 				stickyClass="h-[calc(100svh-88px)] md:h-[calc(100svh-120px)] sticky top-[88px] md:top-[120px]"
 				scrollYProgress={effectiveProgress}
+				customFadeProgress={isMobile ? mobileExpFade : undefined}
 				parallaxOffset={-60}
 				scrollOffset={-120}
 				fadeRange={[0.4, 1]}
