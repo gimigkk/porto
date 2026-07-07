@@ -9,9 +9,10 @@ interface Props {
   item: ExperienceItem;
   index: number;
   total: number;
+  isTopNodeVisual?: boolean;
 }
 
-export function ExperienceNode({ item, index, total }: Props) {
+export function ExperienceNode({ item, index, total, isTopNodeVisual }: Props) {
   const { showTooltip, hideTooltip } = useTooltip();
   const isTop = index % 2 === 0;
 
