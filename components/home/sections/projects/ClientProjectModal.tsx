@@ -391,16 +391,16 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
                 <div ref={scrollBodyRef} className="w-full h-full overflow-y-auto no-scrollbar" data-lenis-prevent="true">
                   <article key={project.slug} className="min-h-full bg-zinc-950 text-zinc-200 px-4 sm:px-8 md:px-12 py-12 sm:py-16">
                     <div className="w-full max-w-3xl mx-auto animate-slide-up-fade" style={{ opacity: 0, animationDelay: "100ms" }}>
-                      <h1 className="text-4xl sm:text-5xl font-bold mb-6 tracking-tight" style={{ color: project.accent }}>
+                      <h1 className="text-[24px] sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 tracking-tight" style={{ color: project.accent }}>
                         {project.title}
                       </h1>
 
-                      <p className="text-lg md:text-xl text-zinc-400 leading-relaxed mb-12">
+                      <p className="text-[13px] sm:text-lg md:text-xl text-zinc-400 leading-relaxed mb-8 sm:mb-12">
                         {project.description}
                       </p>
 
                       <div
-                        className="w-full prose prose-sm md:prose-base prose-invert prose-zinc max-w-none prose-headings:text-zinc-100 prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:bg-transparent hover:prose-a:opacity-80 min-h-[50vh]"
+                        className="w-full prose max-sm:!text-[11px] prose-sm md:prose-base prose-invert prose-zinc max-w-none prose-headings:text-zinc-100 prose-h1:max-sm:text-xl prose-h2:max-sm:text-[17px] prose-h3:max-sm:text-[14px] prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:bg-transparent hover:prose-a:opacity-80 min-h-[50vh]"
                         style={{
                           "--theme-color": project.accent,
                           "--tw-prose-links": project.accent,
