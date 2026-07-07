@@ -43,7 +43,7 @@ export default function FolderSection({
   const progress = customFadeProgress || defaultProgress;
   const overlayOpacity = useTransform(progress, [0, 1], [0, 1]);
 
-  const bodyRadius = "rounded-t-lg sm:rounded-t-xl md:rounded-t-2xl";
+  const bodyRadius = "max-md:rounded-none rounded-t-lg sm:rounded-t-xl md:rounded-t-2xl";
 
   const sectionId = `section-${tabTitle.toLowerCase().replace(/\s+/g, "-")}`;
   const lenis = useLenis();
@@ -61,14 +61,16 @@ export default function FolderSection({
     >
       <svg
         viewBox="0 0 320 64"
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full overflow-visible"
       >
         {/* Base fill — bgBase is real hex color */}
-        <path d="M 0 64 L 12 64 Q 32 64, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64, 308 64 L 320 64 Z" fill={bgBase || fillClass} />
+        <path d="M 0 64.8 L 12 64.8 Q 32 64.8, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64.8, 308 64.8 L 320 64.8 Z" fill={bgBase || fillClass} />
         {/* Faded overlay — same opacity as body bg */}
         {bgFaded && (
-          <motion.path d="M 0 64 L 12 64 Q 32 64, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64, 308 64 L 320 64 Z" fill={bgFaded} style={{ opacity: overlayOpacity }} />
+          <motion.path d="M 0 64.8 L 12 64.8 Q 32 64.8, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64.8, 308 64.8 L 320 64.8 Z" fill={bgFaded} style={{ opacity: overlayOpacity }} />
         )}
+        {/* Mobile border stroke (unclosed path to avoid bottom line) */}
+        <path d="M 0 64.8 L 12 64.8 Q 32 64.8, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64.8, 308 64.8 L 320 64.8" fill="none" className="max-md:stroke-zinc-800 stroke-transparent" strokeWidth="1" vectorEffect="non-scaling-stroke" />
       </svg>
       <span className="text-white/80 font-semibold tracking-wide text-[12px] sm:text-sm md:text-lg relative z-10 pb-0.5 md:pb-1">
         {tabTitle}
@@ -85,7 +87,7 @@ export default function FolderSection({
       >
         <div className="w-full h-full flex flex-col">
           {/* Tab Row */}
-          <div className="w-full relative z-10 translate-y-px">
+          <div className="w-full relative z-30">
             <div className="flex w-full max-w-350 mx-auto h-5 sm:h-7 md:h-10 px-0 sm:px-2 md:px-1.25">
               {/* Left Tab Slot */}
               <div className="flex-1 flex items-end">
@@ -106,8 +108,21 @@ export default function FolderSection({
 
           {/* Main Body */}
           <div
-            className={`flex-1 w-full ${bodyRadius} py-8 flex flex-col items-center justify-center relative z-20`}
+            className={`flex-1 w-full ${bodyRadius} py-8 flex flex-col items-center justify-center relative z-20 max-md:border max-md:border-t-0 max-md:border-zinc-800`}
           >
+            {/* Top gap bridges for mobile border continuity (draws border ONLY where tab isn't) */}
+            {tabPosition === "left" && (
+              <div className="absolute top-0 left-[159px] right-0 h-[1px] bg-zinc-800 z-50 pointer-events-none hidden max-md:block" />
+            )}
+            {tabPosition === "center" && (
+              <>
+                <div className="absolute top-0 left-0 w-[calc(50%-79px)] h-[1px] bg-zinc-800 z-50 pointer-events-none hidden max-md:block" />
+                <div className="absolute top-0 right-0 w-[calc(50%-79px)] h-[1px] bg-zinc-800 z-50 pointer-events-none hidden max-md:block" />
+              </>
+            )}
+            {tabPosition === "right" && (
+              <div className="absolute top-0 left-0 right-[159px] h-[1px] bg-zinc-800 z-50 pointer-events-none hidden max-md:block" />
+            )}
             {/* Background: Tailwind class or hex */}
             {bgBase ? (
               <>
