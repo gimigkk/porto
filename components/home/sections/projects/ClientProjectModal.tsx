@@ -4,6 +4,8 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useCallback, useState, Suspense, useRef } from "react";
 import { useLenis } from "lenis/react";
 import NProgress from "nprogress";
+import Image from "next/image";
+import { useInView } from "framer-motion";
 import type { ProjectMeta } from "@/lib/projects";
 import BackToTop from "@/components/shared/BackToTop";
 import TechIcon from "@/components/shared/TechIcon";
@@ -15,6 +17,26 @@ interface TocItem {
   id: string;
   text: string;
   level: number;
+}
+
+function CulledVideo({ src, className }: { src: string, className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { margin: "200px" });
+
+  return (
+    <div ref={ref} className={className}>
+      {isInView && (
+        <video
+          src={src}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        />
+      )}
+    </div>
+  );
 }
 
 function TableOfContents({ accent, slug }: { accent: string; slug: string }) {
@@ -394,11 +416,29 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
                 <div ref={scrollBodyRef} className="w-full h-full overflow-y-auto no-scrollbar" data-lenis-prevent="true">
                   <article key={project.slug} className="min-h-full bg-zinc-950 text-zinc-200 px-4 sm:px-8 md:px-12 py-12 sm:py-16">
                     <div className="w-full max-w-3xl mx-auto animate-slide-up-fade" style={{ opacity: 0, animationDelay: "100ms" }}>
-                      <h1 className="text-[24px] sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 tracking-tight" style={{ color: project.accent }}>
+                      {/* Project Thumbnail / Video */}
+                      <div className="w-full aspect-video rounded-xl overflow-hidden mb-8 sm:mb-10 border border-zinc-800 bg-zinc-900/50 relative shadow-2xl">
+                        {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
+                          <CulledVideo
+                            src={project.thumbnail}
+                            className="w-full h-full"
+                          />
+                        ) : (
+                          <Image
+                            src={project.thumbnail}
+                            alt={`${project.title} preview`}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 1024px) 100vw, 800px"
+                          />
+                        )}
+                      </div>
+
+                      <h1 className="text-[24px] sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 tracking-tight" style={{ color: project.accent }}>
                         {project.title}
                       </h1>
 
-                      <p className="text-[13px] sm:text-lg md:text-xl text-zinc-400 leading-relaxed mb-8 sm:mb-12">
+                      <p className="text-[13px] sm:text-base md:text-lg text-zinc-400 leading-relaxed mb-8 sm:mb-12">
                         {project.description}
                       </p>
 

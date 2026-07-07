@@ -1,11 +1,33 @@
 "use client";
 
+import { useRef } from "react";
+import { useInView } from "framer-motion";
 import type { ProjectMeta } from "@/lib/projects";
 import { ChevronRight, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import TechIcon from "@/components/shared/TechIcon";
 import styles from "@/components/home/SkipIntroButton.module.css";
+
+function CulledVideo({ src, className }: { src: string, className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { margin: "200px" });
+
+  return (
+    <div ref={ref} className={className}>
+      {isInView && (
+        <video
+          src={src}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        />
+      )}
+    </div>
+  );
+}
 
 /* -- Max cards shown in the folder highlight -------------------- */
 const MAX_FEATURED = 6;
@@ -57,7 +79,7 @@ export default function ProjectCards({
                 window.history.pushState(null, "", `?project=${project.slug}`);
                 window.dispatchEvent(new PopStateEvent("popstate"));
               }}
-              className="relative z-10 flex flex-col md:justify-end md:min-h-[300px] md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)]"
+              className="relative z-10 flex flex-col md:justify-end md:aspect-video md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)]"
               style={{ willChange: "transform" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = "rgba(161,161,170,0.45)";
@@ -71,24 +93,38 @@ export default function ProjectCards({
               {/* -- Thumbnail -- */}
               {/* Mobile: in-flow 16:9 rounded | Desktop: absolute fill */}
               <div className="relative aspect-video rounded-lg md:rounded-none md:absolute md:inset-0 md:aspect-auto md:h-full w-full shrink-0 overflow-hidden">
-                <Image
-                  src={project.thumbnail}
-                  alt={`${project.title} preview`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover"
-                />
+                {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
+                  <CulledVideo
+                    src={project.thumbnail}
+                    className="w-full h-full"
+                  />
+                ) : (
+                  <Image
+                    src={project.thumbnail}
+                    alt={`${project.title} preview`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover"
+                  />
+                )}
               </div>
 
               {/* -- Desktop-only overlays -- */}
               <div className="hidden md:block absolute inset-0 pointer-events-none [mask-image:linear-gradient(to_top,black_5%,transparent_50%)]">
-                <Image
-                  src={project.thumbnail}
-                  alt=""
-                  fill
-                  sizes="33vw"
-                  className="object-cover blur-[3px] scale-[1.02]"
-                />
+                {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
+                  <CulledVideo
+                    src={project.thumbnail}
+                    className="absolute inset-0 w-full h-full blur-[3px] scale-[1.02]"
+                  />
+                ) : (
+                  <Image
+                    src={project.thumbnail}
+                    alt=""
+                    fill
+                    sizes="33vw"
+                    className="object-cover blur-[3px] scale-[1.02]"
+                  />
+                )}
               </div>
               <div className="hidden md:block absolute inset-x-0 bottom-0 h-1/2 rounded-[inherit] bg-linear-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
               {/* -- Meta -- */}
