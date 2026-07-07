@@ -92,7 +92,7 @@ export default function ProjectCards({
             >
               {/* -- Thumbnail -- */}
               {/* Mobile: in-flow 16:9 rounded | Desktop: absolute fill */}
-              <div className="relative aspect-video rounded-lg md:rounded-t-[inherit] md:absolute md:inset-x-0 md:top-0 md:bottom-4 md:aspect-auto md:h-auto w-full shrink-0 overflow-hidden">
+              <div className="relative aspect-video rounded-lg md:rounded-[inherit] md:absolute md:inset-[1px] md:aspect-auto md:h-auto w-full shrink-0 overflow-hidden">
                 {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
                   <CulledVideo
                     src={project.thumbnail}
