@@ -92,7 +92,7 @@ export default function ProjectCards({
             >
               {/* -- Thumbnail -- */}
               {/* Mobile: in-flow 16:9 rounded | Desktop: absolute fill */}
-              <div className="relative aspect-video rounded-lg md:rounded-none md:absolute md:inset-0 md:aspect-auto md:h-full w-full shrink-0 overflow-hidden">
+              <div className="relative aspect-video rounded-lg md:rounded-t-[inherit] md:absolute md:inset-x-0 md:top-0 md:bottom-4 md:aspect-auto md:h-auto w-full shrink-0 overflow-hidden">
                 {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
                   <CulledVideo
                     src={project.thumbnail}
@@ -111,22 +111,24 @@ export default function ProjectCards({
 
               {/* -- Desktop-only overlays -- */}
               <div className="hidden md:block absolute inset-0 pointer-events-none [mask-image:linear-gradient(to_top,black_5%,transparent_50%)]">
-                {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
-                  <CulledVideo
-                    src={project.thumbnail}
-                    className="absolute inset-0 w-full h-full blur-[3px] scale-[1.02]"
-                  />
-                ) : (
-                  <Image
-                    src={project.thumbnail}
-                    alt=""
-                    fill
-                    sizes="33vw"
-                    className="object-cover blur-[3px] scale-[1.02]"
-                  />
-                )}
+                <div className="absolute inset-0 rounded-[inherit] overflow-hidden isolate">
+                  {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
+                    <CulledVideo
+                      src={project.thumbnail}
+                      className="absolute inset-0 w-full h-full blur-[3px] scale-[1.05]"
+                    />
+                  ) : (
+                    <Image
+                      src={project.thumbnail}
+                      alt=""
+                      fill
+                      sizes="33vw"
+                      className="object-cover blur-[3px] scale-[1.05]"
+                    />
+                  )}
+                </div>
               </div>
-              <div className="hidden md:block absolute inset-x-0 bottom-0 h-1/2 rounded-[inherit] bg-linear-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
+              <div className="hidden md:block absolute -inset-x-2 -bottom-2 h-[calc(50%+8px)] bg-linear-to-t from-[#09090b] from-15% via-[#09090b]/60 to-transparent pointer-events-none" />
               {/* -- Meta -- */}
               <div className="relative z-10 w-full flex items-end justify-between gap-3 px-1 pt-2 pb-1 md:p-3 md:pt-12">
                 {/* Left side: Title & Description */}
