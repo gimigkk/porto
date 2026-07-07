@@ -33,6 +33,11 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
           loop
           muted
           playsInline
+          controls
+          onCanPlay={(e) => {
+            const video = e.target as HTMLVideoElement;
+            video.playbackRate = 1.5;
+          }}
           className="w-full h-full object-cover"
         />
       )}
