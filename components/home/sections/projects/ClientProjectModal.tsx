@@ -338,11 +338,11 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
           }}
         >
           {/* TOP BAR (Folder Tabs Style) */}
-          <div className={`flex w-full items-end justify-between h-[40px] shrink-0 relative z-10 translate-y-[1px] ${isAnimating ? "pointer-events-auto" : "pointer-events-none"}`}>
+          <div className={`flex w-full items-end justify-between h-[40px] shrink-0 relative z-30 ${isAnimating ? "pointer-events-auto" : "pointer-events-none"}`}>
             {/* Left Tab: Pagination */}
             <div className="relative w-[180px] h-full flex items-center justify-center">
-              <svg width="288" height="64" viewBox="0 0 288 64" className="absolute inset-0 w-full h-full fill-zinc-950">
-                <path d="M 0 64 L 0 24 Q 0 0, 24 0 L 204 0 Q 224 0, 232 16 L 248 48 Q 256 64, 276 64 L 288 64 Z" />
+              <svg width="288" height="64" viewBox="0 0 288 64" className="absolute inset-0 w-full h-full fill-zinc-950 overflow-visible">
+                <path d="M 0.8 64.8 L 0.8 24 Q 0.8 0, 24 0 L 204 0 Q 224 0, 232 16 L 248 48 Q 256 64.8, 276 64.8 L 288 64.8" stroke="#27272a" strokeWidth="1" vectorEffect="non-scaling-stroke" />
               </svg>
               <div className="relative z-10 flex items-center justify-center gap-3 pb-1 pr-8 w-full">
                 <button onClick={prevProject} className="text-zinc-400 hover:text-white p-1 rounded-md transition-colors" aria-label="Previous project">
@@ -364,8 +364,8 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
             {/* Right Tab: Close Button */}
             <div className="relative w-[80px] h-full flex items-center justify-center">
               {/* Custom narrowed SVG to fit X button with sloped left, flat right */}
-              <svg width="128" height="64" viewBox="0 0 128 64" className="absolute inset-0 w-full h-full fill-zinc-950">
-                <path d="M 0 64 L 12 64 Q 32 64, 40 48 L 56 16 Q 64 0, 84 0 L 104 0 Q 128 0, 128 24 L 128 64 Z" />
+              <svg width="128" height="64" viewBox="0 0 128 64" className="absolute inset-0 w-full h-full fill-zinc-950 overflow-visible">
+                <path d="M 0 64.8 L 12 64.8 Q 32 64.8, 40 48 L 56 16 Q 64 0, 84 0 L 104 0 Q 127.2 0, 127.2 24 L 127.2 64.8" stroke="#27272a" strokeWidth="1" vectorEffect="non-scaling-stroke" />
               </svg>
               <div className="relative z-10 flex items-center justify-center pb-1 pl-8 w-full">
                 <button onClick={close} className="text-zinc-400 hover:text-zinc-100 transition-colors p-1.5" aria-label="Close modal">
@@ -378,7 +378,10 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
           </div>
 
           {/* Content Wrapper (Gradient + Scrollable Body) */}
-          <div className={`flex-1 w-full bg-zinc-950 overflow-hidden relative z-20 flex flex-col ${isAnimating ? "pointer-events-auto" : "pointer-events-none"}`}>
+          <div className={`flex-1 w-full bg-zinc-950 border border-t-0 border-zinc-800 overflow-hidden relative z-20 flex flex-col ${isAnimating ? "pointer-events-auto" : "pointer-events-none"}`}>
+            {/* Top gap bridge for the border */}
+            <div className="absolute top-0 left-[179px] right-[79px] h-[1px] bg-zinc-800 z-50 pointer-events-none" />
+
             {/* Top Fade Gradient */}
             <div className="absolute top-0 left-0 w-full h-12 sm:h-16 bg-gradient-to-b from-zinc-950 to-transparent z-30 pointer-events-none transform-gpu" />
 
