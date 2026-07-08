@@ -4,7 +4,7 @@ export const metadata = {
   description:
     "An optimized augmented reality application that projects a highly detailed human skeleton into the real world. Features an interactive anatomy quiz and an immersive exploration mode.",
   stack: ["unity", "csharp", "blender", "android"],
-  year: "2025",
+  year: "2026",
   category: "AR / Mixed Reality",
   accent: "#0ea5e9",
   thumbnail: "/projects/bony-ar/trailer.mp4",
@@ -19,14 +19,14 @@ export const metadata = {
 
 *Bony-AR* is an interactive educational tool designed to help anatomy students memorize the human skeletal system. Built with Unity and AR Foundation, the app leverages mobile augmented reality to project a true-to-scale, medically accurate 3D skeleton directly into the user's physical environment.
 
-As the **Lead Programmer and Sole 3D Artist**, I was responsible for the entire pipeline—from preparing and optimizing the anatomical models in Blender, to engineering the hyper-optimized AR rendering and interaction systems in Unity.
+As **Lead Programmer and Sole 3D Artist**, I built the entire pipeline: modeled and optimized anatomy in Blender, then engineered the AR rendering and interaction systems in Unity.
 
 ---
 
 ### 1. The Anatomy Quiz Engine
 The crown jewel of the application is the **Interactive Quiz Minigame**, which transforms passive learning into a high-stakes, gamified experience.
 
-- **Dynamic State Machine**: Built a robust `BoneQuizController` to manage the flow of the game—handling everything from seamless UI transitions to precise timer countdowns.
+- **Dynamic State Machine**: Built `BoneQuizController` to manage game flow, handling UI transitions and timer countdowns.
 - **Escalating Difficulty**: Engineered a dynamic timing algorithm that actively shrinks the time limit as players successfully complete loops, forcing rapid recall under pressure.
 - **Haptic & Audio Feedback**: Integrated native Android vibration APIs and custom audio cues to provide immediate, satisfying feedback upon correct or incorrect bone selections, complete with a visual "heart loss" animation system.
 

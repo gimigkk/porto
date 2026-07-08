@@ -17,94 +17,26 @@ export const metadata = {
 };
 
 ## The Problem: Schedule Gridlock
-University students often get stuck with inconvenient class schedules that clash with their preferences — overlapping sections, bad time slots, or unwanted lecturers. Finding someone to swap with manually is tedious, prone to errors, and highly disorganized. It’s a frustrating bottleneck that wastes time and causes unnecessary stress at the start of every semester.
+I saw students stuck with bad schedules. Manual swapping in group chats was slow and error-prone.
 
 ## The Solution: Seamless Auto-Matching
-**KRSwitch** is a smart trading floor that automatically matches students who want to swap class sections. Instead of scrolling through endless group chats to find a trade partner, students simply list the class they have and the class they want. 
+I built **KRSwitch** as smart trading floor. Students list owned class and desired class.
 
-The platform handles the entire negotiation process instantly. Once a mutual match is found, the swap is locked in automatically, ensuring both parties get the timetable they actually want without any friction.
+I engineered platform to handle negotiations instantly. When I detect mutual match, system locks swap automatically. Both parties get ideal timetable. Zero friction.
 
-![Student Barter Dashboard Demo](/projects/krswitch/barter-demo.mp4)
-
-## Impact & Value
-- **Zero Friction:** Completely eliminates the need for manual scheduling negotiations.
-- **Fairness Guarantee:** Swaps are atomic and instant, preventing double-booking or stolen slots.
-- **Administrative Relief:** A powerful operator view allows university staff to monitor live telemetry, manage the student registry, and perform manual overrides effortlessly.
-
-![Admin Telemetry Demo](/projects/krswitch/admin-demo.mp4)
+## My Impact
+- **Zero Friction:** I eliminated manual negotiations.
+- **Fairness Guarantee:** I implemented atomic swaps. No double-booking.
+- **Administrative Relief:** I built operator dashboard for staff. They monitor telemetry and execute overrides.
 
 ---
 
-# Under the Hood: Technical Deep Dive
+## My Design Choices
+I chose utilitarian UI focus. For light mode, I used Microsoft Excel aesthetic. Prioritizes data density. For dark mode, I used Stockbit aesthetic. Sleek high-contrast environment for real-time monitoring.
 
-While the user experience is designed to be simple, the engine powering KRSwitch handles thousands of concurrent users executing highly sensitive transactions in real-time.
-
-## Architecture Overview
-
-KRSwitch is composed of a decoupled frontend and backend that communicate via standard REST APIs and WebSockets.
-
-```mermaid
-graph TD
-    User["Student / Admin Browser"]
-    API["Express API Server"]
-    Socket["Socket.IO Server"]
-
-    subgraph FrontEnd ["React 19 Application Scope"]
-        Router["React Router 7 Gates"]
-        
-        subgraph Views ["Page Containers"]
-            Dash["Dashboard (Student Barter)"]
-            Admin["Admin Console (Telemetry / Override)"]
-        end
-
-        subgraph Network ["Network API Services"]
-            Axios["Axios Interceptor Context"]
-            SocketClient["Socket.IO Client Controller"]
-        end
-    end
-
-    User --> Router
-    Router --> Dash
-    Router --> Admin
-    
-    Dash --> Axios
-    Dash --> SocketClient
-    Admin --> Axios
-    
-    Axios <--> API
-    SocketClient <--> Socket
-```
-
-## Real-Time WebSocket Architecture
-
-At the core of KRSwitch is a real-time event engine powered by **Socket.IO**. Since schedule availability changes by the millisecond during peak enrollment periods, relying on traditional HTTP polling would have been too slow and resource-intensive. 
-
-To solve this, the application implements a robust bidirectional communication layer:
-- **Centralized Global Context:** Instead of redundant socket instances scattered across components, the frontend utilizes a unified `SocketContext`. The connection is established once upon authentication, binding the active session to the socket ID and preventing duplicate connections.
-- **Bi-Directional Broadcasting:** When a student proposes a class swap on the "trading floor", the client emits a mutation event. The server validates the trade atomically in the database and broadcasts the updated state (`trade_updated`, `schedule_locked`) to all connected peers.
-- **Admin Telemetry:** Management dashboards listen to the global socket stream, allowing administrators to monitor the pulse of the exchange in real-time, observing active swaps, connections, and system load without manual refreshes.
-- **Production Resilience:** The socket clients utilize relative path routing for seamless fallback and automatic reconnection strategies with exponential backoff, ensuring uninterrupted service even under shaky network conditions.
-
-## Backend Robustness & Security
-- **Atomic Matchmaking:** Schedule swaps run in isolated PostgreSQL transaction blocks to guarantee consistency and prevent double-claiming.
-- **Conflict Guards:** Intelligent schedule conflict detection prevents overlapping classes before confirming swaps.
-- **Secure Authentication:** Hardened Google OAuth 2.0 PKCE flow with strict SameSite JWT cookie management.
-
-## Client Performance Optimizations
-
-To maintain a fluid 60fps rendering during highly concurrent schedule exchanges, the frontend implements several advanced optimizations:
-- **State Batching**: WebSocket state modifications update multiple states in a single render cycle, avoiding layout thrashing.
-- **useMemo Filter Guards**: Complex class timetables and student directories are memoized to avoid expensive sorting operations on the fly.
-- **Linear Tooltip Interpolation (LERP)**: Tooltips and schedule graph overlays use linear interpolation coordinates to track mouse movements rather than sudden pixel changes.
-
-## Testing & Reliability
-
-Built for reliability under high concurrency:
-- Tested with **Cypress** for end-to-end frontend flows.
-- Backend validated using **Vitest** and a custom CLI load simulator to handle staggered concurrent transactions with sub-millisecond latencies.
-
-## Design Inspiration
-The UI was built with a highly utilitarian focus. The light mode design draws heavily from the classic green and white aesthetic of Microsoft Excel, prioritizing data density and clarity. Conversely, the dark mode is directly inspired by Stockbit, providing a sleek, high-contrast environment suited for monitoring real-time barter feeds.
-
-## Embracing Prisma ORM
-This project marked my first time using an Object-Relational Mapper (ORM), and I absolutely loved it. The `schema.prisma` file is incredibly simple and elegant. It turns complex database relationships into clean, readable declarative code, making the mental model of the entire Postgres database an absolute joy to work with.
+## How I Built It
+I designed engine for highly sensitive concurrent transactions.
+- **Real-Time Bidding:** I integrated Socket.IO. Schedule availability changes instantly.
+- **Atomic Matchmaking:** I wrapped swaps in PostgreSQL transactions. Prevents overlapping classes.
+- **Fluid Interface:** I optimized React frontend with state batching and linear interpolation. Maintains 60fps under load.
+- **Database Modeling:** I used Prisma ORM. Simplifies complex relationships into readable schemas.

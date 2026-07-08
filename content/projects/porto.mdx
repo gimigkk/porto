@@ -2,7 +2,7 @@ export const metadata = {
   title: "Porto",
   slug: "porto",
   description:
-    "A premium developer portfolio with scroll-driven folder animations and buttery micro-interactions — you're looking at it.",
+    "A developer portfolio built on scroll-driven folder animations and precise micro-interactions.",
   stack: ["nextjs", "tailwind", "css"],
   year: "2026",
   category: "Creative & Design",
@@ -12,23 +12,23 @@ export const metadata = {
 
 ## The Problem
 
-Most developer portfolios follow the same formula — a hero section, a grid of cards, maybe a timeline. They work, but they don't _feel_ like anything. I wanted something that actually had a point of view. Something that made you want to scroll.
+Most portfolios use the same formula: hero, grid, timeline. They work, but lack identity. I built this to have a distinct point of view and physical feel.
 
 The goal was to build a portfolio site that felt like a physical object. Not skeuomorphic in a cheesy way, but grounded in a real metaphor: **a filing cabinet**.
 
 ## Approach
 
-I started by prototyping the scroll mechanics in isolation. The core idea was that each major section (About, Experience, Projects) would behave like a manila folder — stacking on top of each other as you scroll down, with visible tabs peeking out from underneath.
+I prototyped the scroll mechanics first. Each major section behaves like a manila folder, stacking as you scroll with tabs peeking from underneath.
 
 This required solving three interconnected problems:
 
-1. **Stacking order** — Each folder needed to slide _under_ the one above it using `position: sticky` with carefully calculated top offsets.
-2. **Parallax drift** — To sell the "physical weight" illusion, each folder drifts at a slightly different rate using Framer Motion's `useTransform`.
-3. **Scroll hijacking** — Native browser scroll is too jerky for this kind of animation, so I integrated [Lenis](https://github.com/darkroomengineering/lenis) for smooth, inertia-based scrolling.
+1. **Stacking order**: Each folder slides _under_ the one above using `position: sticky` and calculated top offsets.
+2. **Parallax drift**: Folders drift at different rates via Framer Motion's `useTransform` to simulate physical weight.
+3. **Custom Scroll**: Integrated [Lenis](https://github.com/darkroomengineering/lenis) for smooth, inertia-based scrolling.
 
 ### The Sticky Stack
 
-The trick is deceptively simple. Each folder section is wrapped in a `position: sticky` container with an increasing `top` value. As the user scrolls, CSS handles the stacking automatically — no JavaScript layout calculations needed.
+Each folder section is wrapped in a `position: sticky` container with an increasing `top` value. CSS handles the stacking automatically. Zero JavaScript layout calculations.
 
 ```css
 /* Each folder gets a progressively larger top offset */
@@ -47,7 +47,7 @@ Framer Motion drives all the micro-interactions. The parallax effect maps `scrol
 const y = useTransform(scrollYProgress, [0, 1], [0, -40]);
 ```
 
-This creates a gentle "breathing" motion as you scroll — each folder shifts independently, reinforcing the layered metaphor.
+This creates a parallax effect as you scroll. Each folder shifts independently, reinforcing the layered metaphor.
 
 For the project cards, I went with staggered reveal animations with a spring-based ease curve. Each card enters with a slight upward drift and opacity fade, delayed by `i * 0.15s` based on its grid index.
 
@@ -57,17 +57,17 @@ Clicking a project card doesn't navigate to a new page. Instead, it appends a `?
 
 This was a deliberate architectural choice:
 
-- **Scroll position is preserved** — closing the modal drops you right back where you were.
-- **URLs are shareable** — the search parameter means every project has a linkable address.
-- **It's modular** — the same `?project=` pattern can be dropped onto any future page (like a project library) without duplicating routing logic.
+- **Scroll position preserved**: Closing the modal drops you right back where you were.
+- **URLs shareable**: The search parameter means every project has a linkable address.
+- **Modular architecture**: The `?project=` pattern works on any page without duplicating routing logic.
 
-The modal itself is a CSS `translateY` animation. I intentionally avoided opacity fades and scale transforms on the modal container — they cause compositing layer explosions on lower-end GPUs and tank frame rates. Pure translation is the cheapest animation the browser can do.
+The modal uses a pure CSS `translateY` animation. I avoided opacity fades and scale transforms to prevent compositing layer explosions and maintain 60fps on lower-end GPUs.
 
 ## Typography & Color
 
 The site uses a dark-first palette built on Zinc tones. The three folder sections follow a subtle gradient from `#141416` (About) to `#0e0e10` (Experience) down to `zinc-950` (Projects), giving a sense of depth without any actual shadows.
 
-Each project has an `accent` color that's used for the title, badges, and hover states. These are stored in the project registry and passed as inline styles — no dynamic Tailwind classes needed.
+Each project has an `accent` color used for titles, badges, and hovers. These are passed as inline styles directly from the registry, bypassing dynamic Tailwind classes.
 
 ## What I'd Do Differently
 
