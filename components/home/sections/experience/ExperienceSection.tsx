@@ -1,13 +1,17 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { Baby, Bed } from "lucide-react";
 import { ExperienceNode } from "./ExperienceNode";
 import experienceData from "@/lib/data/experience.json";
 
 export default function ExperienceSection() {
+  const containerRef = useRef<HTMLElement>(null);
+  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+
   return (
-    <section className="relative w-full flex-1 h-full flex flex-col items-start md:justify-center [@media(min-height:900px)]:-mt-12">
+    <section ref={containerRef} className="relative w-full flex-1 h-full flex flex-col items-start md:justify-center [@media(min-height:900px)]:-mt-12">
       <div className="relative mx-auto w-full max-w-350 px-4 md:px-12 h-full md:h-auto max-md:flex max-md:flex-col max-md:flex-1">
         
         {/* Mobile Vertical Timeline Line Segment (Placed outside flex container to avoid any possible layout clipping) */}
@@ -54,7 +58,7 @@ export default function ExperienceSection() {
                 `}
                 style={isMiddle ? { left: `calc(162px + (100% - 324px) * ${ratio})` } : undefined}
               >
-                <ExperienceNode item={item} index={index} total={arr.length} isTopNodeVisual={isLast} />
+                <ExperienceNode item={item} index={index} total={arr.length} isTopNodeVisual={isLast} isInView={isInView} />
               </div>
             );
           })}

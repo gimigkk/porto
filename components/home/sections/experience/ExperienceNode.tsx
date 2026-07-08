@@ -10,9 +10,10 @@ interface Props {
   index: number;
   total: number;
   isTopNodeVisual?: boolean;
+  isInView?: boolean;
 }
 
-export function ExperienceNode({ item, index, total, isTopNodeVisual }: Props) {
+export function ExperienceNode({ item, index, total, isTopNodeVisual, isInView }: Props) {
   const { showTooltip, hideTooltip } = useTooltip();
   const isTop = index % 2 === 0;
 
@@ -27,16 +28,17 @@ export function ExperienceNode({ item, index, total, isTopNodeVisual }: Props) {
   const translateDistance = 36 + poleHeight;
 
   return (
-    <motion.div
+    <div
       className="w-full md:w-max md:h-[500px] flex-shrink-0 relative pointer-events-none"
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
       style={{ zIndex: total - index }}
     >
       {/* DESKTOP LAYOUT (Dynamic Flex-Stretch Architecture) */}
-      <div className="hidden md:flex flex-row h-full w-max">
+      <motion.div 
+        className="hidden md:flex flex-row h-full w-max"
+        initial={{ opacity: 0, y: 20 }}
+        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+      >
          <div 
             className={`flex flex-row items-start ${isTop ? 'self-end' : 'self-start'} relative p-2 -m-2 cursor-default rounded-xl pointer-events-auto`}
             style={isTop ? { marginBottom: `${250 + poleHeight + 12 - 8}px` } : { marginTop: `${250 + poleHeight + 12 - 8}px` }}
@@ -81,15 +83,18 @@ export function ExperienceNode({ item, index, total, isTopNodeVisual }: Props) {
                </p>
             </div>
          </div>
-      </div>
+      </motion.div>
 
       {/* MOBILE LAYOUT (Grid Architecture) */}
-      <div 
+      <motion.div 
         className="md:hidden grid relative" 
         style={{ 
           gridTemplateColumns: `32px ${12 + ((item.impressiveness - 1) / 9) * 48}px 12px auto 1fr`,
           alignItems: 'center'
         }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        transition={{ duration: 0.5, delay: (total - 1 - index) * 0.1 }}
       >
         {/* Row 1: Role */}
         <div className="col-start-4 col-end-5 row-start-1 row-end-2 pb-1.5 flex items-end">
@@ -135,7 +140,7 @@ export function ExperienceNode({ item, index, total, isTopNodeVisual }: Props) {
             <span>{item.endDate}</span>
           </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
