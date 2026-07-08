@@ -149,4 +149,4 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
   );
 });
 
-(ExperienceNode as any).whyDidYouRender = true;
+Object.assign(ExperienceNode, { whyDidYouRender: true });

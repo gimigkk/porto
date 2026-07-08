@@ -1,7 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useEffect, useCallback, useState, Suspense, useRef } from "react";
+import { useEffect, useCallback, useState, useRef, useSyncExternalStore } from "react";
 import { useLenis } from "lenis/react";
 import NProgress from "nprogress";
 import Image from "next/image";
@@ -10,6 +9,46 @@ import { Gamepad2, ExternalLink } from "lucide-react";
 import type { ProjectMeta } from "@/lib/projects";
 import BackToTop from "@/components/shared/BackToTop";
 import TechIcon from "@/components/shared/TechIcon";
+import LangToggle from "@/components/shared/LangToggle";
+
+const subscribeToProjectSlug = (callback: () => void) => {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("popstate", callback);
+  window.addEventListener("project-modal-changed", callback);
+  return () => {
+    window.removeEventListener("popstate", callback);
+    window.removeEventListener("project-modal-changed", callback);
+  };
+};
+
+const getProjectSlugSnapshot = () => {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  return params.get("project");
+};
+
+const getServerSnapshot = () => null;
+
+function useProjectSlug() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has("project")) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("project");
+        History.prototype.replaceState.apply(window.history, [null, "", url.toString()]);
+      }
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+  }, []);
+
+  const slug = useSyncExternalStore(subscribeToProjectSlug, getProjectSlugSnapshot, getServerSnapshot);
+  return isMounted ? slug : null;
+}
+
 
 /* -- Preload all MDX components at module level -------------- */
 const mdxModules: Record<string, React.ComponentType> = {};
@@ -84,7 +123,7 @@ function TableOfContents({ accent, slug }: { accent: string; slug: string }) {
   if (headings.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-4 p-6 rounded-xl bg-zinc-800/20">
+    <div className="flex flex-col gap-4 p-5 rounded-lg bg-zinc-800/20">
       <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Contents</h3>
       <nav className="flex flex-col gap-3">
         {headings.map((heading) => (
@@ -150,9 +189,8 @@ function ArticleSkeleton() {
   );
 }
 
-function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
-  const searchParams = useSearchParams();
-  const slug = searchParams.get("project");
+export default function ClientProjectModal({ projects: allProjects }: { projects: ProjectMeta[] }) {
+  const slug = useProjectSlug();
   const lenis = useLenis();
 
   const [Post, setPost] = useState<React.ComponentType | null>(null);
@@ -216,8 +254,12 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
   }, [isAnimating, lenis]);
 
   const close = useCallback(() => {
-    window.history.pushState(null, "", window.location.pathname);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("project");
+      History.prototype.pushState.apply(window.history, [null, "", url.toString()]);
+      window.dispatchEvent(new Event("project-modal-changed"));
+    }
   }, []);
 
   // Handle escape key
@@ -293,8 +335,9 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
     if (currentIndex < 0) return;
     const nextIdx = (currentIndex + 1) % totalProjects;
     const nextSlug = allProjects[nextIdx].slug;
-    window.history.pushState(null, "", `?project=${nextSlug}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    const newUrl = (typeof window !== "undefined" ? window.location.pathname : "/") + "?project=" + nextSlug;
+    History.prototype.pushState.apply(window.history, [null, "", newUrl]);
+    window.dispatchEvent(new Event("project-modal-changed"));
   };
 
   const prevProject = (e: React.MouseEvent) => {
@@ -302,8 +345,9 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
     if (currentIndex < 0) return;
     const prevIdx = (currentIndex - 1 + totalProjects) % totalProjects;
     const prevSlug = allProjects[prevIdx].slug;
-    window.history.pushState(null, "", `?project=${prevSlug}`);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    const newUrl = (typeof window !== "undefined" ? window.location.pathname : "/") + "?project=" + prevSlug;
+    History.prototype.pushState.apply(window.history, [null, "", newUrl]);
+    window.dispatchEvent(new Event("project-modal-changed"));
   };
 
   return (
@@ -474,9 +518,10 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
 
               {/* Right: Fixed Sidebar (Scrolls independently if content overflows) */}
               <aside className="w-full lg:w-72 xl:w-80 h-auto lg:h-full shrink-0 bg-zinc-950 overflow-y-auto no-scrollbar mr-12" data-lenis-prevent="true">
-                <div className="p-6 sm:p-8 flex flex-col gap-4 pb-12 animate-slide-up-fade" style={{ opacity: 0, animationDelay: "200ms" }}>
+                <div className="p-6 sm:p-8 pt-12 sm:pt-16 flex flex-col gap-3 pb-12 animate-slide-up-fade" style={{ opacity: 0, animationDelay: "200ms" }}>
+                  <LangToggle />
                   {/* Metadata Section */}
-                  <div className="flex flex-col gap-6 p-6 rounded-xl bg-zinc-800/20 mt-8">
+                  <div className="flex flex-col gap-5 p-5 rounded-lg bg-zinc-800/20">
                     <div>
                       <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-2">Category</h3>
                       <p className="text-sm font-medium text-zinc-200">{project.category}</p>
@@ -549,12 +594,5 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
       </div>
     </div>
   );
-}
 
-export default function ClientProjectModal({ projects }: { projects: ProjectMeta[] }) {
-  return (
-    <Suspense fallback={null}>
-      <ProjectModalContent allProjects={projects} />
-    </Suspense>
-  );
 }

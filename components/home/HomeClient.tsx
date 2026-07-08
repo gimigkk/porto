@@ -8,14 +8,12 @@ import SkyBackground from "@/components/layout/SkyBackground";
 import HeroContent from "@/components/home/sections/hero/HeroContent";
 import HeroIntroText from "@/components/home/sections/hero/HeroIntroText";
 import BrowserWarning from "@/components/home/sections/hero/BrowserWarning";
-import dynamic from "next/dynamic";
+import { LanguageProvider } from "@/components/providers/LanguageProvider";
 import StackedSections from "@/components/layout/StackedSections";
 import BackToTop from "@/components/shared/BackToTop";
 import type { ProjectMeta } from "@/lib/projects";
 import type { GithubGraphDay } from "@/lib/github";
-
-const importClientProjectModal = () => import("@/components/home/sections/projects/ClientProjectModal");
-const ClientProjectModal = dynamic(importClientProjectModal, { ssr: false });
+import ClientProjectModal from "@/components/home/sections/projects/ClientProjectModal";
 
 // IMPORT: Loading Cormorant Garamond for the stylish accent
 
@@ -68,10 +66,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   const [ctaReady, setCtaReady] = useState(false);
   const [firstFrameRendered, setFirstFrameRendered] = useState(false);
 
-  // Proactively fetch heavy chunks during loading screen
-  useEffect(() => {
-    importClientProjectModal().catch(() => { });
-  }, []);
+
 
   // Detect mobile and update on resize
   const [isMobile, setIsMobile] = useState(false);
@@ -184,7 +179,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   }, []);
 
   return (
-    <>
+    <LanguageProvider>
       <main className="w-full min-h-svh bg-[#141416]">
 
         {/* Hero height via CSS transition — starts 100svh, shrinks to 95/70svh on Phase 2 */}
@@ -288,6 +283,6 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
           <BackToTop />
         </div>
       </main>
-    </>
+    </LanguageProvider>
   );
 }

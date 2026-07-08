@@ -16,27 +16,87 @@ export const metadata = {
   weight: 1,
 };
 
-## The Problem: Schedule Gridlock
-I saw students stuck with bad schedules. Manual swapping in group chats was slow and error-prone.
+<Trans lang="en">
 
-## The Solution: Seamless Auto-Matching
-I built **KRSwitch** as smart trading floor. Students list owned class and desired class.
+## The Problem
+Getting stuck with a terrible class schedule is the worst. Students were trying to swap classes manually in massive WhatsApp groups, which was chaotic, slow, and mostly based on luck. People were constantly getting sniped or losing track of who wanted what.
 
-I engineered platform to handle negotiations instantly. When I detect mutual match, system locks swap automatically. Both parties get ideal timetable. Zero friction.
+## The Solution
+I built **KRSwitch**, a platform that acts like a stock exchange for college schedules.
 
-## My Impact
-- **Zero Friction:** I eliminated manual negotiations.
-- **Fairness Guarantee:** I implemented atomic swaps. No double-booking.
-- **Administrative Relief:** I built operator dashboard for staff. They monitor telemetry and execute overrides.
+Students just log in, pick the class they have, and pick the class they actually want. Instead of hunting for a trading partner, the system does it for them. The moment two students want each other's schedules, it instantly locks the match and executes the swap.
 
----
+## How the WebSocket Engine Works
+Because class availability changes by the millisecond during registration, I had to make sure the data was always live. I built a real-time event system using Socket.IO so users see availability updates the exact moment they happen.
 
-## My Design Choices
-I chose utilitarian UI focus. For light mode, I used Microsoft Excel aesthetic. Prioritizes data density. For dark mode, I used Stockbit aesthetic. Sleek high-contrast environment for real-time monitoring.
+</Trans>
 
-## How I Built It
-I designed engine for highly sensitive concurrent transactions.
-- **Real-Time Bidding:** I integrated Socket.IO. Schedule availability changes instantly.
-- **Atomic Matchmaking:** I wrapped swaps in PostgreSQL transactions. Prevents overlapping classes.
-- **Fluid Interface:** I optimized React frontend with state batching and linear interpolation. Maintains 60fps under load.
-- **Database Modeling:** I used Prisma ORM. Simplifies complex relationships into readable schemas.
+<Trans lang="id">
+
+## Masalahnya
+Dapet jadwal kuliah yang jelek itu emang paling nyebelin. Mahasiswa biasanya nyoba tukeran kelas manual lewat grup angkatan di WhatsApp, yang pastinya kacau, lambat, dan hoki-hokian. Sering banget udah nemu yang pas tapi keduluan orang, atau pusing sendiri nyari siapa yang mau nuker.
+
+## Solusinya
+Kita ngebangun **KRSwitch**, platform yang cara kerjanya mirip bursa saham tapi buat jadwal kuliah.
+
+Mahasiswa tinggal login, pilih kelas yang mereka dapet, dan pilih kelas yang sebenernya mereka mau. Daripada ribet nyari partner tukeran, sistem yang bakal nyariin. Begitu ada dua mahasiswa yang jadwalnya saling cocok, sistem langsung ngunci *match*-nya dan ngeksekusi penukarannya secara otomatis.
+
+## Cara Kerja Mesin WebSocket
+Karena slot kelas bisa berubah dalam hitungan milidetik pas masa KRS, kita harus mastiin datanya bener-bener *live*. Kita bikin sistem event real-time pake Socket.IO biar pengguna bisa liat update ketersediaan tepat di detik kejadiannya.
+
+</Trans>
+
+```mermaid
+sequenceDiagram
+    participant P1 as Student A
+    participant WS as Socket.IO Server
+    participant DB as PostgreSQL
+    participant P2 as Student B
+
+    Note over P1,WS: TCP Connection stays open (ws://)
+    
+    P1->>WS: Emit: "List Swap (Has Math, Wants Physics)"
+    WS->>DB: Insert Bid (Atomic)
+    WS-->>P1: Ack: Listing Active
+    WS-->>P2: Broadcast: "Math is available!"
+    
+    P2->>WS: Emit: "Accept Swap (Has Physics, Wants Math)"
+    WS->>DB: Execute Atomic Swap Transaction
+    DB-->>WS: Transaction Successful
+    
+    Note over WS: Full-Duplex Push
+    WS-->>P1: Push Event: "Swap Matched!"
+    WS-->>P2: Push Event: "Swap Matched!"
+```
+
+<Trans lang="en">
+
+## Why I Built It This Way
+I needed the platform to handle high concurrency without breaking a sweat. 
+
+For the backend, the matchmaking had to be bulletproof. I wrapped the swapping logic in PostgreSQL atomic transactions. This guarantees that if two people try to claim the last spot at the exact same millisecond, only one goes through. Zero chance of double-booking.
+
+For the frontend, I skipped the flashy animations. The light mode looks like Microsoft Excel because it needed extreme data density, and the dark mode looks like a crypto trading terminal for late-night schedule sniping.
+
+Other technical details:
+- **State Batching**: The React frontend is heavily optimized so that live Socket.IO events don't cause the UI to stutter.
+- **Prisma ORM**: The database schema was pretty complex, so Prisma kept the backend readable and strongly typed.
+- **Admin Dashboard**: I added an operator view so university staff can monitor the swaps and manually override things if something goes wrong.
+
+</Trans>
+
+<Trans lang="id">
+
+## Kenapa Dibangun Kayak Gini
+Kita butuh platform yang bisa nanganin *traffic* super tinggi tanpa nge-lag sedikitpun.
+
+Untuk backend, sistem *matchmaking*-nya harus kebal dari error. Kita ngebungkus logika tukerannya pake transaksi atomik di PostgreSQL. Ini ngejamin kalo misalnya ada dua orang yang rebutan sisa satu slot di milidetik yang sama persis, cuma satu yang bakal masuk. Nol kemungkinan *double-booking*.
+
+Untuk frontend, kita skip animasi-animasi lebay. *Light mode*-nya keliatan kayak Microsoft Excel karena butuh kepadatan data yang ekstrem, dan *dark mode*-nya dibikin mirip terminal *trading crypto* buat sensasi *sniping* jadwal tengah malem.
+
+Detail teknis lainnya:
+- **State Batching**: Frontend React kita optimasi habis-habisan biar event Socket.IO yang masuk bertubi-tubi gak bikin UI-nya patah-patah.
+- **Prisma ORM**: Skema database-nya lumayan ribet, jadi Prisma ngebantu banget ngejaga backend tetep rapi dan *strongly typed*.
+- **Dashboard Admin**: Kita nambahin tampilan buat operator biar staf kampus bisa mantau proses tukeran dan ngelakuin *override* manual kalo ada yang error.
+
+</Trans>

@@ -3,10 +3,12 @@ import type { MDXComponents } from "mdx/types";
 import React from "react";
 
 const MermaidDiagram = dynamic(() => import("./components/shared/MermaidDiagram"), { ssr: false });
+import { Trans } from "@/components/providers/LanguageProvider";
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
+    Trans,
     img: ({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
       const isVideo = typeof src === "string" && (src.endsWith(".mp4") || src.endsWith(".webm"));
       if (isVideo) {
@@ -18,7 +20,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
             muted
             playsInline
             className="w-full rounded-xl border border-zinc-800/50 my-8 shadow-2xl bg-zinc-900/50"
-            {...(props as any)}
+            {...(props as React.VideoHTMLAttributes<HTMLVideoElement>)}
           />
         );
       }

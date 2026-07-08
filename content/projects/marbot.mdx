@@ -1,99 +1,130 @@
 export const metadata = {
-  title: "MARBOT Academic Assistant",
+  title: "Marbot",
   slug: "marbot",
   description:
-    "An intelligent WhatsApp bot built in Rust that automatically extracts, organizes, and reminds students about academic assignments using a multi-tier AI fallback pipeline.",
-  stack: ["rust", "postgres", "docker", "whatsapp", "gemini", "groq"],
+    "An intelligent WhatsApp assistant built in Rust that extracts, organizes, and reminds students about academic assignments using a resilient AI pipeline.",
+  stack: ["rust", "whatsapp", "docker", "supabase"],
   year: "2026",
   category: "AI Backend Systems",
   accent: "#f74c00",
-  thumbnail: "/projects/marbot/thumbnail.png",
+  thumbnail: "/projects/marbot/marbot.mp4",
+  github: "https://github.com/gimigkk/marbot-academic-bot",
+  weight: 0,
 };
 
-# Revolutionizing Academic Task Management
+<Trans lang="en">
 
-## The Chaos of Academic Group Chats
-University WhatsApp groups are a relentless stream of noise. Amidst hundreds of messages, critical announcements about homework, quizzes, and shifting deadlines inevitably get buried. Trying to manually filter the signal from the noise is a frustrating bottleneck that wastes time and causes unnecessary stress at the start of every semester.
+## The Problem
+My university WhatsApp groups were a mess. Important stuff like assignments and deadlines would constantly get buried under hundreds of random chat messages. I was tired of scrolling for hours just to figure out what homework I had, and people were missing deadlines left and right.
 
-## The Solution: An Autonomous AI Oracle
-**MARBOT** is an intelligent WhatsApp assistant that sits directly in these group chats, passively listening to incoming messages. When a lecturer or class representative posts an announcement, MARBOT instantly extracts the assignment details, filters them based on the student's enrolled class sections (`#setkelas`), and logs them into a centralized database. Students can then message the bot privately to get their personalized `#todo` list or receive automated daily reminders.
+## The Solution
+I built **Marbot**, a WhatsApp bot that just sits in these groups and quietly listens. 
 
-It includes a **multi-tier AI fallback system**. If one provider fails, the bot automatically routes to another so assignments are never missed.
+Whenever a PJ drops an assignment, Marbot catches it, figures out what it's about, checks which class it belongs to, and saves it to a Supabase database. Instead of digging through group chats, students just DM the bot to see their personal to-do list.
 
-![MARBOT in Action](/projects/marbot/bot-demo.gif)
+## Features & Commands
+I wanted the bot to feel completely frictionless: no apps to download, just WhatsApp.
 
----
+### For Students
+- **`#setkelas [class_codes]`**: Tell the bot which classes you're taking (like `#setkelas K1 P2`). It'll only bother you with relevant assignments.
+- **`#todo`**: Get a clean, sorted list of everything you need to do.
+- **`#done [id]`**: Check off an assignment so it stops bugging you.
+- **`#add` / `#edit` / `#delete`**: Manage tasks manually if the bot missed something or someone made a typo.
+- **`#stats`**: Check your completion rate.
+- **`#help`**: See all commands.
 
-# Under the Hood: Hardcore Engineering
+### Under the Hood
+- **Passive Listening**: It reads the group chat naturally, you don't even need to tag it.
+- **Morning Reminders**: Every day at 7:00 AM, it sends a quick summary of what's due soon.
+- **Auto-Clarification**: If a PJ forgets to include a deadline, the bot literally replies to them in the group asking for it. When they answer, it updates the database.
 
-MARBOT is not just a simple webhook wrapper; it is a highly resilient, heavily optimized **Rust** backend designed for maximum reliability under complex constraints.
+</Trans>
 
-## Architecture Overview
+
+<Trans lang="id">
+
+## Masalahnya
+Grup WhatsApp kampus kita berantakan banget. Info penting kayak tugas dan deadline sering ketimbun ratusan chat random. Kita capek harus scroll berjam-jam cuma buat nyari tau ada PR apa aja, dan banyak banget orang yang kelewatan deadline.
+
+## Solusinya
+Kita ngebangun **Marbot**, bot WhatsApp yang cuma diem aja di grup-grup angkatan sambil ngedengerin. 
+
+Setiap kali ada PJ yang ngasih tugas, Marbot langsung nangkep, nyari tau ini tugas apaan, ngecek ini buat kelas mana, terus nyimpen ke database Supabase. Alih-alih ngorek-ngorek grup chat, mahasiswa tinggal nge-DM botnya buat ngeliat daftar tugas pribadi mereka.
+
+## Fitur & Command
+Kita pengen bot ini kerasa praktis banget: gak perlu download aplikasi, cukup lewat WhatsApp.
+
+### Untuk Mahasiswa
+- **`#setkelas [kode_kelas]`**: Ngasih tau bot kelas apa aja yang lo ambil (misal `#setkelas K1 P2`). Bot cuma bakal ngabarin tugas yang relevan sama kelas lo.
+- **`#todo`**: Dapet daftar semua hal yang perlu lo kerjain dengan rapi dan terurut.
+- **`#done [id]`**: Nyentang tugas biar botnya berhenti ngingetin lo.
+- **`#add` / `#edit` / `#delete`**: Ngatur tugas manual kalo botnya kelewatan sesuatu atau ada yang salah ketik.
+- **`#stats`**: Ngecek seberapa rajin lo ngerjain tugas.
+- **`#help`**: Liat semua command.
+
+### Di Balik Layar
+- **Pasif Ngedengerin**: Dia baca grup chat secara natural, lo gak perlu nge-tag.
+- **Reminder Pagi**: Setiap hari jam 7:00 pagi, dia ngirim rangkuman singkat tugas apa aja yang deadline-nya deket.
+- **Auto-Klarifikasi**: Kalo ada PJ yang lupa ngasih deadline, botnya bakal bener-bener nge-reply di grup nanya deadline-nya kapan. Begitu dijawab, dia langsung update databasenya.
+
+</Trans>
+
+
+## How It Works
 
 ```mermaid
 graph TD
-    WA["WhatsApp Groups (WAHA API)"]
-    Axum["Axum Webhook Handler\n(Deduplication & Spam Tracking)"]
-    DB[("PostgreSQL\n(SQLx)")]
-    
-    subgraph AI Pipeline
-        Context["Context Builder\n(Sender History & Schedule Oracle)"]
-        Fallback["Multi-Tier AI Fallback\n(Gemini -> Groq)"]
-        DupCheck["Semantic Duplicate Detection"]
-        Clarify["Clarification Engine\n(Missing Fields)"]
-    end
-    
-    subgraph Background Services
-        Cron["Cron Scheduler\n(Daily Reminders)"]
-        Dash["Web Dashboard\n(Job Stream & Analytics)"]
+    %% Shared Resources
+    D[(Supabase DB)]
+
+    subgraph Admin Flow
+        A[PJ posts assignment] --> B(Marbot reads it)
+        B --> C{AI Extraction}
+        C -->|Missing Info| E[Bot asks for clarification]
+        E --> F[PJ replies]
+        F --> C
     end
 
-    WA -->|Message Event| Axum
-    Axum --> Context
-    Context --> Fallback
-    Fallback --> DupCheck
-    DupCheck -.-> Clarify
-    DupCheck --> DB
-    
-    DB --> Cron
-    Cron -->|Personal PMs| WA
-    Axum -.->|Job Stream| Dash
+    %% Admin to DB link
+    C -->|Data Complete| D
+
+    subgraph Student Flow
+        G[Student DMs Marbot] --> H[Registers via #setkelas]
+        H --> I[Asks for #todo]
+        I --> J[Gets personal task list]
+        K[Gets 7 AM reminders]
+    end
+
+    %% DB to Student links
+    D -.->|Syncs Data| I
+    D -.->|Cron @ 07:00 AM| K
 ```
 
-## AI Model Orchestration with Progressive Fallback
-To ensure 99.9% uptime for message extraction, the system implements a four-tier cascading AI pipeline. If a model fails due to rate limits or invalid JSON parsing, it automatically falls back to the next tier, managed by an exponential backoff countdown (10s × attempt number):
+<Trans lang="en">
 
-1. **Gemini Flash (Vision):** Triggered for image attachments.
-2. **Gemini Flash (Text):** Primary classification engine.
-3. **Groq DeepSeek R1:** Reasoning fallback if Gemini is exhausted.
-4. **Groq Llama:** Standard processing final attempt.
+## Why I Built It This Way
+I wrote the backend in Rust because I wanted it to be fast and not crash randomly. Since this handles everyone's homework, reliability was a big deal. 
 
-## Context-Aware Message Classification
-Raw messages often lack context (e.g., "Don't forget to submit it by tomorrow"). Before classification, MARBOT builds a rich context object:
-- **Regex Parallel Extraction:** Pulls class parallel codes (e.g., K1, P2) directly from text using `(?i)\b([kprs][1-4])\b`.
-- **Message Quoting:** Looks up the parent message ID in the database to resolve conversational threads.
-- **Sender History Scoring:** Uses a hybrid algorithm `(frequency × recency_weight) × context_boost` to guess the relevant course based on the sender's past announcements.
-- **Schedule Oracle:** Resolves ambiguous phrases like "ketika praktikum" (during lab) by loading `schedule.json` and performing timezone-aware (WIB/GMT+7) date math to find the exact next physical meeting time.
+The biggest challenge was the AI limits. Free AI APIs drop requests all the time, so I built a fallback system: if Gemini fails, it immediately tries Groq (DeepSeek/Llama). It literally won't stop until the assignment is safely in the database.
 
-This pre-computation injects heavily refined context into the prompt, **reducing AI hallucinations by 60%** compared to raw LLM processing.
+Other technical details:
+- **Duplicate Checks**: People forward the same announcement multiple times. I added a filter to catch duplicates so the database doesn't get spammed.
+- **SQLx in Rust**: This catches database query errors while compiling, which saved me from a lot of runtime crashes.
+- **Live Dashboard**: I made a simple web dashboard using Rust's `mpsc` channels to watch the bot's logs in real-time and make sure the AI fallbacks are working.
 
-## Semantic Duplicate Detection
-To prevent the database from filling up with duplicates when multiple people forward the same announcement, the bot uses a strict two-phase check:
-1. **Heuristic Filtering:** Fast in-memory checks matching course identities, parallel set intersections, sequential numbering extraction, and word overlap thresholds (Jaccard similarity > 0.2).
-2. **AI Verification:** The remaining candidates (max 3) go through an AI decision tree (e.g., "Quiz 2" after "Quiz 1" is not a duplicate, but the same assignment with overlapping parallels is). Only `high-confidence` matches trigger an SQL `UPDATE` instead of an `INSERT`.
+</Trans>
 
-## Clarification Request System
-When essential fields are missing from an announcement, MARBOT doesn't just give up. It generates a clarification prompt tailored to the missing data, embedding the assignment UUID in the chat. When the user replies, the Clarification Engine parses natural language responses (handling relative dates like "besok" or "lusa" and time keywords) and updates the draft.
 
-## Compile-Time SQL Verification
-MARBOT leverages Rust's `sqlx` crate to validate SQL queries against the live database schema **during compilation**. This hybrid approach guarantees type-safe query results, completely eliminating runtime syntax errors or mismatched types, while still allowing dynamic runtime parameter binding for complex filters.
+<Trans lang="id">
 
-## Real-Time Web Dashboard
-Every webhook creates a structured Job Entry that tracks its lifecycle (started, countdowns, AI model being tried). This state is streamed via `mpsc` channels to a custom web dashboard. 
+## Kenapa Dibangun Kayak Gini
+Kita nulis backend-nya pake Rust karena kita pengen ini kenceng dan gak gampang nge-crash. Karena ini ngurusin tugas sekampus, keandalan (reliability) itu penting banget. 
 
-The dashboard provides real-time visibility into the system's health, allowing admins to monitor active jobs, view extraction analytics, and oversee the cascading AI fallbacks as they happen in production without needing to check server logs manually.
+Tantangan terbesarnya ada di limit AI. API AI gratisan sering banget nge-drop request, jadi kita bikin sistem *fallback*: kalo Gemini gagal, dia bakal langsung nyoba Groq (DeepSeek/Llama). Dia bener-bener gak bakal berhenti sebelum tugasnya aman masuk database.
 
-## Production Resilience
-- **Prebuilt Binary Workflow:** CI/CD builds the Rust binary inside a `rust:1.92-slim-bookworm` Docker container to ensure exact GLIBC compatibility with the Debian VPS, avoiding messy dynamic library mismatches during deployment.
-- **GitHub Actions Binary Caching:** Uses three-tier cache hierarchies (OS + lock hash + Cargo.toml hash) to reduce incremental compilation times from 8 minutes down to ~2 minutes on a cache hit.
-- **Client-Side Timers:** During network drops, the dashboard preserves exponential countdowns client-side to prevent the UI from freezing.
+Detail teknis lainnya:
+- **Cek Duplikat**: Orang-orang sering nge-forward pengumuman yang sama berkali-kali. Kita nambahin filter buat nangkep duplikat biar databasenya gak kena spam.
+- **SQLx di Rust**: Ini nangkep error *query* database pas lagi *compile*, yang nyelamatin kita dari banyak banget crash pas *runtime*.
+- **Live Dashboard**: Kita bikin web dashboard simpel pake *channel* `mpsc` Rust buat mantau *log* bot secara *real-time* dan mastiin *fallback* AI-nya jalan bener.
+
+</Trans>

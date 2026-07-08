@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 // Initialize outside component so it runs before React renders children
 if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
   // Prevent double initialization during HMR
-  if (!(React as any).__REDUX_DEVTOOLS_EXTENSION__ && !(window as any).wdyrInitialized) {
-    (window as any).wdyrInitialized = true;
+  if (!(React as Record<string, unknown>).__REDUX_DEVTOOLS_EXTENSION__ && !(window as Window & { wdyrInitialized?: boolean }).wdyrInitialized) {
+    (window as Window & { wdyrInitialized?: boolean }).wdyrInitialized = true;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const whyDidYouRender = require("@welldone-software/why-did-you-render");
     whyDidYouRender(React, {
       trackAllPureComponents: true,

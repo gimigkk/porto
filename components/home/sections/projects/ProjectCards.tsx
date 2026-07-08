@@ -84,8 +84,9 @@ export default function ProjectCards({
             {/* Main Card */}
             <div
               onClick={() => {
-                window.history.pushState(null, "", `?project=${project.slug}`);
-                window.dispatchEvent(new PopStateEvent("popstate"));
+                const url = window.location.pathname + "?project=" + project.slug;
+                History.prototype.pushState.apply(window.history, [null, "", url]);
+                window.dispatchEvent(new Event("project-modal-changed"));
               }}
               className="relative z-10 flex flex-col md:justify-end md:aspect-video md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:border-zinc-400/45 md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] border border-transparent"
               style={{ willChange: "transform" }}
