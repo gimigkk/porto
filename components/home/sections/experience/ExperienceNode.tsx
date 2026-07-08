@@ -9,11 +9,10 @@ interface Props {
   item: ExperienceItem;
   index: number;
   total: number;
-  isTopNodeVisual?: boolean;
   isInView?: boolean;
 }
 
-export function ExperienceNode({ item, index, total, isTopNodeVisual, isInView }: Props) {
+export function ExperienceNode({ item, index, total, isInView }: Props) {
   const { showTooltip, hideTooltip } = useTooltip();
   const isTop = index % 2 === 0;
 
@@ -23,9 +22,7 @@ export function ExperienceNode({ item, index, total, isTopNodeVisual, isInView }
   // Pole length ranges from 48px to 144px based on impressiveness
   const poleHeight = 48 + ((item.impressiveness - 1) / 9) * 96;
 
-  // Calculate distance from dot center to separator center
-  // poleHeight + 12px (gap) + 24px (half of 48px separator)
-  const translateDistance = 36 + poleHeight;
+
 
   return (
     <div

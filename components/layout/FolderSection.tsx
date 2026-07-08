@@ -54,7 +54,7 @@ export default function FolderSection({
     }
   };
 
-  const TabContent = () => (
+  const renderTabContent = () => (
     <button
       onClick={handleTabClick}
       className="relative w-40 h-8 sm:w-55 sm:h-11 md:w-80 md:h-16 -mt-3 sm:-mt-4 md:-mt-6 flex items-center justify-center z-10 focus:outline-none cursor-pointer"
@@ -91,17 +91,17 @@ export default function FolderSection({
             <div className="flex w-full max-w-350 mx-auto h-5 sm:h-7 md:h-10 px-0 sm:px-2 md:px-1.25">
               {/* Left Tab Slot */}
               <div className="flex-1 flex items-end">
-                {tabPosition === "left" && <TabContent />}
+                {tabPosition === "left" && renderTabContent()}
               </div>
 
               {/* Center Tab Slot */}
               <div className="flex-1 flex items-end justify-center">
-                {tabPosition === "center" && <TabContent />}
+                {tabPosition === "center" && renderTabContent()}
               </div>
 
               {/* Right Tab Slot */}
               <div className="flex-1 flex items-end justify-end">
-                {tabPosition === "right" && <TabContent />}
+                {tabPosition === "right" && renderTabContent()}
               </div>
             </div>
           </div>

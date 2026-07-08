@@ -67,6 +67,7 @@ export function TooltipRenderer() {
   }, [cursorX, cursorY, offsetX, offsetY]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     
     const handleMouseMove = (e: MouseEvent) => {

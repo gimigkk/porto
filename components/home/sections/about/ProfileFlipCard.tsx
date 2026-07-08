@@ -25,6 +25,7 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
   const rafPending = useRef(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobile(window.matchMedia("(hover: none) and (pointer: coarse)").matches);
   }, []);
 

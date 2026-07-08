@@ -103,7 +103,6 @@ export default function TechIcon({
       className={className}
       fill="currentColor"
       aria-label={title ?? icon.title}
-      // eslint-disable-next-line react/no-danger
       dangerouslySetInnerHTML={{ __html: inner }}
     />
   );

@@ -98,7 +98,7 @@ export class AsciiRenderer {
     this.cachedDpr = this.getEffectiveDpr();
   }
 
-  getEffectiveDpr(isIntro = false): number {
+  getEffectiveDpr(): number {
     // Cap DPR at 2.0 — at cellSize=8, 2x renders 16px glyphs
     // vs 12px at 1.5x. 2x is enough for retina crispness without
     // paying 3x+ fill rate cost.
@@ -209,7 +209,7 @@ export class AsciiRenderer {
     if (W === 0 || H === 0) return;
 
     const t   = (now - startTime) / 1000;
-    const dpr = this.getEffectiveDpr(isIntro);
+    const dpr = this.getEffectiveDpr();
 
     const PW   = Math.round(W * dpr);
     const PH   = Math.round(H * dpr);

@@ -125,6 +125,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (pathname !== "/") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIntroCollapsed(false);
       return;
     }
@@ -143,7 +144,10 @@ export default function Navbar() {
   const [navVisible, setNavVisible] = useState(true);
   const lastScrollYRef = useRef<number>(0);
   const menuStateRef = useRef({ mobileMenuOpen, gimigkkPanelOpen, hoveredIndex });
-  menuStateRef.current = { mobileMenuOpen, gimigkkPanelOpen, hoveredIndex };
+  
+  useEffect(() => {
+    menuStateRef.current = { mobileMenuOpen, gimigkkPanelOpen, hoveredIndex };
+  }, [mobileMenuOpen, gimigkkPanelOpen, hoveredIndex]);
 
   const isNavbarOn = navVisible && !introCollapsed;
 

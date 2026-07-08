@@ -13,7 +13,7 @@ export async function getGithubGraph(): Promise<GithubGraphDay[][]> {
     });
     const html = await res.text();
     
-    let tds: Record<string, any> = {};
+    const tds: Record<string, { date: string; level: number; count: number; text: string; }> = {};
     for (const match of html.matchAll(/<td([^>]+)><\/td>/g)) {
         const idMatch = match[1].match(/id="([^"]+)"/);
         const dateMatch = match[1].match(/data-date="([^"]+)"/);
@@ -50,7 +50,7 @@ export async function getGithubGraph(): Promise<GithubGraphDay[][]> {
     }
     
     if (weeks.length === 0) throw new Error("No data");
-  } catch (err) {
+  } catch {
     weeks = Array.from({length: 26}, () => Array(7).fill({ level: 0, text: "No contributions" }));
   }
   return weeks;

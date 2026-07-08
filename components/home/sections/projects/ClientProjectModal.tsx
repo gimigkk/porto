@@ -167,7 +167,11 @@ function ProjectModalContent({ allProjects }: { allProjects: ProjectMeta[] }) {
     if (!slug) {
       NProgress.start();
       // Start exit animation
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAnimating(false);
+      setIsOpen(false);
+      setPost(null);
+      setProject(null);
       if (lenis) lenis.start();
       document.body.style.overflow = "";
 

@@ -26,6 +26,7 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 	// Detect mobile viewport — never touch desktop path
 	useEffect(() => {
 		const mq = window.matchMedia("(max-width: 768px)");
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		setIsMobile(mq.matches);
 		const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
 		mq.addEventListener("change", handler);
@@ -48,16 +49,13 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 	useEffect(() => {
 		if (!isMobile) return;
 
-		let cachedTop = 0;
-		let cachedHeight = 0;
+
 		let cachedVh = 0;
 		const el = containerRef.current;
 
 		const updateMetrics = () => {
 			if (!el) return;
-			const rect = el.getBoundingClientRect();
-			cachedTop = rect.top + window.scrollY;
-			cachedHeight = rect.height;
+			el.getBoundingClientRect();
 			cachedVh = window.innerHeight;
 		};
 
@@ -97,7 +95,7 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 			window.removeEventListener("scroll", onScroll);
 			window.removeEventListener("resize", updateMetrics);
 		};
-	}, [lenis, isMobile, mobileProgress]);
+	}, [lenis, isMobile, mobileProgress, mobileAboutFade, mobileExpFade]);
 
 	return (
 		/* FIXED: Pulled up by -mt-[56px] to hide the light blue behind the rounded corners */

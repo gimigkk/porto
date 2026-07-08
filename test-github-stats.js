@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const https = require('https');
 
 https.get('https://github.com/users/gimigkk/contributions', (res) => {

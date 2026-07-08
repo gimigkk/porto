@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { usePreloader } from "@/hooks/usePreloader";
 import LoadingScreen from "@/components/home/LoadingScreen";
@@ -18,12 +18,13 @@ const importClientProjectModal = () => import("@/components/home/sections/projec
 const ClientProjectModal = dynamic(importClientProjectModal, { ssr: false });
 
 // IMPORT: Loading Cormorant Garamond for the stylish accent
-import { Cormorant_Garamond } from 'next/font/google';
+
 
 /** Firefox CPU-backend backdrop-filter — remove from DOM entirely */
 function BlurStack() {
   const [isFirefox, setIsFirefox] = useState<boolean | null>(null);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsFirefox(navigator.userAgent.includes("Firefox"));
   }, []);
   // Hydration: SSR renders blur, first client paint shows it.
@@ -53,12 +54,6 @@ function BlurStack() {
   );
 }
 
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  style: ['italic'],
-  weight: ['600'],
-  display: 'swap',
-});
 
 interface HomeClientProps {
   projects: ProjectMeta[];
@@ -70,7 +65,6 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   const [loadingComplete, setLoadingComplete] = useState(false);
   const [introComplete, setIntroComplete] = useState(false);
   const [foldersReady, setFoldersReady] = useState(false);
-  const [cloudsReady, setCloudsReady] = useState(false);
   const [ctaReady, setCtaReady] = useState(false);
   const [firstFrameRendered, setFirstFrameRendered] = useState(false);
 
@@ -87,8 +81,9 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
 
   useEffect(() => {
     const mobileMatch = window.matchMedia('(max-width: 768px)').matches;
-    const chromeMatch = !!(window as any).chrome;
+    const chromeMatch = !!(window as Window & { chrome?: unknown }).chrome;
     
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobile(mobileMatch);
     setIsChromium(chromeMatch);
 
@@ -120,14 +115,13 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
     if (!introComplete) return;
 
     // 1 & 2. SVG and Nav+Folders trigger immediately
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFoldersReady(true);
-    // 3. Clouds after 400ms
-    const t2 = setTimeout(() => setCloudsReady(true), 400);
-    // 4. CTA + Subtext after 700ms total
+    
+    // 3. CTA + Subtext after 700ms total
     const t3 = setTimeout(() => setCtaReady(true), 700);
 
     return () => {
-      clearTimeout(t2);
       clearTimeout(t3);
     };
   }, [introComplete]);
@@ -151,6 +145,10 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
 
   const handleIntroComplete = useCallback(() => {
     // no-op — kept for clouds callback compatibility
+  }, []);
+
+  const handleFirstFrameRendered = useCallback(() => {
+    setFirstFrameRendered(true);
   }, []);
 
   // Prevent browser scroll restoration on refresh and start at top
@@ -206,7 +204,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
               isReady={isReady} // Start immediately behind loading screen
               preloadedAssets={assets}
               onIntroComplete={handleIntroComplete}
-              onFirstFrameRendered={() => setFirstFrameRendered(true)}
+              onFirstFrameRendered={handleFirstFrameRendered}
               heroHeight={heroHeight}
               isMobile={isMobile}
             />

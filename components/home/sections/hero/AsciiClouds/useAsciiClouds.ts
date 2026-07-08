@@ -272,7 +272,7 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       window.removeEventListener("scroll", onScrollVisibility);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [isReady, preloadedAssets]);
+  }, [isReady, preloadedAssets, onFirstFrameRendered, onIntroComplete, progressRef]);
 
   return canvasRef;
 }

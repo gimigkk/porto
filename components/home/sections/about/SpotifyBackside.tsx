@@ -92,6 +92,7 @@ export default function SpotifyBackside() {
       ...randomTrack,
       progressMs: Math.floor(Math.random() * (randomTrack.durationMs || 100000))
     };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setData(randomizedTrack);
     setLoading(false);
 

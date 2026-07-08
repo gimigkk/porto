@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { useInView } from "framer-motion";
 import { Baby, Bed } from "lucide-react";
 import { ExperienceNode } from "./ExperienceNode";
 import experienceData from "@/lib/data/experience.json";
@@ -58,7 +58,7 @@ export default function ExperienceSection() {
                 `}
                 style={isMiddle ? { left: `calc(162px + (100% - 324px) * ${ratio})` } : undefined}
               >
-                <ExperienceNode item={item} index={index} total={arr.length} isTopNodeVisual={isLast} isInView={isInView} />
+                <ExperienceNode item={item} index={index} total={arr.length} isInView={isInView} />
               </div>
             );
           })}

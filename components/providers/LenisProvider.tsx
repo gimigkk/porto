@@ -8,6 +8,7 @@ export default function LenisProvider({ children }: { children: any }) {
   const [isClient, setIsClient] = useState(false);
   const [isFirefox, setIsFirefox] = useState(false);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsClient(true);
     setIsFirefox(navigator.userAgent.includes("Firefox"));
 

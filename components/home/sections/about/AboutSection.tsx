@@ -2,7 +2,6 @@
 
 import { IBM_Plex_Serif } from "next/font/google";
 import { ArrowRight } from "lucide-react";
-import Image from "next/image";
 import GithubCommitGraph from "@/components/home/sections/about/GithubCommitGraph";
 import TechMarquee from "@/components/home/sections/about/TechMarquee";
 import ProfileFlipCard from "@/components/home/sections/about/ProfileFlipCard";
