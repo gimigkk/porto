@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useInView } from "framer-motion";
 import type { ProjectMeta } from "@/lib/projects";
 import { ArrowRight } from "lucide-react";
@@ -10,21 +10,29 @@ import TechIcon from "@/components/shared/TechIcon";
 import styles from "@/components/home/SkipIntroButton.module.css";
 
 function CulledVideo({ src, className }: { src: string, className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { margin: "200px" });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const isInView = useInView(containerRef, { margin: "200px" });
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+    if (isInView) {
+      videoRef.current.play().catch(() => {});
+    } else {
+      videoRef.current.pause();
+    }
+  }, [isInView]);
 
   return (
-    <div ref={ref} className={className}>
-      {isInView && (
-        <video
-          src={src}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover"
-        />
-      )}
+    <div ref={containerRef} className={className}>
+      <video
+        ref={videoRef}
+        src={src}
+        loop
+        muted
+        playsInline
+        className="w-full h-full object-cover"
+      />
     </div>
   );
 }
@@ -79,16 +87,8 @@ export default function ProjectCards({
                 window.history.pushState(null, "", `?project=${project.slug}`);
                 window.dispatchEvent(new PopStateEvent("popstate"));
               }}
-              className="relative z-10 flex flex-col md:justify-end md:aspect-video md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)]"
+              className="relative z-10 flex flex-col md:justify-end md:aspect-video md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:border-zinc-400/45 md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] border border-transparent"
               style={{ willChange: "transform" }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(161,161,170,0.45)";
-                e.currentTarget.style.boxShadow = "0 20px 50px -12px rgba(0,0,0,0.8)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "";
-                e.currentTarget.style.boxShadow = "";
-              }}
             >
               {/* -- Thumbnail -- */}
               {/* Mobile: in-flow 16:9 rounded | Desktop: absolute fill */}
@@ -111,22 +111,7 @@ export default function ProjectCards({
 
               {/* -- Desktop-only overlays -- */}
               <div className="hidden md:block absolute inset-0 pointer-events-none [mask-image:linear-gradient(to_top,black_5%,transparent_50%)]">
-                <div className="absolute inset-0 rounded-[inherit] overflow-hidden isolate">
-                  {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
-                    <CulledVideo
-                      src={project.thumbnail}
-                      className="absolute inset-0 w-full h-full blur-[3px] scale-[1.05]"
-                    />
-                  ) : (
-                    <Image
-                      src={project.thumbnail}
-                      alt=""
-                      fill
-                      sizes="33vw"
-                      className="object-cover blur-[3px] scale-[1.05]"
-                    />
-                  )}
-                </div>
+                <div className="absolute inset-0 rounded-[inherit] overflow-hidden isolate backdrop-blur-[4px] bg-black/10"></div>
               </div>
               <div className="hidden md:block absolute -inset-x-2 -bottom-2 h-[calc(50%+8px)] bg-linear-to-t from-[#09090b] from-15% via-[#09090b]/60 to-transparent pointer-events-none" />
               {/* -- Meta -- */}
