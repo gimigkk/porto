@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
+import { useLenis } from "lenis/react";
 // ─── Types ──────────────────────────────────────────────────────
 
 type ParallaxTarget =
@@ -62,7 +63,6 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
 
   // ── Measure dock point + capped max shift ──────────────────
   const measure = useCallback(() => {
-    // Dock: number (explicit px) or element bottom aligns with viewport bottom
     if (typeof dockAnchor === "number") {
       dockScrollRef.current = Math.max(0, dockAnchor);
     } else {
@@ -77,8 +77,6 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
     }
 
     const dock = dockScrollRef.current;
-
-    // Max shift: number, selector, auto, or null
     let h = 0;
     if (typeof target === "number") {
       h = target;
@@ -89,10 +87,7 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
       if (parallaxRef.current) h = parallaxRef.current.getBoundingClientRect().height;
     }
     if (h > 0) {
-      // User-desired shift from visibleFrac
       const desired = h * (1 - visibleFrac);
-      // Quadratic speed at t=0 = 2 * maxShift/dock. Cap so it never exceeds startSpeed.
-      // Solve: 2 * maxShift / dock ≤ startSpeed → maxShift ≤ startSpeed * dock / 2
       const cap = dock > 0 ? (startSpeed * dock) / 2 : Infinity;
       maxShiftRef.current = Math.min(desired, cap);
     }
@@ -112,6 +107,7 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
 
     const progress = Math.min(scroll / dock, 1);
     progressRef.current = progress;
+
     const eased = 2 * progress - progress * progress; // quadratic ease-out
     const y = -eased * maxShift;
     if (y !== currentY.current) {
@@ -120,29 +116,42 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
     }
   }, []);
 
+  const lenis = useLenis();
+
   useEffect(() => {
     if (disabled) {
-      if (parallaxRef.current) parallaxRef.current.style.transform = "translateY(0px)";
+      if (parallaxRef.current) {
+        parallaxRef.current.style.transform = "translateY(0px)";
+      }
       return;
     }
 
-    let rafId: number;
     let lastScroll = -1;
 
-    // Poll scrollY in rAF to bypass the 1-frame dispatch delay of the native 'scroll' event.
-    // This perfectly syncs the JS transform with the compositor's native scroll right before paint.
-    const tick = () => {
+    const onScroll = () => {
       const scroll = window.scrollY;
       if (scroll !== lastScroll) {
         update(scroll);
         lastScroll = scroll;
       }
-      rafId = requestAnimationFrame(tick);
     };
 
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-  }, [disabled, update]);
+    if (lenis) {
+      lenis.on("scroll", onScroll);
+    } else {
+      window.addEventListener("scroll", onScroll, { passive: true });
+    }
+    
+    onScroll();
+
+    return () => {
+      if (lenis) {
+        lenis.off("scroll", onScroll);
+      } else {
+        window.removeEventListener("scroll", onScroll);
+      }
+    };
+  }, [disabled, update, lenis]);
 
   return { parallaxRef, progressRef };
 }

@@ -76,18 +76,11 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       mouse.hasMoved = false;
     };
 
-    const handleScroll = () => {
-      mouse.active = false;
-      mouse.hasMoved = false;
-      mouse.vx = 0;
-      mouse.vy = 0;
-    };
-
     // Pause sources — unified flag check
-    const pauseFlags = { ascii: false, visible: true, tab: false };
+    const pauseFlags = { ascii: false, visible: true, tab: false, scroll: false };
 
     function checkShouldPause() {
-      const shouldPause = !pauseFlags.visible || pauseFlags.tab || pauseFlags.ascii;
+      const shouldPause = !pauseFlags.visible || pauseFlags.tab || pauseFlags.ascii || pauseFlags.scroll;
       if (shouldPause && !pausedRef.current) {
         pausedRef.current = true;
         cancelAnimationFrame(rafRef.current);
@@ -100,6 +93,25 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
 
     const handlePause = () => { pauseFlags.ascii = true; checkShouldPause(); };
     const handleResume = () => { pauseFlags.ascii = false; checkShouldPause(); };
+
+    let scrollTimeout: NodeJS.Timeout;
+    const handleScroll = () => {
+      mouse.active = false;
+      mouse.hasMoved = false;
+      mouse.vx = 0;
+      mouse.vy = 0;
+
+      // Pause rendering while scrolling to ensure smooth parallax
+      if (!pauseFlags.scroll) {
+        pauseFlags.scroll = true;
+        checkShouldPause();
+      }
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        pauseFlags.scroll = false;
+        checkShouldPause();
+      }, 100);
+    };
 
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
     window.addEventListener("pointerdown", handlePointerMove, { passive: true });

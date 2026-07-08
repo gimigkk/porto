@@ -26,7 +26,7 @@ export default function SkyBackground({ isReady, preloadedAssets, onIntroComplet
 
   return (
     <div
-      className={`${isMobile ? 'absolute inset-0' : 'fixed top-0 left-0 right-0'} z-0 overflow-hidden pointer-events-none select-none`}
+      className={`${isMobile ? 'absolute inset-0' : 'fixed top-0 left-0 right-0'} z-0 pointer-events-none select-none`}
       style={isMobile ? undefined : {
         height: heroHeight,
         transition: "height 600ms cubic-bezier(0.22,1,0.36,1)",
@@ -40,6 +40,8 @@ export default function SkyBackground({ isReady, preloadedAssets, onIntroComplet
       >
         {/* Sky gradient */}
         <div className="absolute inset-0 bg-linear-to-b from-[#0c3888] to-[#50aaff]" />
+        {/* Overscroll bleed cover to prevent black flash on low FPS */}
+        <div className="absolute top-full left-0 right-0 h-[100vh] bg-[#50aaff]" />
 
         {/* ASCII Clouds */}
         <div className="absolute inset-0 pointer-events-none select-none">
