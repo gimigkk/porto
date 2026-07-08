@@ -52,7 +52,6 @@ const iconMap: Record<string, { title: string; svg: string }> = {
   godot:      siGodotengine,
   "socket.io": siSocketdotio,
   unity:      siUnity,
-  csharp:     customCsharp,
   blender:    siBlender,
   android:    siAndroid,
 };
@@ -80,14 +79,15 @@ export default function TechIcon({
   const icon = iconMap[tech.toLowerCase()];
 
   if (!icon) {
-    // Fallback: 2-char text badge
+    // Fallback: Custom text for known weird slugs, or 2-char badge
+    const badgeText = tech.toLowerCase() === "csharp" ? "C#" : tech.slice(0, 2).toUpperCase();
     return (
       <span
-        className={`inline-flex items-center justify-center font-mono font-bold select-none ${className}`}
-        style={{ width: size, height: size, fontSize: size * 0.55 }}
+        className={`inline-flex items-center justify-center font-mono font-bold select-none tracking-tighter ${className}`}
+        style={{ width: size, height: size, fontSize: size * 0.65 }}
         title={title ?? tech}
       >
-        {tech.slice(0, 2).toUpperCase()}
+        {badgeText}
       </span>
     );
   }
