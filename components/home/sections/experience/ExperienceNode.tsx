@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useCallback } from "react";
 import { motion } from "framer-motion";
 import { ExperienceItem } from "@/types/experience";
 import { useTooltip } from "@/components/providers/TooltipProvider";
@@ -12,7 +13,7 @@ interface Props {
   isInView?: boolean;
 }
 
-export function ExperienceNode({ item, index, total, isInView }: Props) {
+export const ExperienceNode = React.memo(function ExperienceNode({ item, index, total, isInView }: Props) {
   const { showTooltip, hideTooltip } = useTooltip();
   const isTop = index % 2 === 0;
 
@@ -21,6 +22,10 @@ export function ExperienceNode({ item, index, total, isInView }: Props) {
 
   // Pole length ranges from 48px to 144px based on impressiveness
   const poleHeight = 48 + ((item.impressiveness - 1) / 9) * 96;
+
+  const handleMouseEnter = useCallback(() => {
+    showTooltip(<ExperienceTooltipContent item={item} />);
+  }, [showTooltip, item]);
 
 
 
@@ -32,6 +37,7 @@ export function ExperienceNode({ item, index, total, isInView }: Props) {
       {/* DESKTOP LAYOUT (Dynamic Flex-Stretch Architecture) */}
       <motion.div 
         className="hidden md:flex flex-row h-full w-max"
+        style={{ willChange: "transform, opacity" }}
         initial={{ opacity: 0, y: 20 }}
         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
         transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -39,7 +45,7 @@ export function ExperienceNode({ item, index, total, isInView }: Props) {
          <div 
             className={`flex flex-row items-start ${isTop ? 'self-end' : 'self-start'} relative p-2 -m-2 cursor-default rounded-xl pointer-events-auto`}
             style={isTop ? { marginBottom: `${250 + poleHeight + 12 - 8}px` } : { marginTop: `${250 + poleHeight + 12 - 8}px` }}
-            onMouseEnter={() => showTooltip(<ExperienceTooltipContent item={item} />)}
+            onMouseEnter={handleMouseEnter}
             onMouseLeave={hideTooltip}
          >
             {/* Dates Column */}
@@ -87,7 +93,8 @@ export function ExperienceNode({ item, index, total, isInView }: Props) {
         className="md:hidden grid relative" 
         style={{ 
           gridTemplateColumns: `32px ${12 + ((item.impressiveness - 1) / 9) * 48}px 12px auto 1fr`,
-          alignItems: 'center'
+          alignItems: 'center',
+          willChange: "transform, opacity"
         }}
         initial={{ opacity: 0, y: 20 }}
         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
@@ -140,4 +147,6 @@ export function ExperienceNode({ item, index, total, isInView }: Props) {
       </motion.div>
     </div>
   );
-}
+});
+
+(ExperienceNode as any).whyDidYouRender = true;

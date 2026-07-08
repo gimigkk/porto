@@ -145,3 +145,5 @@ export function TooltipRenderer() {
     </AnimatePresence>
   );
 }
+
+TooltipRenderer.whyDidYouRender = true;

@@ -7,6 +7,11 @@ description: "React/Next.js performance optimization focus. Scans for re-render 
 
 Always-on when perf-related task. Before writing perf code or reviewing perf, check checklist.
 
+## ARCHITECTURAL BEST PRACTICES
+- **Default to Server Components:** Keep heavy logic and dependencies off the client. Use `"use client"` ONLY when interactivity (hooks, state, event listeners) is strictly necessary.
+- **Eliminate Waterfalls:** Never await independent data requests sequentially. Use `Promise.all()` to execute them in parallel.
+- **Leverage Suspense:** Wrap independent page sections in React `<Suspense>` to stream UI to the client instantly.
+
 ## RENDER PERFORMANCE
 
 ### React re-render prevention
@@ -22,6 +27,7 @@ Always-on when perf-related task. Before writing perf code or reviewing perf, ch
 - `useReducer` if state shape complex — stable dispatch identity, atomic updates
 - `useSyncExternalStore` for external subscriptions (scroll, resize, intersection observers)
 - Avoid `useState` for derived state — compute from props or other state instead
+- **Direct DOM updates for rapid changes**: Decouple rapid updates (progress bars, timers) from React state. Attach a `useRef` to the element and update its `style` directly via `setInterval` or `requestAnimationFrame` to drop React overhead to zero.
 
 ### Layout effects
 - `useLayoutEffect` only for measurable DOM mutations (ref measurements, scroll position).
@@ -34,6 +40,7 @@ Always-on when perf-related task. Before writing perf code or reviewing perf, ch
 - `layoutAnimation` on sibling count change — framer-motion recalculates layout of all siblings. Use `layoutId` + `AnimatePresence` mode="popLayout" instead.
 - `willChange` — framer-motion sets `transform` level. For GPU-accelerated opacity/transform, set `willChange: "transform"` on animated elements.
 - `animate` vs `initial` — avoid inline object literals in JSX (new ref each render). Extract to const outside component or use `useMemo`.
+- **TypeScript Easing**: When extracting `ease: [0.22, 1, 0.36, 1]` arrays to constants, append `as const` so TS infers the `Easing` tuple rather than a generic `number[]`.
 - `whileHover`/`whileTap` — prefer CSS transitions for simple hovers. framer-motion JS-driven hover adds frame budget.
 - `AnimatePresence` — use `mode="wait"` or `"popLayout"` not default `"sync"` to reduce layout thrash.
 - Reduce animated element count. Animate container, not children.
@@ -49,6 +56,7 @@ Always-on when perf-related task. Before writing perf code or reviewing perf, ch
 ## LAYOUT & CSS PERFORMANCE
 
 - Avoid layout thrashing: batch DOM reads then batch writes (or use `FastDom` / `requestAnimationFrame` batching)
+- **Scroll Syncing**: Never read `window.scrollY` inside a scroll event loop if animating. Read cached scroll objects (like Lenis `e.scroll` or Framer `scrollY`) to bypass forced synchronous layout recalculation.
 - CSS containment: `contain: layout style paint` on heavy sections / offscreen cards
 - `content-visibility: auto` on long scroll sections (auto lazy-render)
 - Avoid `top`/`left` animations — use `transform: translate()` (GPU composited)
@@ -71,11 +79,16 @@ Always-on when perf-related task. Before writing perf code or reviewing perf, ch
 - `priority` on above-the-fold images only (rare — LCP-critical)
 - Blur placeholders for below-the-fold images
 - Avoid `fill` without parent `position: relative` with known aspect ratio
+- **NEVER use hidden `<div>` preloading**: Do not dump raw `<img>` tags in a `hidden` div to "preload" hover assets. This chokes the network waterfall and blocks LCP assets. Use `<link rel="preload">` or preload on hover intent.
+
+### Scripts & Third-Party
+- Use `next/script` component. Set `strategy="lazyOnload"` for analytics and non-critical scripts to prevent main-thread blocking.
 
 ### Fonts
 - `next/font` with `display: swap` (default) — no FOIT
 - Subset fonts: `subsets: ["latin"]` — already done in layout
 - Preload font CSS: `preload: true` on critical fonts
+- **Strict Weight Subsetting**: Verify you only request the exact weights used in code. Requesting `[200,300,400,500,600,700]` downloads 6 files and chokes the network.
 - Limit font variants — each weight/style adds download
 
 ### JS bundle
@@ -112,6 +125,7 @@ Always-on when perf-related task. Before writing perf code or reviewing perf, ch
 
 ## MEASUREMENT
 
+- Use `@welldone-software/why-did-you-render` (already installed and active in Dev mode) to log the exact cause of component re-renders to the browser console. This is the primary empirical tool for finding React render loops. To use it, add `Component.whyDidYouRender = true` to any suspected component.
 - Use React DevTools Profiler for render flamegraphs
 - Chrome DevTools Performance panel for layout/frame analysis
 - `performance.mark` / `performance.measure` for custom metrics
@@ -129,5 +143,7 @@ Always-on when perf-related task. Before writing perf code or reviewing perf, ch
 - [ ] Passive scroll listeners
 - [ ] Animations use composited-only props (transform, opacity)
 - [ ] Context scope as narrow as possible
-- [ ] No layout thrash pattern (read/write interleaving)
+- [ ] No layout thrash pattern (read/write interleaving bypassed via cached scroll values)
 - [ ] Bundle size checked (`next build` output sane)
+- [ ] Font weights strictly subset to only what is used
+- [ ] Rapid DOM updates (progress bars) decoupled from React state using refs

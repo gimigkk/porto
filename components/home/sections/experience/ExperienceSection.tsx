@@ -64,13 +64,6 @@ export default function ExperienceSection() {
           })}
         </div>
       </div>
-      
-      {/* Hidden Image Preloader for Tooltips */}
-      <div className="hidden">
-        {experienceData.map((item) => (
-          item.image && <img key={item.id} src={item.image} alt="preload" />
-        ))}
-      </div>
     </section>
   );
 }

@@ -8,9 +8,15 @@ import styles from "@/components/home/SkipIntroButton.module.css";
 
 const ibmPlexSerif = IBM_Plex_Serif({
   subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700"],
-  style: ["normal", "italic"],
+  weight: ["400", "500"],
+  style: ["normal"],
 });
+
+const ANIM_TITLE_INITIAL = { y: "100%" };
+const ANIM_TITLE_ANIMATE = { y: 0 };
+const ANIM_TITLE_TRANSITION = { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const };
+
+const ANIM_FADE_INITIAL = { opacity: 0, y: 10 };
 
 interface HeroContentProps {
   /** When true, SVG title fades in */
@@ -45,9 +51,9 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
         {showTitle && (
           <div className="w-full max-w-2xl mx-auto mb-6 overflow-hidden">
             <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              initial={ANIM_TITLE_INITIAL}
+              animate={ANIM_TITLE_ANIMATE}
+              transition={ANIM_TITLE_TRANSITION}
             >
               <img src="/gimigkk.svg" alt="gimigkk" className="w-full h-auto" />
             </motion.div>
@@ -56,7 +62,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* Subtext - IBM Plex Serif */}
         <motion.p
-          initial={{ opacity: 0, y: 10 }}
+          initial={ANIM_FADE_INITIAL}
           animate={subtextControls}
           className={`${ibmPlexSerif.className} font-[500] text-[24.5px] opacity-90 mb-3`}
         >
@@ -65,7 +71,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* CTA Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={ANIM_FADE_INITIAL}
           animate={ctaControls}
           className="flex justify-center gap-1 w-full max-w-fit mx-auto drop-shadow-xl"
         >
@@ -120,9 +126,9 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
         {showTitle && (
           <div className="w-full max-w-sm mx-auto mb-6 overflow-hidden">
             <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              initial={ANIM_TITLE_INITIAL}
+              animate={ANIM_TITLE_ANIMATE}
+              transition={ANIM_TITLE_TRANSITION}
             >
               <img src="/gimigkk.svg" alt="gimigkk" className="w-full h-auto" />
             </motion.div>
@@ -131,7 +137,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* Subtext */}
         <motion.p
-          initial={{ opacity: 0, y: 10 }}
+          initial={ANIM_FADE_INITIAL}
           animate={subtextControls}
           className={`${ibmPlexSerif.className} font-[400] text-[16.5px] opacity-90 mb-2`}
         >
@@ -140,7 +146,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* CTA Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={ANIM_FADE_INITIAL}
           animate={ctaControls}
           className="flex justify-center gap-1 flex-wrap w-full max-w-fit mx-auto drop-shadow-md"
         >
@@ -191,3 +197,5 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
     </>
   );
 }
+
+HeroContent.whyDidYouRender = true;

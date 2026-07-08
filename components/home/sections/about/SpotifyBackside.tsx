@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { useTooltip } from "@/components/providers/TooltipProvider";
@@ -84,45 +84,10 @@ export default function SpotifyBackside() {
   const [loading, setLoading] = useState(true);
   const { showTooltip, hideTooltip } = useTooltip();
 
-  useEffect(() => {
-    // Pick a random track from the mock array on mount to avoid hydration mismatch
-    const randomTrack = MOCK_TRACKS[Math.floor(Math.random() * MOCK_TRACKS.length)];
-    // Randomize the start progress between 0 and the song duration
-    const randomizedTrack = {
-      ...randomTrack,
-      progressMs: Math.floor(Math.random() * (randomTrack.durationMs || 100000))
-    };
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setData(randomizedTrack);
-    setLoading(false);
-
-    // Simulate playback progress
-    const interval = setInterval(() => {
-      setData((prev) => {
-        if (!prev || !prev.isPlaying || prev.progressMs === undefined || prev.durationMs === undefined) return prev;
-
-        // Change track if it finishes
-        const newProgress = prev.progressMs + 1000;
-        if (newProgress >= prev.durationMs) {
-          let nextTrack = MOCK_TRACKS[Math.floor(Math.random() * MOCK_TRACKS.length)];
-          // Ensure we don't pick the same track twice in a row
-          while (MOCK_TRACKS.length > 1 && nextTrack.songUrl === prev.songUrl) {
-            nextTrack = MOCK_TRACKS[Math.floor(Math.random() * MOCK_TRACKS.length)];
-          }
-          return { ...nextTrack, progressMs: 0 };
-        }
-
-        return { ...prev, progressMs: newProgress };
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const progressPercentage =
-    data && data.durationMs && data.progressMs
-      ? Math.min((data.progressMs / data.durationMs) * 100, 100)
-      : 0;
+  const barRef = useRef<HTMLDivElement>(null);
+  const timeRef = useRef<HTMLSpanElement>(null);
+  const progressRef = useRef<number>(0);
+  const trackRef = useRef<SpotifyData | null>(null);
 
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -130,6 +95,55 @@ export default function SpotifyBackside() {
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
+
+  useEffect(() => {
+    // Pick a random track from the mock array on mount to avoid hydration mismatch
+    const randomTrack = MOCK_TRACKS[Math.floor(Math.random() * MOCK_TRACKS.length)];
+    const startProgress = Math.floor(Math.random() * (randomTrack.durationMs || 100000));
+    const randomizedTrack = {
+      ...randomTrack,
+      progressMs: startProgress
+    };
+    
+    trackRef.current = randomizedTrack;
+    progressRef.current = startProgress;
+    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setData(randomizedTrack);
+    setLoading(false);
+
+    // Simulate playback progress bypassing React state
+    const interval = setInterval(() => {
+      const currentTrack = trackRef.current;
+      if (!currentTrack || !currentTrack.isPlaying || currentTrack.durationMs === undefined) return;
+
+      progressRef.current += 1000;
+      
+      // Track finished, trigger React state change for new track
+      if (progressRef.current >= currentTrack.durationMs) {
+        let nextTrack = MOCK_TRACKS[Math.floor(Math.random() * MOCK_TRACKS.length)];
+        while (MOCK_TRACKS.length > 1 && nextTrack.songUrl === currentTrack.songUrl) {
+          nextTrack = MOCK_TRACKS[Math.floor(Math.random() * MOCK_TRACKS.length)];
+        }
+        const newTrack = { ...nextTrack, progressMs: 0 };
+        trackRef.current = newTrack;
+        progressRef.current = 0;
+        setData(newTrack);
+        return;
+      }
+
+      // Update DOM directly to avoid 1-second React re-renders
+      if (barRef.current) {
+        const percentage = Math.min((progressRef.current / currentTrack.durationMs) * 100, 100);
+        barRef.current.style.width = `${percentage}%`;
+      }
+      if (timeRef.current) {
+        timeRef.current.innerText = formatTime(progressRef.current);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (loading) {
     return (
@@ -210,15 +224,16 @@ export default function SpotifyBackside() {
         <div className="w-full">
           <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden relative mb-1.5">
             <div
+              ref={barRef}
               className="absolute top-0 left-0 h-full bg-white rounded-full transition-all duration-1000 ease-linear relative"
-              style={{ width: `${progressPercentage}%` }}
+              style={{ width: `${data.durationMs && data.progressMs ? Math.min((data.progressMs / data.durationMs) * 100, 100) : 0}%` }}
             >
               {/* Progress Dot Handle */}
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full translate-x-1/2 shadow-[0_0_4px_rgba(0,0,0,0.5)]" />
             </div>
           </div>
           <div className="flex justify-between text-[10px] text-zinc-500 font-medium tracking-widest font-mono">
-            <span>{formatTime(data.progressMs || 0)}</span>
+            <span ref={timeRef}>{formatTime(data.progressMs || 0)}</span>
             <span>{formatTime(data.durationMs || 0)}</span>
           </div>
         </div>
@@ -226,3 +241,5 @@ export default function SpotifyBackside() {
     </a>
   );
 }
+
+SpotifyBackside.whyDidYouRender = true;

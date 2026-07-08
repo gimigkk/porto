@@ -23,4 +23,10 @@ const withMDX = createMDX({
   },
 });
 
-export default withMDX(nextConfig);
+import withBundleAnalyzer from '@next/bundle-analyzer';
+
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+export default withAnalyzer(withMDX(nextConfig));

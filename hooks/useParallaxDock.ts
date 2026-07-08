@@ -128,8 +128,10 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
 
     let lastScroll = -1;
 
-    const onScroll = () => {
-      const scroll = window.scrollY;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onScroll = (e?: any) => {
+      // Use Lenis cached scroll value if available to prevent DOM read layout thrashing
+      const scroll = e && typeof e.scroll === 'number' ? e.scroll : window.scrollY;
       if (scroll !== lastScroll) {
         update(scroll);
         lastScroll = scroll;
