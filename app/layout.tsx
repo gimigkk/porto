@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     default: "Gilang | Full-stack Developer & Product Designer",
     template: "%s | Gilang's Portfolio",
   },
-  description: "Portfolio of Gilang (Gimiaw), a Full-stack Developer and Product Designer specializing in React, Next.js, TypeScript, and creative technical solutions.",
+  description: "Portfolio of Gilang (gimiaw|@gimigkk), a Full-stack Developer and Product Designer specializing in React, Next.js, TypeScript, and creative technical solutions.",
   keywords: [
     "Full-stack Developer", "Product Designer", "React", "Next.js", "TypeScript",
     "Prisma", "PostgreSQL", "Astro", "Tailwind", "Rust", "Docker", "Supabase",
@@ -39,17 +39,20 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "/",
-    languages: {
-      "en-US": "/",
-      "id-ID": "/?lang=id",
-      "x-default": "/",
-    },
   },
   openGraph: {
     title: "Gilang | Full-stack Developer & Product Designer",
     description: "Portfolio of Gilang (Gimiaw), a Full-stack Developer and Product Designer.",
     url: siteUrl,
     siteName: "Gilang's Portfolio",
+    images: [
+      {
+        url: "/mukagw.JPG",
+        width: 800,
+        height: 600,
+        alt: "Gilang Profile Picture",
+      },
+    ],
     locale: "en_US",
     type: "website",
   },
@@ -57,6 +60,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Gilang | Full-stack Developer & Product Designer",
     description: "Portfolio of Gilang (Gimiaw), a Full-stack Developer and Product Designer.",
+    images: ["/mukagw.JPG"],
     creator: "@gimiaw",
   },
   robots: {
@@ -124,7 +128,8 @@ export default function RootLayout({
             ))}
           </div>
         </div>
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style dangerouslySetInnerHTML={{
+          __html: `
           @keyframes ssrDotJump {
             0%, 100% { transform: translateY(0); animation-timing-function: ease-out; }
             50% { transform: translateY(-12px); animation-timing-function: ease-in; }
