@@ -31,6 +31,7 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
         loop
         muted
         playsInline
+        preload="none"
         className="w-full h-full object-cover"
       />
     </div>
@@ -53,7 +54,7 @@ export default function ProjectCards({
       {/* -- Cards Grid (3-column) ---------------- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-3 px-3 md:px-12">
         {featured.map((project) => (
-          <div
+          <article
             key={project.slug}
             className="group relative w-full h-full transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:z-50"
             style={{ perspective: "1000px" }}
@@ -82,8 +83,11 @@ export default function ProjectCards({
             </div>
 
             {/* Main Card */}
-            <div
-              onClick={() => {
+            <a
+              href={`/?project=${project.slug}`}
+              aria-label={`View details for ${project.title}`}
+              onClick={(e) => {
+                e.preventDefault();
                 const url = window.location.pathname + "?project=" + project.slug;
                 History.prototype.pushState.apply(window.history, [null, "", url]);
                 window.dispatchEvent(new Event("project-modal-changed"));
@@ -159,8 +163,8 @@ export default function ProjectCards({
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </a>
+          </article>
         ))}
       </div>
 

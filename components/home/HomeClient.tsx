@@ -180,7 +180,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
 
   return (
     <LanguageProvider>
-      <main className="w-full min-h-svh bg-[#141416]">
+      <main role="main" className="w-full min-h-svh bg-[#141416]">
 
         {/* Hero height via CSS transition — starts 100svh, shrinks to 95/70svh on Phase 2 */}
         <div className="relative z-20 w-full">
@@ -268,8 +268,8 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
           <StackedSections projects={projects} isReady={foldersReady} githubGraph={githubGraph} />
         </div>
 
-        {/* Section 5 */}
-        <section className="h-svh w-full flex flex-col items-center justify-center bg-zinc-950 text-white relative z-30">
+        {/* Section 5 / Footer */}
+        <section role="contentinfo" className="h-svh w-full flex flex-col items-center justify-center bg-zinc-950 text-white relative z-30">
           <h2 className="text-5xl font-bold mb-6 text-amber-500">Section 5</h2>
           <div className="text-xl opacity-80 max-w-xl text-center">
             CTA Kerja Sama

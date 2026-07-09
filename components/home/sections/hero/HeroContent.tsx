@@ -45,6 +45,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
   return (
     <>
+      <h1 className="sr-only">Gilang (Gimiaw) - Full-stack Developer & Product Designer Portfolio</h1>
       {/* --- DESKTOP VERSION --- */}
       <div className="relative z-20 hidden md:flex flex-col items-center text-center text-white px-6 w-full max-w-4xl mx-auto md:-mt-24 lg:-mt-28 xl:-mt-32 2xl:-mt-52">
         {/* SVG Title */}
@@ -55,7 +56,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
               animate={ANIM_TITLE_ANIMATE}
               transition={ANIM_TITLE_TRANSITION}
             >
-              <img src="/gimigkk.svg" alt="gimigkk" className="w-full h-auto" />
+              <img src="/gimigkk.svg" alt="Gilang's Portfolio Title" className="w-full h-auto" fetchPriority="high" />
             </motion.div>
           </div>
         )}
@@ -130,7 +131,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
               animate={ANIM_TITLE_ANIMATE}
               transition={ANIM_TITLE_TRANSITION}
             >
-              <img src="/gimigkk.svg" alt="gimigkk" className="w-full h-auto" />
+              <img src="/gimigkk.svg" alt="Gilang's Portfolio Title" className="w-full h-auto" fetchPriority="high" />
             </motion.div>
           </div>
         )}

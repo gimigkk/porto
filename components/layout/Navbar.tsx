@@ -306,6 +306,7 @@ export default function Navbar() {
       />
 
       <nav
+        aria-label="Main Navigation"
         className="fixed top-0 inset-x-0 z-10000"
         onMouseLeave={handleNavMouseLeave}
         style={{
@@ -329,7 +330,7 @@ export default function Navbar() {
                 onMouseEnter={(e) => handleNavEnter(0, e)}
                 className="flex items-center gap-1.5 text-sm font-semibold text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none md:px-3 md:py-1.5"
               >
-                <img src="/gimigkk-black.svg" alt="@gimigkk" className="h-[22px] w-auto object-contain " />
+                <img src="/gimigkk-black.svg" alt="@gimigkk" className="h-[22px] w-auto object-contain " fetchPriority="high" />
               </button>
 
               {/* Main nav items - desktop only */}
