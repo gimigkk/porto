@@ -2,7 +2,7 @@ export const metadata = {
   title: "Insectropy",
   slug: "insectropy",
   description:
-    "A tactical isometric turn-based roguelike built for the GameSeed game jam. I served as the primary Programmer, VFX Artist, and UI/UX Designer, crafting the core tactical gameplay and AI.",
+    "A tactical isometric turn-based roguelike built for the GameSeed game jam. We served as the primary Programmers, VFX Artists, and UI/UX Designers, crafting the core tactical gameplay and AI.",
   stack: ["godot"],
   year: "2026",
   category: "Game Development",
@@ -14,47 +14,150 @@ export const metadata = {
   weight: 3,
 };
 
+<Trans lang="en">
+
 ## GameSeed Jam Submission
 
 *Insectropy* is a **local splitscreen tactical turn-based roguelike** developed under rigorous time constraints for the **GameSeed 2026** game jam. You control two ants (a Fighter and a Wizard) battling through a grid arena to slay the Seven Deadly Sins (reimagined as apocalyptic backyard bugs). 
 
-I served as the core gameplay engineer, UI/UX designer, and VFX artist. My mandate was to ensure the split-screen tactical layer felt tight and responsive while building robust systems that could scale despite the short development window.
+We served as the core gameplay engineers, UI/UX designers, and VFX artists. Our mandate was to ensure the split-screen tactical layer felt tight and responsive while building robust systems that could scale despite the short development window.
+
+![Development Timeline](/projects/insectropy/timeline.jpg)
 
 ---
 
 ### 1. Tactical Grid & Architecture
 
-Building a split-screen turn-based tactical system in a game jam is notoriously prone to edge-case bugs. I engineered a strict, state-driven combat core to handle grid logic, dice rolls, and prevent soft-locks.
+Building a split-screen turn-based tactical system in a game jam is notoriously prone to edge-case bugs. We engineered a strict, state-driven combat core to handle grid logic, dice rolls, and prevent soft-locks.
 
 - **Isometric Tactical Combat**: Implemented grid-based positioning and telegraphing logic. Enemies display orange danger tiles before movement and red attack tiles before striking, allowing both players to plan their turns strategically.
 - **Dice-Roll Mechanics**: Built the core logic for the "Roll Dice to Hit or Miss" mechanic, ensuring fair RNG distribution and snappy visual feedback during attacks.
 - **Asynchronous State Management**: Engineered rigid animation barriers and phase transitions for the turn-based action queue. This prevented catastrophic edge cases, like targets dying mid-attack or inputs soft-locking during overlapping turn resolutions.
-- **Data-Driven Abilities**: Using Godot's `.tres` data structures, I authored **over 30 unique abilities** (e.g., *Kitin Bomb*, *Pollen Gust*, *Divine Departure*) to allow for rapid iteration without touching core logic.
+- **Data-Driven Abilities**: Using Godot's `.tres` data structures, we authored **over 30 unique abilities** (e.g., *Kitin Bomb*, *Pollen Gust*, *Divine Departure*) to allow for rapid iteration without touching core logic.
 
 ### 2. Roguelike Progression
 
-To make each run unique, I implemented a robust roguelike progression system managed by a central `RunManager`.
+To make each run unique, we implemented a robust roguelike progression system managed by a central `RunManager`.
 
 - **Dynamic Depth Scaling**: Added depth-based encounter profiles and light AC/Resist scaling to ensure battles remain challenging and less repetitive as the player progresses.
 - **Milestone Unlocks**: Built staged skill unlocks, offering players 1-of-4 ability choices after completed nodes, alongside milestone perk choices (such as *Iron Vow* and *Lucky Charm*) that integrate into a persistent modifier pipeline.
 
 ### 3. Artificial Intelligence
 
-A tactical game relies entirely on its enemies. Rather than relying on simple state machines, I developed 4 distinct, modular AI profiles:
+A tactical game relies entirely on its enemies. Rather than relying on simple state machines, we developed 4 distinct, modular AI profiles:
 
 - **Custom Enemy Brains**: Implemented the `SimpleMeleeBrain`, `SimpleRangedBrain`, `DungslayerBrain`, and the complex `BossButterflyBrain`.
 - **Dynamic Pathfinding**: Enemy units don't just blindly move towards the player. For example, the melee brain features pathfinding logic that attempts to move as close as possible when its primary path is blocked.
 
 ### 4. User Experience (UI/UX) & Polish
 
-A major challenge for split-screen tactical games is communicating complex mechanics clearly without cluttering half a screen. I completely overhauled the UI to create a snappy, guided experience.
+A major challenge for split-screen tactical games is communicating complex mechanics clearly without cluttering half a screen. We completely overhauled the UI to create a snappy, guided experience.
 
 - **Split-Screen HUD & Action Wheels**: Built responsive `BattleActionWheelController`s and dynamic status overlays that visually indicate when a unit is restricted (e.g., *Stunned* or *Frozen*) for each player independently.
 - **Guided Feedback**: Implemented a tutorial overlay with arrow indicators, gacha-style relic reveal animations in the Loot Screen, and contextual cancel actions.
-- **Ability VFX**: My VFX work was strictly focused on combat abilities. I integrated custom shaders (dithered fire, god rays, teleport effects) directly into the ability execution pipeline to give every attack a satisfying punch, while the rest of the environmental effects were handled elsewhere.
+- **Ability VFX**: Our VFX work was strictly focused on combat abilities. We integrated custom shaders (dithered fire, god rays, teleport effects) directly into the ability execution pipeline to give every attack a satisfying punch, while the rest of the environmental effects were handled elsewhere.
 
 ---
 
+![Our Team](/projects/insectropy/team.jpg)
+
 ### A Collaborative Effort
 
-Game development is a massive collaborative undertaking. While I handled the core mechanical engineering and systems design, the final, crucial step of **game balancing** (fine-tuning damage numbers, health pools, and ability cooldowns) was executed by my talented teammates following rigorous playtesting sessions.
+Game development is a massive collaborative undertaking. While we handled the core mechanical engineering and systems design, the final, crucial step of **game balancing** (fine-tuning damage numbers, health pools, and ability cooldowns) was executed by our talented teammates following rigorous playtesting sessions.
+
+<div className="flex flex-row gap-4 sm:gap-8 w-full mt-8">
+  <div className="flex-1">
+    <h4 className="font-bold tracking-wider uppercase mt-0 mb-4 text-zinc-100">Programmer</h4>
+    
+    Ilham Edgar Maulana<br/>
+    Ahmad Rafif Ilmany<br/>
+    Gilang Muhammad W<br/>
+    Candra Agung Alief P<br/>
+    Rafid Harsyah S
+  </div>
+  <div className="flex-1">
+    <h4 className="font-bold tracking-wider uppercase mt-0 mb-4 text-zinc-100">Illustrator</h4>
+    
+    M Rehan Firmansyah<br/>
+    Adzkia Muftia Rahman<br/>
+    Zivanka Aurelia<br/>
+    Naurah Mudawwinah<br/>
+    Angelina Yogaswara
+  </div>
+</div>
+
+</Trans>
+
+<Trans lang="id">
+
+## Submit GameSeed Jam
+
+*Insectropy* adalah **game roguelike tactical turn-based splitscreen lokal** yang dikembangin di bawah batasan waktu yang super ketat buat *game jam* **GameSeed 2026**. Kamu bakal ngendaliin dua semut (Fighter dan Wizard) buat bertarung di arena kotak-kotak (grid) ngelawan Tujuh Dosa Mematikan (yang dibikin ulang jadi serangga halaman belakang ala kiamat).
+
+Kita di sini bertugas sebagai *core gameplay engineer*, *UI/UX designer*, dan *VFX artist*. Tugas kita mastiin *tactical layer* di mode *split-screen* terasa responsif dan mantap sambil ngebangun sistem solid yang bisa *scale up* walaupun waktu *development*-nya singkat banget.
+
+![Development Timeline](/projects/insectropy/timeline.jpg)
+
+---
+
+### 1. Tactical Grid & Arsitektur
+
+Bikin sistem taktikal *turn-based* mode *split-screen* pas *game jam* itu rawan banget sama *bug edge-case*. Makanya, kita ngebangun *combat core* yang sangat kaku dan berbasis status (*state-driven*) buat ngurusin logika grid, lemparan dadu, dan nyegah *soft-lock*.
+
+- **Isometric Tactical Combat**: Kita nge-implementasiin penempatan berbasis grid dan logika telegraf. Musuh bakal nampilin kotak oranye (bahaya) sebelum gerak dan kotak merah sebelum nyerang, jadi kedua pemain bisa ngerencanain giliran mereka dengan strategis.
+- **Mekanik Lempar Dadu**: Ngebangun logika inti buat mekanik "Lempar Dadu buat Hit atau Miss", buat mastiin distribusi RNG-nya adil dan *visual feedback*-nya terasa asik pas nyerang.
+- **Manajemen Status Asynchronous**: Kita nge-desain batasan animasi dan transisi fase yang kaku buat antrean *action* berbasis giliran. Ini buat nyegah hal-hal fatal, kayak target mati pas lagi diserang atau *input* malah bikin *soft-lock* pas lagi ada resolusi giliran yang tabrakan.
+- **Data-Driven Abilities**: Pake struktur data `.tres` bawaan Godot, kita bikin **lebih dari 30 *ability* unik** (misalnya *Kitin Bomb*, *Pollen Gust*, *Divine Departure*) biar iterasi pas proses *development* bisa ngebut tanpa harus ngutak-ngatik logika utamanya.
+
+### 2. Progresi Roguelike
+
+Biar setiap sesi main (run) terasa unik, kita nerapin sistem progresi roguelike yang solid dan diatur dari satu `RunManager` pusat.
+
+- **Dynamic Depth Scaling**: Nambahin profil musuh yang *scaling* berdasar kedalaman (level) dan dikit penyesuaian di *Armor/Resist* buat mastiin pertarungannya tetep menantang dan nggak gampang ngebosenin pas pemain makin jauh.
+- **Milestone Unlocks**: Bikin sistem buka *skill* bertahap, ngasih pilihan 1 dari 4 *ability* setelah beres ngelarin satu *node*, plus pilihan *perk milestone* (kayak *Iron Vow* dan *Lucky Charm*) yang nyambung ke *pipeline modifier* secara permanen.
+
+### 3. Kecerdasan Buatan (AI)
+
+Game taktikal itu bergantung penuh sama musuhnya. Daripada cuma ngandelin *state machine* biasa, kita ngembangin 4 profil AI beda yang modular:
+
+- **Otak Musuh Custom**: Bikin *brain* buat `SimpleMeleeBrain`, `SimpleRangedBrain`, `DungslayerBrain`, sampe yang kompleks kayak `BossButterflyBrain`.
+- **Pathfinding Dinamis**: Unit musuh nggak cuma asal jalan buta ke arah pemain. Contohnya, *melee brain* punya logika *pathfinding* yang bakal berusaha sedeket mungkin sama pemain kalau jalur utamanya keblokir.
+
+### 4. User Experience (UI/UX) & Polish
+
+Tantangan gede bikin game taktikal *split-screen* itu gimana cara nyampein mekanik ribet secara jelas tanpa bikin setengah layar keliatan penuh. Kita rombak total UI-nya biar lebih rapi dan gampang dimengerti.
+
+- **Split-Screen HUD & Action Wheels**: Bikin `BattleActionWheelController` yang responsif dan *overlay* status dinamis buat ngasih tau secara visual kalau satu unit lagi kena efek CC (misalnya *Stunned* atau *Frozen*) di masing-masing layar pemain secara independen.
+- **Guided Feedback**: Nambahin *tutorial overlay* pake panah indikator, animasi dapet relik pas *Loot Screen* yang mirip buka gacha, dan tombol *cancel* kontekstual.
+- **VFX Ability**: Fokus utama kita ngerjain VFX itu di animasi serangan (*ability*). Kita masukin *custom shader* (api yang di-dither, efek cahaya *god rays*, efek teleportasi) langsung ke *pipeline eksekusi ability* biar tiap serangan terasa *impactful*, sementara efek lingkungan (environment) diurus di bagian terpisah.
+
+---
+
+![Our Team](/projects/insectropy/team.jpg)
+
+### Kolaborasi Tim
+
+Bikin game itu butuh kolaborasi gede-gedean. Meskipun kita nanganin *core mechanics* dan desain sistemnya, ada satu tahapan terakhir yang paling krusial, yaitu **game balancing**. Tugas ini (mulai dari ngatur *damage*, *health pool*, sampai *cooldown* tiap *ability*) dikerjain secara telaten sama temen-temen tim lewat *playtesting* berulang kali.
+
+<div className="flex flex-row gap-4 sm:gap-8 w-full mt-8">
+  <div className="flex-1">
+    <h4 className="font-bold tracking-wider uppercase mt-0 mb-4 text-zinc-100">Programmer</h4>
+    
+    Ilham Edgar Maulana<br/>
+    Ahmad Rafif Ilmany<br/>
+    Gilang Muhammad W<br/>
+    Candra Agung Alief P<br/>
+    Rafid Harsyah S
+  </div>
+  <div className="flex-1">
+    <h4 className="font-bold tracking-wider uppercase mt-0 mb-4 text-zinc-100">Illustrator</h4>
+    
+    M Rehan Firmansyah<br/>
+    Adzkia Muftia Rahman<br/>
+    Zivanka Aurelia<br/>
+    Naurah Mudawwinah<br/>
+    Angelina Yogaswara
+  </div>
+</div>
+
+</Trans>
