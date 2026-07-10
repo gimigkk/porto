@@ -129,6 +129,10 @@ export default function Navbar() {
       setIntroCollapsed(false);
       return;
     }
+    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIntroCollapsed(true);
+    
     const onReady = () => setIntroCollapsed(false);
     window.addEventListener("hero-phase2", onReady);
     return () => window.removeEventListener("hero-phase2", onReady);
