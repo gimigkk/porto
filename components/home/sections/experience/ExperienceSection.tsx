@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useInView } from "framer-motion";
 import { Baby, Bed } from "lucide-react";
 import { ExperienceNode } from "./ExperienceNode";

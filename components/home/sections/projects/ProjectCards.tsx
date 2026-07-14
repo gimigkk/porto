@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, type Variants } from "framer-motion";
 import type { ProjectMeta } from "@/lib/projects";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -61,6 +61,28 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
 /* -- Max cards shown in the folder highlight -------------------- */
 const MAX_FEATURED = 6;
 
+const gridVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 50, scale: 0.95, filter: "blur(10px)" },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    filter: "blur(0px)",
+    transition: { type: "spring", stiffness: 100, damping: 20 }
+  }
+};
+
+const cardStyle = { perspective: "1000px", willChange: "transform, opacity, filter" };
+
 export default function ProjectCards({
   projects,
 }: {
@@ -76,31 +98,15 @@ export default function ProjectCards({
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-50px" }}
-        variants={{
-          hidden: {},
-          visible: {
-            transition: {
-              staggerChildren: 0.15,
-            },
-          },
-        }}
+        variants={gridVariants}
         className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-3 px-3 md:px-12"
       >
         {featured.map((project) => (
           <motion.article
-            variants={{
-              hidden: { opacity: 0, y: 50, scale: 0.95, filter: "blur(10px)" },
-              visible: { 
-                opacity: 1, 
-                y: 0, 
-                scale: 1,
-                filter: "blur(0px)",
-                transition: { type: "spring", stiffness: 100, damping: 20 }
-              }
-            }}
+            variants={cardVariants}
             key={project.slug}
             className="group relative w-full h-full transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:z-50"
-            style={{ perspective: "1000px", willChange: "transform, opacity, filter" }}
+            style={cardStyle}
           >
             {/* Background Documents (Pop-up effect) — hidden on mobile */}
             <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
