@@ -125,7 +125,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
       <div className="relative z-20 flex md:hidden flex-col items-center text-center text-white px-4 w-full mx-auto pointer-events-auto">
         {/* SVG Title */}
         {showTitle && (
-          <div className="w-full max-w-sm mx-auto mb-6 overflow-hidden">
+          <div className="w-full max-w-[270px] mx-auto mb-10 overflow-hidden">
             <motion.div
               initial={ANIM_TITLE_INITIAL}
               animate={ANIM_TITLE_ANIMATE}
