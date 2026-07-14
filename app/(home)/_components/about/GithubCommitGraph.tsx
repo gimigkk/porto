@@ -42,12 +42,10 @@ export default function GithubCommitGraph({ data, delayBase = 0, trigger }: { da
         const lastLabel = labels[labels.length - 1];
         const isDistantEnough = !lastLabel || (colIndex - lastLabel.colIndex >= 3);
 
-        if (colIndex < data.length - 2) {
-          if (isDistantEnough) {
-            labels.push({ name: monthNames[monthIndex], colIndex });
-          } else if (labels.length === 1) {
-            labels[0] = { name: monthNames[monthIndex], colIndex };
-          }
+        if (isDistantEnough) {
+          labels.push({ name: monthNames[monthIndex], colIndex });
+        } else if (labels.length === 1) {
+          labels[0] = { name: monthNames[monthIndex], colIndex };
         }
         currentMonth = monthIndex;
       }
