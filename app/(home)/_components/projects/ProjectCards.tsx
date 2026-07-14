@@ -221,8 +221,8 @@ export default function ProjectCards({
 
       {hasMore && (
         <div className="absolute bottom-0 left-0 right-0 h-52 pointer-events-none flex flex-col justify-end items-center pb-8 z-50">
-          <div className="absolute inset-x-0 top-0 bottom-20 bg-linear-to-t from-[#09090b] via-[#09090b]/50 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-20 bg-[#09090b]" />
+          <div className="absolute inset-x-0 top-0 bottom-20 bg-linear-to-t from-[#09090b]/80 via-[#09090b]/30 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-[#09090b]/80" />
           {/* Desktop view more link */}
           <a
             href="/projects"
