@@ -103,14 +103,14 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
               <div className="mb-10">
                 <div style={getButtonTransition(6)}>
-                  <button className={`${styles.pushable} group shrink-0`} aria-label="Techs">
+                  <button className={`${styles.pushable} group shrink-0`} aria-label="Technology">
                     <span className={styles.shadow}></span>
                     <span className={styles.edge}></span>
                     <span
                       className={`${styles.front} !flex items-center justify-center gap-1 whitespace-nowrap`}
                       style={{ padding: "6px 12px", fontSize: "11px" }}
                     >
-                      <span>Techs</span>
+                      <span>Technology</span>
                       <ArrowRight className="w-3 h-3 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
                     </span>
                   </button>
@@ -200,14 +200,14 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
             <div className="mt-12">
               <div style={getButtonTransition(6)}>
-                <button className={`${styles.pushable} group shrink-0`} aria-label="Techs">
+                <button className={`${styles.pushable} group shrink-0`} aria-label="Technology">
                   <span className={styles.shadow}></span>
                   <span className={styles.edge}></span>
                   <span
                     className={`${styles.front} !flex items-center justify-center gap-1 whitespace-nowrap`}
                     style={{ padding: "8px 16px", fontSize: "0.85rem" }}
                   >
-                    <span>Techs</span>
+                    <span>Technology</span>
                     <ArrowRight className="w-3.5 h-3.5 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
                   </span>
                 </button>

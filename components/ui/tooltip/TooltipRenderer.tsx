@@ -13,7 +13,7 @@ export function TooltipRenderer() {
   const [flipX, setFlipX] = useState(false);
   const [flipY, setFlipY] = useState(false);
   const contentSize = useRef({ width: 0, height: 0 });
-  
+
   // Create separated motion values for cursor and offset
   const cursorX = useMotionValue(0);
   const cursorY = useMotionValue(0);
@@ -37,19 +37,19 @@ export function TooltipRenderer() {
   const updatePosition = useCallback(() => {
     let xOffset = 15;
     let yOffset = 15;
-    
+
     if (contentRef.current) {
       // Use cached dimensions to avoid layout thrashing during parent width/height animations
       const { width, height } = contentSize.current;
       let newFlipX = false;
       let newFlipY = false;
-      
+
       // Flip left if cut off on the right
       if (lastMouse.current.x + 15 + width > window.innerWidth - 10) {
         xOffset = -(width + 15);
         newFlipX = true;
       }
-      
+
       // Flip up if cut off on the bottom
       if (lastMouse.current.y + 15 + height > window.innerHeight - 10) {
         yOffset = -(height + 15);
@@ -69,7 +69,7 @@ export function TooltipRenderer() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    
+
     const handleMouseMove = (e: MouseEvent) => {
       lastMouse.current = { x: e.clientX, y: e.clientY };
       updatePosition();
@@ -89,7 +89,7 @@ export function TooltipRenderer() {
         width: contentRef.current.offsetWidth,
         height: contentRef.current.offsetHeight,
       };
-      
+
       const observer = new ResizeObserver((entries) => {
         for (const entry of entries) {
           contentSize.current = {
@@ -99,13 +99,13 @@ export function TooltipRenderer() {
         }
         updatePosition();
       });
-      
+
       observer.observe(contentRef.current);
-      
+
       requestAnimationFrame(() => {
         updatePosition();
       });
-      
+
       return () => observer.disconnect();
     }
   }, [isVisible, content, updatePosition]);
@@ -124,9 +124,9 @@ export function TooltipRenderer() {
       {isVisible && content && (
         <motion.div
           className={`bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-300/80 dark:border-neutral-600/80 shadow-2xl shadow-black/10 dark:shadow-black/40 overflow-hidden transition-[border-radius] duration-300 ease-out ${cornerClass}`}
-          initial={{ width: 0, height: 0, opacity: 0 }}
-          animate={{ width: "auto", height: "auto", opacity: 1, transition: { duration: 0.2, ease: "easeInOut" } }}
-          exit={{ width: 0, height: 0, opacity: 0, transition: { duration: 0.15, ease: "easeInOut" } }}
+          initial={{ scale: 0, opacity: 0, filter: "blur(24px)" }}
+          animate={{ scale: 1, opacity: 1, filter: "blur(0px)", transition: { type: "spring", stiffness: 400, damping: 30 } }}
+          exit={{ scale: 0, opacity: 0, filter: "blur(24px)", transition: { duration: 0.1, ease: "easeIn" } }}
           style={{
             position: "fixed",
             left: 0,
@@ -135,6 +135,8 @@ export function TooltipRenderer() {
             y: finalY,
             zIndex: 99999, // Super high z-index to stay above everything
             pointerEvents: "none", // Don't block hover events on things underneath
+            willChange: "transform, opacity, filter", // Hardware acceleration
+            transformOrigin: `${flipX ? "calc(100% + 15px)" : "-15px"} ${flipY ? "calc(100% + 15px)" : "-15px"}`,
           }}
         >
           <div className="w-max" ref={contentRef}>
