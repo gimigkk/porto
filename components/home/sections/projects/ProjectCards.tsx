@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { useInView } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import type { ProjectMeta } from "@/lib/projects";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -72,12 +72,35 @@ export default function ProjectCards({
   return (
     <div className="relative w-full max-w-350 mx-auto pb-20">
       {/* -- Cards Grid (3-column) ---------------- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-3 px-3 md:px-12">
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-50px" }}
+        variants={{
+          hidden: {},
+          visible: {
+            transition: {
+              staggerChildren: 0.15,
+            },
+          },
+        }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-3 px-3 md:px-12"
+      >
         {featured.map((project) => (
-          <article
+          <motion.article
+            variants={{
+              hidden: { opacity: 0, y: 50, scale: 0.95, filter: "blur(10px)" },
+              visible: { 
+                opacity: 1, 
+                y: 0, 
+                scale: 1,
+                filter: "blur(0px)",
+                transition: { type: "spring", stiffness: 100, damping: 20 }
+              }
+            }}
             key={project.slug}
             className="group relative w-full h-full transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:z-50"
-            style={{ perspective: "1000px" }}
+            style={{ perspective: "1000px", willChange: "transform, opacity, filter" }}
           >
             {/* Background Documents (Pop-up effect) — hidden on mobile */}
             <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
@@ -184,9 +207,9 @@ export default function ProjectCards({
                 </div>
               </div>
             </a>
-          </article>
+          </motion.article>
         ))}
-      </div>
+      </motion.div>
 
       {hasMore && (
         <div className="absolute bottom-0 left-0 right-0 h-52 pointer-events-none flex flex-col justify-end items-center pb-8 z-50">
