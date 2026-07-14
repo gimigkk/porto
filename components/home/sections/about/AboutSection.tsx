@@ -35,9 +35,17 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
     transition: `transform 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${index * 0.1}s, opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${index * 0.1}s`
   });
 
+  const getCardTransition = (delay: number) => ({
+    transform: isInView ? "translateY(0px)" : "translateY(-30px)",
+    opacity: isInView ? 1 : 0,
+    filter: isInView ? "blur(0px)" : "blur(6px)",
+    transition: `transform 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s, opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s, filter 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s`,
+    willChange: "transform, opacity, filter" as const
+  });
+
   return (
-    <section 
-      id="about" 
+    <section
+      id="about"
       ref={ref}
       className="w-full text-white pt-0 md:pt-8 flex flex-col items-center"
     >
@@ -50,7 +58,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
             <div>
               <div className="overflow-hidden pb-3 -mb-3">
                 <h2 style={getTransition(0)} className={`${ibmPlexSerif.className} text-3xl font-bold mb-1 tracking-tight leading-none text-zinc-100`}>
-                  <span 
+                  <span
                     className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
                     onMouseLeave={hideTooltip}
@@ -61,7 +69,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
               </div>
               <div className="overflow-hidden pb-3 mb-3">
                 <p style={getTransition(1)} className={`${ibmPlexSerif.className} text-sm leading-none text-zinc-300`}>
-                  <span 
+                  <span
                     className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
                     onMouseLeave={hideTooltip}
@@ -73,7 +81,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
               <div className="overflow-hidden pb-2 mb-3 w-max">
                 <p style={getTransition(2)} className="text-[11px] leading-tight text-zinc-400 whitespace-nowrap w-max">
-                  Undergraduate at <span 
+                  Undergraduate at <span
                     onMouseEnter={() => showTooltip(<CampusTooltipContent />)}
                     onMouseLeave={hideTooltip}
                   ><a href="https://ipb.ac.id/" target="_blank" rel="noopener noreferrer" className="group hover:text-white transition-colors">IPB University<sup className="text-[8px] ml-0.5 text-zinc-500 group-hover:text-zinc-300 transition-colors cursor-help inline-block">[?]</sup></a></span>.<br />
@@ -112,7 +120,10 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
           </div>
 
           <div className="flex-1 flex justify-end overflow-visible">
-            <div className="relative w-full max-w-[160px] aspect-[4/5] overflow-visible">
+            <div
+              className="relative w-full max-w-[160px] aspect-[4/5] overflow-visible"
+              style={getCardTransition(0.3)}
+            >
               <ProfileFlipCard src="/mukagw.JPG" alt="Gilang" sizes="(max-width: 768px) 160px, 340px" />
             </div>
           </div>
@@ -126,7 +137,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
           <div className="flex justify-end w-full">
             <GithubCommitGraph data={githubGraph} delayBase={0.8} trigger={isInView} />
           </div>
-          <div 
+          <div
             className="overflow-hidden w-full"
             style={{ maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}
           >
@@ -143,7 +154,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
             <div>
               <div className="overflow-hidden pb-4 -mb-4">
                 <h2 style={getTransition(0)} className={`${ibmPlexSerif.className} text-6xl lg:text-7xl font-bold mb-1 tracking-tight text-zinc-100`}>
-                  <span 
+                  <span
                     className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
                     onMouseLeave={hideTooltip}
@@ -154,7 +165,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
               </div>
               <div className="overflow-hidden pb-4 -mb-4">
                 <p style={getTransition(1)} className={`${ibmPlexSerif.className} text-2xl lg:text-3xl text-zinc-300`}>
-                  <span 
+                  <span
                     className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
                     onMouseLeave={hideTooltip}
@@ -167,7 +178,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
             <div className="overflow-hidden mt-[136px] pb-4 -mb-4 w-max">
               <p style={getTransition(2)} className="text-lg lg:text-xl leading-snug text-zinc-300 w-max">
-                Undergraduate at <span 
+                Undergraduate at <span
                   onMouseEnter={() => showTooltip(<CampusTooltipContent />)}
                   onMouseLeave={hideTooltip}
                 ><a href="https://ipb.ac.id/" target="_blank" rel="noopener noreferrer" className="group hover:text-white transition-colors">IPB University<sup className="text-[10px] ml-0.5 text-zinc-500 group-hover:text-zinc-300 transition-colors cursor-help inline-block">[?]</sup></a></span>.<br />
@@ -196,7 +207,10 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
           {/* Middle Column */}
           <div className="flex-1 flex justify-center px-4 lg:px-8 h-full overflow-visible">
-            <div className="relative h-full w-full max-w-[340px] overflow-visible">
+            <div
+              className="relative h-full w-full max-w-[340px] overflow-visible"
+              style={getCardTransition(0.3)}
+            >
               <ProfileFlipCard src="/mukagw.JPG" alt="Gilang" sizes="(max-width: 768px) 160px, 340px" priority />
             </div>
           </div>
@@ -218,7 +232,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
             </div>
 
             <div className="overflow-hidden mt-12 w-full">
-              <div 
+              <div
                 className="flex justify-end w-full overflow-hidden"
                 style={{ maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}
               >
@@ -230,7 +244,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
         </div>
 
       </div>
-      
+
       {/* Hidden Image Preloader for About Section */}
       <div className="hidden">
         <img src="/ipb-drone.png" alt="preload" />
