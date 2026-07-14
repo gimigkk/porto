@@ -213,11 +213,13 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
             }}
           >
             {/* Raw GIF without any CSS filters or blooms for maximum performance */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/goyang2.gif"
-              alt=""
-              className="relative w-full h-full object-contain"
+            <video
+              src="/goyang2.webm"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="relative w-full h-full object-contain pointer-events-none"
               style={{ filter: "brightness(1.35)" }}
             />
           </div>

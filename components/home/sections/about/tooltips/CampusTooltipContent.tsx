@@ -5,7 +5,7 @@ export function CampusTooltipContent() {
     <div className="max-w-xs flex flex-col gap-3 p-4">
       <div className="relative w-full h-32 rounded-lg overflow-hidden shrink-0 bg-neutral-200 dark:bg-neutral-800">
         <img 
-          src="/ipb-drone.png" 
+          src="/ipb-drone.jpg" 
           alt="IPB University Campus" 
           className="object-cover w-full h-full"
         />

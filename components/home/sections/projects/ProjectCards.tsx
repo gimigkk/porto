@@ -15,7 +15,7 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
   const isInView = useInView(containerRef, { margin: "200px" });
   const [isLoaded, setIsLoaded] = useState(false);
   const [showPoster, setShowPoster] = useState(true);
-  const posterSrc = src.replace(/\.(mp4|webm)$/, '-poster.jpg');
+  const posterSrc = src.replace('-sm', '').replace(/\.(mp4|webm)$/, '-poster.jpg');
 
   // Aggressive culling: reset state when out of view
   useEffect(() => {
@@ -108,12 +108,12 @@ export default function ProjectCards({
           <motion.article
             variants={cardVariants}
             key={project.slug}
-            className="group relative w-full h-full transition-[transform,opacity,box-shadow,border-color] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:z-50"
+            className="group relative w-full h-full transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:z-50"
             style={{ ...cardStyle, willChange: wc as any }}
           >
             {/* Background Documents (Pop-up effect) — hidden on mobile */}
             <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
-              <div className="absolute top-10 left-[12%] right-[12%] bottom-16 rounded-lg border border-zinc-700/50 bg-zinc-800 shadow-xl transition-[transform] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-24 group-hover:-rotate-3 origin-bottom">
+              <div className="absolute top-10 left-[12%] right-[12%] bottom-16 rounded-lg border border-zinc-700/50 bg-zinc-800 shadow-xl transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-24 group-hover:-rotate-3 origin-bottom">
                 <div className="p-5 flex flex-col gap-3">
                   <div className="h-1.5 w-1/3 bg-zinc-600 rounded-full"></div>
                   <div className="h-1.5 w-full bg-zinc-600 rounded-full"></div>
@@ -122,7 +122,7 @@ export default function ProjectCards({
                 </div>
               </div>
               <div
-                className="absolute top-8 left-[8%] right-[8%] bottom-12 rounded-lg border border-black/20 shadow-xl transition-[transform] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-12 group-hover:rotate-3 origin-bottom delay-75"
+                className="absolute top-8 left-[8%] right-[8%] bottom-12 rounded-lg border border-black/20 shadow-xl transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-12 group-hover:rotate-3 origin-bottom delay-75"
                 style={{ backgroundColor: project.accent }}
               >
                 <div className="p-5 flex flex-col gap-3 mix-blend-overlay opacity-80">
@@ -144,7 +144,7 @@ export default function ProjectCards({
                 History.prototype.pushState.apply(window.history, [null, "", url]);
                 window.dispatchEvent(new Event("project-modal-changed"));
               }}
-              className="relative z-10 flex flex-col md:justify-end md:aspect-video md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-[transform,box-shadow,border-color] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:border-zinc-400/45 md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] border border-transparent"
+              className="relative z-10 flex flex-col md:justify-end md:aspect-video md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:border-zinc-400/45 md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] border border-transparent"
               style={{ willChange: isAnimationSettled ? "auto" : "transform" }}
             >
               {/* -- Thumbnail -- */}
@@ -152,7 +152,7 @@ export default function ProjectCards({
               <div className="relative aspect-video rounded-lg md:rounded-[inherit] md:absolute md:inset-[1px] md:aspect-auto md:h-auto w-full shrink-0 overflow-hidden">
                 {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
                   <CulledVideo
-                    src={project.thumbnail}
+                    src={project.thumbnail.replace(/\.(mp4|webm)$/i, '-sm.$1')}
                     className="w-full h-full"
                   />
                 ) : (
