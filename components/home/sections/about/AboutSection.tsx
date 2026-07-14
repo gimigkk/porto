@@ -7,7 +7,7 @@ import TechMarquee from "@/components/home/sections/about/TechMarquee";
 import ProfileFlipCard from "@/components/home/sections/about/ProfileFlipCard";
 import styles from "@/components/home/SkipIntroButton.module.css";
 import type { GithubGraphDay } from "@/lib/github";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useInView } from "framer-motion";
 import { useTooltip } from "@/components/providers/TooltipProvider";
 import { NameTooltipContent } from "./tooltips/NameTooltipContent";
@@ -23,6 +23,15 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { showTooltip, hideTooltip } = useTooltip();
+
+  const [isAnimationSettled, setIsAnimationSettled] = useState(false);
+
+  useEffect(() => {
+    if (isInView) {
+      const t = setTimeout(() => setIsAnimationSettled(true), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [isInView]);
 
   const getTransition = (index: number) => ({
     transform: isInView ? "translateY(0%)" : "translateY(150%)",
@@ -40,7 +49,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
     opacity: isInView ? 1 : 0,
     filter: isInView ? "blur(0px)" : "blur(6px)",
     transition: `transform 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s, opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s, filter 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s`,
-    willChange: "transform, opacity, filter" as const
+    willChange: (isAnimationSettled ? "auto" : "transform, opacity, filter") as any
   });
 
   return (

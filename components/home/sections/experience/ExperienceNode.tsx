@@ -20,6 +20,17 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
   const { showTooltip, hideTooltip } = useTooltip();
   const isTop = index % 2 === 0;
 
+  const [isAnimationSettled, setIsAnimationSettled] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isInView) {
+      const t = setTimeout(() => setIsAnimationSettled(true), 2000);
+      return () => clearTimeout(t);
+    }
+  }, [isInView]);
+
+  const wc = isAnimationSettled ? "auto" : "transform";
+
   // Dot size ranges from 8px to 40px based on impressiveness (1-10)
   const dotSize = 8 + ((item.impressiveness - 1) / 9) * 32;
 
@@ -55,14 +66,14 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
                initial={{ y: isTop ? poleHeight + 12 : -(poleHeight + 12) }}
                animate={isInView ? { y: 0 } : { y: isTop ? poleHeight + 12 : -(poleHeight + 12) }}
                transition={{ ...SPRING_CONFIG, delay: desktopDelay + 0.1 }}
-               style={{ willChange: "transform" }}
+               style={{ willChange: wc }}
             >
                <div className="overflow-hidden">
                  <motion.div
                    initial={{ y: isTop ? "100%" : "-100%" }}
                    animate={isInView ? { y: 0 } : { y: isTop ? "100%" : "-100%" }}
                    transition={{ ...SPRING_CONFIG, delay: desktopDelay + 0.3 }}
-                   style={{ willChange: "transform" }}
+                   style={{ willChange: wc }}
                  >
                    {item.startDate}
                  </motion.div>
@@ -72,7 +83,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
                    initial={{ y: isTop ? "100%" : "-100%" }}
                    animate={isInView ? { y: 0 } : { y: isTop ? "100%" : "-100%" }}
                    transition={{ ...SPRING_CONFIG, delay: desktopDelay + 0.4 }}
-                   style={{ willChange: "transform" }}
+                   style={{ willChange: wc }}
                  >
                    {item.endDate}
                  </motion.div>
@@ -84,7 +95,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
                {/* Animated Separator Background */}
                <motion.div
                  className="absolute inset-0 bg-neutral-300 dark:bg-neutral-700 pointer-events-none"
-                 style={{ originY: isTop ? 1 : 0, willChange: "transform" }}
+                 style={{ originY: isTop ? 1 : 0, willChange: wc }}
                  initial={{ y: isTop ? poleHeight + 12 : -(poleHeight + 12), scaleY: 0 }}
                  animate={isInView ? { y: 0, scaleY: 1 } : { y: isTop ? poleHeight + 12 : -(poleHeight + 12), scaleY: 0 }}
                  transition={{ ...SPRING_CONFIG, delay: desktopDelay + 0.1 }}
@@ -94,7 +105,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
                {isTop ? (
                   <motion.div 
                     className="absolute left-0 w-full bg-neutral-300 dark:bg-neutral-700 -z-10 pointer-events-none" 
-                    style={{ top: 'calc(100% + 12px)', height: `${poleHeight}px`, originY: 1, willChange: "transform" }} 
+                    style={{ top: 'calc(100% + 12px)', height: `${poleHeight}px`, originY: 1, willChange: wc }} 
                     initial={{ scaleY: 0 }}
                     animate={{ scaleY: isInView ? 1 : 0 }}
                     transition={{ ...SPRING_CONFIG, delay: desktopDelay + 0.1 }}
@@ -102,7 +113,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
                ) : (
                   <motion.div 
                     className="absolute left-0 w-full bg-neutral-300 dark:bg-neutral-700 -z-10 pointer-events-none" 
-                    style={{ bottom: 'calc(100% + 12px)', height: `${poleHeight}px`, originY: 0, willChange: "transform" }} 
+                    style={{ bottom: 'calc(100% + 12px)', height: `${poleHeight}px`, originY: 0, willChange: wc }} 
                     initial={{ scaleY: 0 }}
                     animate={{ scaleY: isInView ? 1 : 0 }}
                     transition={{ ...SPRING_CONFIG, delay: desktopDelay + 0.1 }}
@@ -118,7 +129,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
                         ? { top: `calc(100% + ${poleHeight + 12}px)` }
                         : { bottom: `calc(100% + ${poleHeight + 12}px)` }
                      ),
-                     willChange: "transform"
+                     willChange: wc
                   }}
                   initial={{ scale: 0, x: "-50%", y: isTop ? "-50%" : "50%" }}
                   animate={{ scale: isInView ? 1 : 0, x: "-50%", y: isTop ? "-50%" : "50%" }}
@@ -132,12 +143,12 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
                initial={{ y: isTop ? poleHeight + 12 : -(poleHeight + 12) }}
                animate={isInView ? { y: 0 } : { y: isTop ? poleHeight + 12 : -(poleHeight + 12) }}
                transition={{ ...SPRING_CONFIG, delay: desktopDelay + 0.1 }}
-               style={{ willChange: "transform" }}
+               style={{ willChange: wc }}
             >
                <div className="overflow-hidden">
                  <motion.h3 
                    className="text-xl font-bold text-neutral-900 dark:text-white leading-tight max-w-[200px]" 
-                   style={{ textWrap: 'balance', willChange: "transform" }}
+                   style={{ textWrap: 'balance', willChange: wc }}
                    initial={{ y: isTop ? "100%" : "-100%" }}
                    animate={isInView ? { y: 0 } : { y: isTop ? "100%" : "-100%" }}
                    transition={{ ...SPRING_CONFIG, delay: desktopDelay + 0.3 }}
@@ -148,7 +159,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
                <div className="overflow-hidden mt-1">
                  <motion.p 
                    className="text-base text-neutral-600 dark:text-neutral-400 font-medium max-w-[200px]" 
-                   style={{ textWrap: 'balance', willChange: "transform" }}
+                   style={{ textWrap: 'balance', willChange: wc }}
                    initial={{ y: isTop ? "100%" : "-100%" }}
                    animate={isInView ? { y: 0 } : { y: isTop ? "100%" : "-100%" }}
                    transition={{ ...SPRING_CONFIG, delay: desktopDelay + 0.4 }}
@@ -174,7 +185,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
           initial={{ x: -mobileFlagOffset }}
           animate={isInView ? { x: 0 } : { x: -mobileFlagOffset }}
           transition={{ ...SPRING_CONFIG, delay: mobileDelay + 0.1 }}
-          style={{ willChange: "transform" }}
+          style={{ willChange: wc }}
         >
           <div className="overflow-hidden">
             <motion.h3 
@@ -182,7 +193,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
               initial={{ y: "100%" }}
               animate={isInView ? { y: 0 } : { y: "100%" }}
               transition={{ ...SPRING_CONFIG, delay: mobileDelay + 0.3 }}
-              style={{ willChange: "transform" }}
+              style={{ willChange: wc }}
             >
               {item.roleMobile || item.role}
             </motion.h3>
@@ -194,7 +205,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
         <div className="col-start-1 col-end-3 row-start-2 row-end-3 flex justify-end items-center h-[2px] w-full z-0 relative">
            <motion.div 
              className="h-full bg-neutral-200 dark:bg-neutral-800 w-[calc(100%-16px)]" 
-             style={{ originX: 0, willChange: "transform" }}
+             style={{ originX: 0, willChange: wc }}
              initial={{ scaleX: 0 }}
              animate={{ scaleX: isInView ? 1 : 0 }}
              transition={{ ...SPRING_CONFIG, delay: mobileDelay + 0.1 }}
@@ -208,7 +219,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
             style={{ 
               width: `${10 + ((item.impressiveness - 1) / 9) * 8}px`, 
               height: `${10 + ((item.impressiveness - 1) / 9) * 8}px`,
-              willChange: "transform"
+              willChange: wc
             }}
             initial={{ scale: 0 }}
             animate={{ scale: isInView ? 1 : 0 }}
@@ -222,7 +233,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
         <div className="col-start-4 col-end-5 row-start-2 row-end-3 h-[2px] w-full relative">
            <motion.div 
              className="absolute inset-0 bg-neutral-200 dark:bg-neutral-800" 
-             style={{ originX: 0, willChange: "transform" }}
+             style={{ originX: 0, willChange: wc }}
              initial={{ x: -mobileFlagOffset, scaleX: 0 }}
              animate={isInView ? { x: 0, scaleX: 1 } : { x: -mobileFlagOffset, scaleX: 0 }}
              transition={{ ...SPRING_CONFIG, delay: mobileDelay + 0.1 }}
@@ -235,7 +246,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
           initial={{ x: -mobileFlagOffset }}
           animate={isInView ? { x: 0 } : { x: -mobileFlagOffset }}
           transition={{ ...SPRING_CONFIG, delay: mobileDelay + 0.1 }}
-          style={{ willChange: "transform" }}
+          style={{ willChange: wc }}
         >
           <div className="overflow-hidden">
             <motion.p 
@@ -243,7 +254,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
               initial={{ y: "100%" }}
               animate={isInView ? { y: 0 } : { y: "100%" }}
               transition={{ ...SPRING_CONFIG, delay: mobileDelay + 0.4 }}
-              style={{ willChange: "transform" }}
+              style={{ willChange: wc }}
             >
               {item.companyMobile || item.company}
             </motion.p>
@@ -254,7 +265,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
               initial={{ y: "100%" }}
               animate={isInView ? { y: 0 } : { y: "100%" }}
               transition={{ ...SPRING_CONFIG, delay: mobileDelay + 0.5 }}
-              style={{ willChange: "transform" }}
+              style={{ willChange: wc }}
             >
               <span>{item.startDate}</span>
               <span>to</span>

@@ -51,22 +51,28 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 
 
 		let cachedVh = 0;
+		let cachedDocTop = 0;
 		const el = containerRef.current;
 
 		const updateMetrics = () => {
 			if (!el) return;
-			el.getBoundingClientRect();
 			cachedVh = window.innerHeight;
+			cachedDocTop = el.getBoundingClientRect().top + window.scrollY;
 		};
 
 		// Initialize metrics
 		updateMetrics();
 		window.addEventListener("resize", updateMetrics);
+		
+		let timeoutId: NodeJS.Timeout;
+		if (isReady) {
+			timeoutId = setTimeout(updateMetrics, 1500); // Re-cache after hero animation settles
+		}
 
 		const onScroll = () => {
 			if (!el) return;
-			// Use real-time rect to avoid stale cachedTop from Hero shrinking animation
-			const currentTop = el.getBoundingClientRect().top;
+			// Use cached doc top to avoid forced synchronous layout per frame
+			const currentTop = cachedDocTop - window.scrollY;
 			
 			// About folder docks at top-12 (48px). Start progress exactly here.
 			const scrolled = 48 - currentTop;
@@ -94,8 +100,9 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 			if (lenis) lenis.off("scroll", onScroll);
 			window.removeEventListener("scroll", onScroll);
 			window.removeEventListener("resize", updateMetrics);
+			clearTimeout(timeoutId);
 		};
-	}, [lenis, isMobile, mobileProgress, mobileAboutFade, mobileExpFade]);
+	}, [lenis, isMobile, isReady, mobileProgress, mobileAboutFade, mobileExpFade]);
 
 	return (
 		/* FIXED: Pulled up by -mt-[56px] to hide the light blue behind the rounded corners */

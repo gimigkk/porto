@@ -13,6 +13,7 @@ export default function TechMarquee({ trigger }: { trigger?: boolean } = {}) {
   const ref = useRef<HTMLDivElement>(null);
   const internalInView = useInView(ref, { once: true, margin: "-50px" });
   const isInView = trigger !== undefined ? trigger : internalInView;
+  const isVisible = useInView(ref, { margin: "200px" });
 
   return (
     <div className="w-full overflow-hidden flex py-3" ref={ref}>
@@ -26,7 +27,7 @@ export default function TechMarquee({ trigger }: { trigger?: boolean } = {}) {
         }
       `}</style>
       <div
-        className={`flex whitespace-nowrap gap-4 md:gap-6 px-4 items-center ${isInView ? 'animate-scrollMarquee' : ''}`}
+        className={`flex whitespace-nowrap gap-4 md:gap-6 px-4 items-center ${isInView && isVisible ? 'animate-scrollMarquee' : ''}`}
       >
         {/* Double the array for seamless infinite scroll */}
         {[...TECH_STACK, ...TECH_STACK].map((tech, i) => (

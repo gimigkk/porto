@@ -12,23 +12,21 @@ import styles from "@/components/home/SkipIntroButton.module.css";
 
 function CulledVideo({ src, className }: { src: string, className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const isInView = useInView(containerRef, { margin: "200px" });
   const [isLoaded, setIsLoaded] = useState(false);
   const [showPoster, setShowPoster] = useState(true);
   const posterSrc = src.replace(/\.(mp4|webm)$/, '-poster.jpg');
 
+  // Aggressive culling: reset state when out of view
   useEffect(() => {
-    if (!videoRef.current) return;
-    if (isInView) {
-      videoRef.current.play().catch(() => {});
-    } else {
-      videoRef.current.pause();
+    if (!isInView) {
+      setIsLoaded(false);
+      setShowPoster(true);
     }
   }, [isInView]);
 
   return (
-    <div ref={containerRef} className={`${className} bg-zinc-800/50 relative overflow-hidden`}>
+    <div ref={containerRef} className={`${className} bg-zinc-800/50 relative overflow-hidden`} style={{ contentVisibility: "auto" }}>
       {showPoster && (
         <>
           <img
@@ -41,19 +39,20 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
           </div>
         </>
       )}
-      <video
-        ref={videoRef}
-        src={src}
-        loop
-        muted
-        playsInline
-        preload="none"
-        onLoadedData={() => setIsLoaded(true)}
-        onTransitionEnd={() => {
-          if (isLoaded) setShowPoster(false);
-        }}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
-      />
+      {isInView && (
+        <video
+          src={src}
+          autoPlay
+          loop
+          muted
+          playsInline
+          onLoadedData={() => setIsLoaded(true)}
+          onTransitionEnd={() => {
+            if (isLoaded) setShowPoster(false);
+          }}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
+        />
+      )}
     </div>
   );
 }
@@ -81,7 +80,7 @@ const cardVariants: Variants = {
   }
 };
 
-const cardStyle = { perspective: "1000px", willChange: "transform, opacity, filter" };
+const cardStyle = { perspective: "1000px" };
 
 export default function ProjectCards({
   projects,
@@ -91,12 +90,16 @@ export default function ProjectCards({
   const featured = projects.slice(0, MAX_FEATURED);
   const hasMore = projects.length >= MAX_FEATURED;
 
+  const [isAnimationSettled, setIsAnimationSettled] = useState(false);
+  const wc = isAnimationSettled ? "auto" : "transform, opacity, filter";
+
   return (
     <div className="relative w-full max-w-350 mx-auto pb-20">
       {/* -- Cards Grid (3-column) ---------------- */}
       <motion.div
         initial="hidden"
         whileInView="visible"
+        onAnimationComplete={() => setIsAnimationSettled(true)}
         viewport={{ once: true, margin: "-50px" }}
         variants={gridVariants}
         className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-3 px-3 md:px-12"
@@ -106,11 +109,11 @@ export default function ProjectCards({
             variants={cardVariants}
             key={project.slug}
             className="group relative w-full h-full transition-[transform,opacity,box-shadow,border-color] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:z-50"
-            style={cardStyle}
+            style={{ ...cardStyle, willChange: wc as any }}
           >
             {/* Background Documents (Pop-up effect) — hidden on mobile */}
             <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
-              <div className="absolute top-10 left-[12%] right-[12%] bottom-16 rounded-lg border border-zinc-700/50 bg-zinc-800 shadow-xl transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-24 group-hover:-rotate-3 origin-bottom">
+              <div className="absolute top-10 left-[12%] right-[12%] bottom-16 rounded-lg border border-zinc-700/50 bg-zinc-800 shadow-xl transition-[transform] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-24 group-hover:-rotate-3 origin-bottom">
                 <div className="p-5 flex flex-col gap-3">
                   <div className="h-1.5 w-1/3 bg-zinc-600 rounded-full"></div>
                   <div className="h-1.5 w-full bg-zinc-600 rounded-full"></div>
@@ -119,7 +122,7 @@ export default function ProjectCards({
                 </div>
               </div>
               <div
-                className="absolute top-8 left-[8%] right-[8%] bottom-12 rounded-lg border border-black/20 shadow-xl transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-12 group-hover:rotate-3 origin-bottom delay-75"
+                className="absolute top-8 left-[8%] right-[8%] bottom-12 rounded-lg border border-black/20 shadow-xl transition-[transform] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-12 group-hover:rotate-3 origin-bottom delay-75"
                 style={{ backgroundColor: project.accent }}
               >
                 <div className="p-5 flex flex-col gap-3 mix-blend-overlay opacity-80">
@@ -142,7 +145,7 @@ export default function ProjectCards({
                 window.dispatchEvent(new Event("project-modal-changed"));
               }}
               className="relative z-10 flex flex-col md:justify-end md:aspect-video md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-[transform,box-shadow,border-color] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:border-zinc-400/45 md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] border border-transparent"
-              style={{ willChange: "transform" }}
+              style={{ willChange: isAnimationSettled ? "auto" : "transform" }}
             >
               {/* -- Thumbnail -- */}
               {/* Mobile: in-flow 16:9 rounded | Desktop: absolute fill */}

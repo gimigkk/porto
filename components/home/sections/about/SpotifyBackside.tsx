@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { useTooltip } from "@/components/providers/TooltipProvider";
+import { useInView } from "framer-motion";
 
 interface SpotifyData {
   isPlaying: boolean;
@@ -89,6 +90,14 @@ export default function SpotifyBackside() {
   const progressRef = useRef<number>(0);
   const trackRef = useRef<SpotifyData | null>(null);
 
+  const containerRef = useRef<HTMLAnchorElement>(null);
+  const isVisible = useInView(containerRef, { margin: "200px" });
+  const isVisibleRef = useRef(isVisible);
+
+  useEffect(() => {
+    isVisibleRef.current = isVisible;
+  }, [isVisible]);
+
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -114,6 +123,8 @@ export default function SpotifyBackside() {
 
     // Simulate playback progress bypassing React state
     const interval = setInterval(() => {
+      if (!isVisibleRef.current) return;
+      
       const currentTrack = trackRef.current;
       if (!currentTrack || !currentTrack.isPlaying || currentTrack.durationMs === undefined) return;
 
@@ -172,6 +183,7 @@ export default function SpotifyBackside() {
 
   return (
     <a
+      ref={containerRef}
       href={data.songUrl}
       target="_blank"
       rel="noopener noreferrer"
