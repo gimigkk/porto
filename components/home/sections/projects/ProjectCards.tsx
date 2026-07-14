@@ -52,7 +52,7 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
         onTransitionEnd={() => {
           if (isLoaded) setShowPoster(false);
         }}
-        className={`absolute inset-0 z-10 w-full h-full object-cover transition-opacity duration-700 ease-out ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
       />
     </div>
   );
