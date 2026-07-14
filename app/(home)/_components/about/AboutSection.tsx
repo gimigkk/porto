@@ -2,11 +2,11 @@
 
 import { IBM_Plex_Serif } from "next/font/google";
 import { ArrowRight } from "lucide-react";
-import GithubCommitGraph from "@/components/home/sections/about/GithubCommitGraph";
-import TechMarquee from "@/components/home/sections/about/TechMarquee";
-import ProfileFlipCard from "@/components/home/sections/about/ProfileFlipCard";
-import BadgeLanyardCanvas from "@/components/home/sections/about/BadgeLanyardCanvas";
-import styles from "@/components/home/SkipIntroButton.module.css";
+import GithubCommitGraph from "@/app/(home)/_components/about/GithubCommitGraph";
+import TechMarquee from "@/app/(home)/_components/about/TechMarquee";
+import ProfileFlipCard from "@/app/(home)/_components/about/ProfileFlipCard";
+import BadgeLanyardCanvas from "@/app/(home)/_components/about/BadgeLanyardCanvas";
+import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
 import type { GithubGraphDay } from "@/lib/github";
 import { useRef, useState, useEffect } from "react";
 import { useInView } from "framer-motion";

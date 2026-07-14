@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { ProjectMeta } from "@/lib/projects";
-import ProjectCards from "@/components/home/sections/projects/ProjectCards";
-import styles from "@/components/home/SkipIntroButton.module.css";
+import ProjectCards from "@/app/(home)/_components/projects/ProjectCards";
+import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
 
 export default function ProjectsSection({ projects }: { projects: ProjectMeta[] }) {
 

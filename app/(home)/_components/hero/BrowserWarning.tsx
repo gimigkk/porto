@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { motion, useAnimationControls } from "framer-motion";
 import { AlertTriangle } from "lucide-react";
-import SkipIntroButton from "@/components/home/SkipIntroButton";
+import SkipIntroButton from "@/app/(home)/_components/SkipIntroButton";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],

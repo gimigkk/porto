@@ -8,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import TechIcon from "@/components/shared/TechIcon";
 import JumpingDots from "@/components/shared/JumpingDots";
-import styles from "@/components/home/SkipIntroButton.module.css";
+import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
 
 function CulledVideo({ src, className }: { src: string, className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);

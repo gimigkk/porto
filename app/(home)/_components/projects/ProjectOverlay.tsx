@@ -1,5 +1,5 @@
 import { getAllProjects } from "@/lib/projects";
-import ProjectModal from "@/components/home/sections/projects/ProjectModal";
+import ProjectModal from "@/app/(home)/_components/projects/ProjectModal";
 import { notFound } from "next/navigation";
 
 export default async function ProjectOverlay({ slug }: { slug: string }) {

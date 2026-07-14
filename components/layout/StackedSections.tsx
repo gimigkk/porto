@@ -6,9 +6,9 @@ import { useLenis } from "lenis/react";
 import type { ProjectMeta } from "@/lib/projects";
 import type { GithubGraphDay } from "@/lib/github";
 import FolderSection from "@/components/layout/FolderSection";
-import AboutSection from "@/components/home/sections/about/AboutSection";
-import ExperienceSection from "@/components/home/sections/experience/ExperienceSection";
-import ProjectsSection from "@/components/home/sections/projects/ProjectsSection";
+import AboutSection from "@/app/(home)/_components/about/AboutSection";
+import ExperienceSection from "@/app/(home)/_components/experience/ExperienceSection";
+import ProjectsSection from "@/app/(home)/_components/projects/ProjectsSection";
 
 interface StackedSectionsProps {
 	projects: ProjectMeta[];

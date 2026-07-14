@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { IBM_Plex_Serif } from "next/font/google";
 import { Download, Send, FolderOpen } from "lucide-react";
 import { motion, useAnimationControls } from "framer-motion";
-import styles from "@/components/home/SkipIntroButton.module.css";
+import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
 
 const ibmPlexSerif = IBM_Plex_Serif({
   subsets: ["latin"],

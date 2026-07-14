@@ -3,17 +3,17 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { usePreloader } from "@/hooks/usePreloader";
-import LoadingScreen from "@/components/home/LoadingScreen";
+import LoadingScreen from "@/app/(home)/_components/LoadingScreen";
 import SkyBackground from "@/components/layout/SkyBackground";
-import HeroContent from "@/components/home/sections/hero/HeroContent";
-import HeroIntroText from "@/components/home/sections/hero/HeroIntroText";
-import BrowserWarning from "@/components/home/sections/hero/BrowserWarning";
+import HeroContent from "@/app/(home)/_components/hero/HeroContent";
+import HeroIntroText from "@/app/(home)/_components/hero/HeroIntroText";
+import BrowserWarning from "@/app/(home)/_components/hero/BrowserWarning";
 import { LanguageProvider } from "@/components/providers/LanguageProvider";
 import StackedSections from "@/components/layout/StackedSections";
 import BackToTop from "@/components/shared/BackToTop";
 import type { ProjectMeta } from "@/lib/projects";
 import type { GithubGraphDay } from "@/lib/github";
-import ClientProjectModal from "@/components/home/sections/projects/ClientProjectModal";
+import ClientProjectModal from "@/app/(home)/_components/projects/ClientProjectModal";
 
 // IMPORT: Loading Cormorant Garamond for the stylish accent
 

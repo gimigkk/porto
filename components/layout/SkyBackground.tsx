@@ -4,7 +4,7 @@ import { useParallaxDock } from "@/hooks/useParallaxDock";
 import dynamic from "next/dynamic";
 import type { PreloadedAssets } from "@/hooks/usePreloader";
 
-const AsciiClouds = dynamic(() => import("@/components/home/sections/hero/AsciiClouds/AsciiClouds"), { ssr: false });
+const AsciiClouds = dynamic(() => import("@/app/(home)/_components/hero/AsciiClouds/AsciiClouds"), { ssr: false });
 
 interface SkyBackgroundProps {
   isReady?: boolean;
