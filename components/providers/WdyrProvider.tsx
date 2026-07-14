@@ -14,6 +14,7 @@ if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
       trackHooks: true,
       logOwnerReasons: true,
       collapseGroups: true,
+      exclude: [/^BadgeLanyard/, /^CuboidCollider/, /^BallCollider/, /^Physics/, /^Canvas/, /^RigidBody/, /^group/, /^mesh/, /Unknown/, /forwardRef/],
     });
   }
 }

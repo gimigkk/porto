@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import GithubCommitGraph from "@/components/home/sections/about/GithubCommitGraph";
 import TechMarquee from "@/components/home/sections/about/TechMarquee";
 import ProfileFlipCard from "@/components/home/sections/about/ProfileFlipCard";
+import BadgeLanyardCanvas from "@/components/home/sections/about/BadgeLanyardCanvas";
 import styles from "@/components/home/SkipIntroButton.module.css";
 import type { GithubGraphDay } from "@/lib/github";
 import { useRef, useState, useEffect } from "react";
@@ -56,7 +57,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
     <section
       id="about"
       ref={ref}
-      className="w-full text-white pt-0 md:pt-8 flex flex-col items-center"
+      className="w-full text-white pt-0 md:pt-8 flex flex-col items-center overflow-hidden md:overflow-visible"
     >
       {/* Use the exact same container padding and max-width as the Navbar */}
       <div className="w-full max-w-350 mx-auto px-4 md:px-12">
@@ -102,14 +103,14 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
               <div className="mb-10">
                 <div style={getButtonTransition(6)}>
-                  <button className={`${styles.pushable} group shrink-0`} aria-label="Resume">
+                  <button className={`${styles.pushable} group shrink-0`} aria-label="Techs">
                     <span className={styles.shadow}></span>
                     <span className={styles.edge}></span>
                     <span
                       className={`${styles.front} !flex items-center justify-center gap-1 whitespace-nowrap`}
                       style={{ padding: "6px 12px", fontSize: "11px" }}
                     >
-                      <span>Resume</span>
+                      <span>Techs</span>
                       <ArrowRight className="w-3 h-3 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
                     </span>
                   </button>
@@ -128,12 +129,12 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
             </div>
           </div>
 
-          <div className="flex-1 flex justify-end overflow-visible">
+          <div className="flex-1 flex justify-end">
             <div
-              className="relative w-full max-w-[160px] aspect-[4/5] overflow-visible"
+              className="relative w-full max-w-[160px] aspect-[4/5]"
               style={getCardTransition(0.3)}
             >
-              <ProfileFlipCard src="/mukagw.JPG" alt="Gilang" sizes="(max-width: 768px) 160px, 340px" />
+              <BadgeLanyardCanvas trigger={isInView} />
             </div>
           </div>
         </div>
@@ -199,14 +200,14 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
             <div className="mt-12">
               <div style={getButtonTransition(6)}>
-                <button className={`${styles.pushable} group shrink-0`} aria-label="Resume">
+                <button className={`${styles.pushable} group shrink-0`} aria-label="Techs">
                   <span className={styles.shadow}></span>
                   <span className={styles.edge}></span>
                   <span
                     className={`${styles.front} !flex items-center justify-center gap-1 whitespace-nowrap`}
                     style={{ padding: "8px 16px", fontSize: "0.85rem" }}
                   >
-                    <span>Resume</span>
+                    <span>Techs</span>
                     <ArrowRight className="w-3.5 h-3.5 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
                   </span>
                 </button>
