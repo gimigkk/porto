@@ -125,7 +125,7 @@ export default function RootLayout({
           easing="ease"
           speed={200}
           shadow="none"
-          zIndex={10001}
+          zIndex={2147483647}
         />
         <WdyrProvider>
           <TooltipProvider>

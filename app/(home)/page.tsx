@@ -17,7 +17,7 @@ export default async function Home() {
         "name": project.title,
         "description": project.description,
         "applicationCategory": "DeveloperApplication",
-        "url": `https://www.gimiaw.web.id/?project=${project.slug}`
+        "url": `https://www.gimiaw.web.id/#project=${project.slug}`
       }
     }))
   };

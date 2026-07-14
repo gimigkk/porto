@@ -10,9 +10,26 @@ import TechIcon from "@/components/shared/TechIcon";
 import JumpingDots from "@/components/shared/JumpingDots";
 import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
 
+function useIsModalOpen() {
+  const [isOpen, setIsOpen] = useState(false);
+  useEffect(() => {
+    const check = () => setIsOpen(window.location.hash.startsWith("#project="));
+    check();
+    window.addEventListener("popstate", check);
+    window.addEventListener("project-modal-changed", check);
+    return () => {
+      window.removeEventListener("popstate", check);
+      window.removeEventListener("project-modal-changed", check);
+    };
+  }, []);
+  return isOpen;
+}
+
 function CulledVideo({ src, className }: { src: string, className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const isInView = useInView(containerRef, { margin: "200px" });
+  const isModalOpen = useIsModalOpen();
   const [isLoaded, setIsLoaded] = useState(false);
   const [showPoster, setShowPoster] = useState(true);
   const posterSrc = src.replace('-sm', '').replace(/\.(mp4|webm)$/, '-poster.jpg');
@@ -24,6 +41,15 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
       setShowPoster(true);
     }
   }, [isInView]);
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+    if (isModalOpen) {
+      videoRef.current.pause();
+    } else if (isInView) {
+      videoRef.current.play().catch(() => {});
+    }
+  }, [isModalOpen, isInView]);
 
   return (
     <div ref={containerRef} className={`${className} bg-zinc-800/50 relative overflow-hidden`} style={{ contentVisibility: "auto" }}>
@@ -41,8 +67,9 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
       )}
       {isInView && (
         <video
+          ref={videoRef}
           src={src}
-          autoPlay
+          autoPlay={!isModalOpen}
           loop
           muted
           playsInline
@@ -136,12 +163,15 @@ export default function ProjectCards({
 
             {/* Main Card */}
             <a
-              href={`/?project=${project.slug}`}
+              href={`#project=${project.slug}`}
               aria-label={`View details for ${project.title}`}
+              onMouseEnter={() => {
+                import(`@/content/projects/${project.slug}.mdx`).catch(() => {});
+              }}
               onClick={(e) => {
                 e.preventDefault();
-                const url = window.location.pathname + "?project=" + project.slug;
-                History.prototype.pushState.apply(window.history, [null, "", url]);
+                const url = window.location.pathname + "#project=" + project.slug;
+                window.history.pushState(null, "", url);
                 window.dispatchEvent(new Event("project-modal-changed"));
               }}
               className="relative z-10 flex flex-col md:justify-end md:aspect-video md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:border-zinc-400/45 md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] border border-transparent"

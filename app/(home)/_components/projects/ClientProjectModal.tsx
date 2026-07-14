@@ -23,8 +23,11 @@ const subscribeToProjectSlug = (callback: () => void) => {
 
 const getProjectSlugSnapshot = () => {
   if (typeof window === "undefined") return null;
-  const params = new URLSearchParams(window.location.search);
-  return params.get("project");
+  const hash = window.location.hash;
+  if (hash.startsWith("#project=")) {
+    return hash.substring(9);
+  }
+  return null;
 };
 
 const getServerSnapshot = () => null;
@@ -34,11 +37,11 @@ function useProjectSlug() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.has("project")) {
+      const hash = window.location.hash;
+      if (hash.startsWith("#project=")) {
         const url = new URL(window.location.href);
-        url.searchParams.delete("project");
-        History.prototype.replaceState.apply(window.history, [null, "", url.toString()]);
+        url.hash = "";
+        window.history.replaceState(null, "", url.toString());
       }
     }
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -203,13 +206,8 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
   // Load MDX content when slug changes
   useEffect(() => {
     if (!slug) {
-      NProgress.start();
       // Start exit animation
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAnimating(false);
-      setIsOpen(false);
-      setPost(null);
-      setProject(null);
       if (lenis) lenis.start();
       document.body.style.overflow = "";
 
@@ -218,7 +216,6 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
         setIsOpen(false);
         setPost(null);
         setProject(null);
-        NProgress.done();
       }, 400);
       return;
     }
@@ -231,10 +228,10 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
 
     if (mdxModules[slug]) {
       setPost(() => mdxModules[slug]);
-      setTimeout(() => setIsAnimating(true), 10);
+      requestAnimationFrame(() => requestAnimationFrame(() => setIsAnimating(true)));
     } else {
       setPost(null); // Clear to show skeleton
-      setTimeout(() => setIsAnimating(true), 10); // Slide up instantly
+      requestAnimationFrame(() => requestAnimationFrame(() => setIsAnimating(true))); // Slide up instantly
 
       NProgress.start();
       import(`@/content/projects/${slug}.mdx`).then((mod) => {
@@ -255,9 +252,10 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
 
   const close = useCallback(() => {
     if (typeof window !== "undefined") {
+      setIsAnimating(false);
       const url = new URL(window.location.href);
-      url.searchParams.delete("project");
-      History.prototype.pushState.apply(window.history, [null, "", url.toString()]);
+      url.hash = "";
+      window.history.pushState(null, "", url.toString());
       window.dispatchEvent(new Event("project-modal-changed"));
     }
   }, []);
@@ -279,10 +277,9 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
   // Handle browser back button AND pushState from card clicks
   useEffect(() => {
     const handlePop = () => {
-      const params = new URLSearchParams(window.location.search);
-      const newSlug = params.get("project");
+      const hash = window.location.hash;
+      const newSlug = hash.startsWith("#project=") ? hash.substring(9) : null;
       if (!newSlug) {
-        NProgress.start();
         setIsAnimating(false);
         if (lenis) lenis.start();
         document.body.style.overflow = "";
@@ -292,7 +289,6 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
           setIsOpen(false);
           setPost(null);
           setProject(null);
-          NProgress.done();
         }, 400);
       } else {
         // Opening a project or paginating
@@ -307,10 +303,10 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
 
         if (mdxModules[newSlug]) {
           setPost(() => mdxModules[newSlug]);
-          if (!wasOpen) setTimeout(() => setIsAnimating(true), 10);
+          if (!wasOpen) requestAnimationFrame(() => requestAnimationFrame(() => setIsAnimating(true)));
         } else {
           setPost(null); // Show skeleton
-          if (!wasOpen) setTimeout(() => setIsAnimating(true), 10); // Slide up instantly
+          if (!wasOpen) requestAnimationFrame(() => requestAnimationFrame(() => setIsAnimating(true))); // Slide up instantly
 
           NProgress.start();
           import(`@/content/projects/${newSlug}.mdx`).then((mod) => {
@@ -335,8 +331,8 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
     if (currentIndex < 0) return;
     const nextIdx = (currentIndex + 1) % totalProjects;
     const nextSlug = allProjects[nextIdx].slug;
-    const newUrl = (typeof window !== "undefined" ? window.location.pathname : "/") + "?project=" + nextSlug;
-    History.prototype.pushState.apply(window.history, [null, "", newUrl]);
+    const newUrl = (typeof window !== "undefined" ? window.location.pathname : "/") + "#project=" + nextSlug;
+    window.history.pushState(null, "", newUrl);
     window.dispatchEvent(new Event("project-modal-changed"));
   };
 
@@ -345,8 +341,8 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
     if (currentIndex < 0) return;
     const prevIdx = (currentIndex - 1 + totalProjects) % totalProjects;
     const prevSlug = allProjects[prevIdx].slug;
-    const newUrl = (typeof window !== "undefined" ? window.location.pathname : "/") + "?project=" + prevSlug;
-    History.prototype.pushState.apply(window.history, [null, "", newUrl]);
+    const newUrl = (typeof window !== "undefined" ? window.location.pathname : "/") + "#project=" + prevSlug;
+    window.history.pushState(null, "", newUrl);
     window.dispatchEvent(new Event("project-modal-changed"));
   };
 
@@ -469,7 +465,7 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
                 {/* Left: Main Content (Scrolls independently) */}
                 <div ref={scrollBodyRef} className="w-full h-full overflow-y-auto no-scrollbar" data-lenis-prevent="true">
                   <article key={project.slug} className="min-h-full bg-zinc-950 text-zinc-200 px-4 sm:px-8 md:px-12 py-12 sm:py-16">
-                    <div className="w-full max-w-3xl mx-auto animate-slide-up-fade" style={{ opacity: 0, animationDelay: "100ms" }}>
+                    <div className="w-full max-w-3xl mx-auto animate-slide-up-fade" style={{ opacity: 0 }}>
                       {/* Project Thumbnail / Video */}
                       <div className="w-full aspect-video rounded-xl overflow-hidden mb-8 sm:mb-10 border border-zinc-800 bg-zinc-900/50 relative shadow-2xl">
                         {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
@@ -518,7 +514,7 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
 
               {/* Right: Fixed Sidebar (Scrolls independently if content overflows) */}
               <aside className="w-full lg:w-72 xl:w-80 h-auto lg:h-full shrink-0 bg-zinc-950 overflow-y-auto no-scrollbar mr-12" data-lenis-prevent="true">
-                <div className="p-6 sm:p-8 pt-12 sm:pt-16 flex flex-col gap-3 pb-12 animate-slide-up-fade" style={{ opacity: 0, animationDelay: "200ms" }}>
+                <div className="p-6 sm:p-8 pt-12 sm:pt-16 flex flex-col gap-3 pb-12 animate-slide-up-fade" style={{ opacity: 0 }}>
                   <LangToggle />
                   {/* Metadata Section */}
                   <div className="flex flex-col gap-5 p-5 rounded-lg bg-zinc-800/20">
