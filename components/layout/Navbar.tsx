@@ -121,21 +121,32 @@ export default function Navbar() {
   const router = useRouter();
 
   // Intro collapse logic (only on homepage)
-  const [introCollapsed, setIntroCollapsed] = useState(pathname === "/");
+  const [introCollapsed, setIntroCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.location.pathname === "/";
+    }
+    return pathname === "/";
+  });
 
   useEffect(() => {
-    if (pathname !== "/") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    const isHome = window.location.pathname === "/";
+    if (!isHome) {
       setIntroCollapsed(false);
       return;
     }
     
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIntroCollapsed(true);
     
     const onReady = () => setIntroCollapsed(false);
     window.addEventListener("hero-phase2", onReady);
-    return () => window.removeEventListener("hero-phase2", onReady);
+    
+    // Safety fallback in case event is missed in prod due to race conditions
+    const safety = setTimeout(() => setIntroCollapsed(false), 8000);
+
+    return () => {
+      window.removeEventListener("hero-phase2", onReady);
+      clearTimeout(safety);
+    };
   }, [pathname]);
 
   // Derive which accordion index matches current route: 1=Home, 2=Project Archive
