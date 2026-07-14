@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import NextTopLoader from 'nextjs-toploader';
 import { TooltipProvider } from "@/components/providers/TooltipProvider";
 import { TooltipRenderer } from "@/components/ui/tooltip/TooltipRenderer";
+import JumpingDots from "@/components/shared/JumpingDots";
 
 import { WdyrProvider } from "@/components/providers/WdyrProvider";
 
@@ -112,33 +113,8 @@ export default function RootLayout({
           }}
           aria-hidden="true"
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  backgroundColor: '#ffffff',
-                  display: 'block',
-                  animation: `ssrDotJump 0.8s infinite ${i * 0.15}s, ssrDotFade 0.8s infinite ${i * 0.15}s`,
-                }}
-              />
-            ))}
-          </div>
+          <JumpingDots />
         </div>
-        <style dangerouslySetInnerHTML={{
-          __html: `
-          @keyframes ssrDotJump {
-            0%, 100% { transform: translateY(0); animation-timing-function: ease-out; }
-            50% { transform: translateY(-12px); animation-timing-function: ease-in; }
-          }
-          @keyframes ssrDotFade {
-            0% { opacity: 1; }
-            100% { opacity: 0.2; }
-          }
-        `}} />
         <NextTopLoader
           color="var(--top-loader-color, #000000)"
           initialPosition={0.08}

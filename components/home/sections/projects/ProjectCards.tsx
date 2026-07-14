@@ -1,18 +1,22 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useInView } from "framer-motion";
 import type { ProjectMeta } from "@/lib/projects";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import TechIcon from "@/components/shared/TechIcon";
+import JumpingDots from "@/components/shared/JumpingDots";
 import styles from "@/components/home/SkipIntroButton.module.css";
 
 function CulledVideo({ src, className }: { src: string, className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const isInView = useInView(containerRef, { margin: "200px" });
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [showPoster, setShowPoster] = useState(true);
+  const posterSrc = src.replace(/\.(mp4|webm)$/, '-poster.jpg');
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -24,7 +28,19 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
   }, [isInView]);
 
   return (
-    <div ref={containerRef} className={className}>
+    <div ref={containerRef} className={`${className} bg-zinc-800/50 relative overflow-hidden`}>
+      {showPoster && (
+        <>
+          <img
+            src={posterSrc}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover blur-md scale-105 pointer-events-none"
+          />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <JumpingDots />
+          </div>
+        </>
+      )}
       <video
         ref={videoRef}
         src={src}
@@ -32,7 +48,11 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
         muted
         playsInline
         preload="none"
-        className="w-full h-full object-cover"
+        onLoadedData={() => setIsLoaded(true)}
+        onTransitionEnd={() => {
+          if (isLoaded) setShowPoster(false);
+        }}
+        className={`absolute inset-0 z-10 w-full h-full object-cover transition-opacity duration-700 ease-out ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
       />
     </div>
   );
