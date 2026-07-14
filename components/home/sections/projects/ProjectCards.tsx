@@ -105,7 +105,7 @@ export default function ProjectCards({
           <motion.article
             variants={cardVariants}
             key={project.slug}
-            className="group relative w-full h-full transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:z-50"
+            className="group relative w-full h-full transition-[transform,opacity,box-shadow,border-color] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:z-50"
             style={cardStyle}
           >
             {/* Background Documents (Pop-up effect) — hidden on mobile */}
@@ -141,7 +141,7 @@ export default function ProjectCards({
                 History.prototype.pushState.apply(window.history, [null, "", url]);
                 window.dispatchEvent(new Event("project-modal-changed"));
               }}
-              className="relative z-10 flex flex-col md:justify-end md:aspect-video md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:border-zinc-400/45 md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] border border-transparent"
+              className="relative z-10 flex flex-col md:justify-end md:aspect-video md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-[transform,box-shadow,border-color] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:border-zinc-400/45 md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] border border-transparent"
               style={{ willChange: "transform" }}
             >
               {/* -- Thumbnail -- */}
@@ -165,7 +165,7 @@ export default function ProjectCards({
 
               {/* -- Desktop-only overlays -- */}
               <div className="hidden md:block absolute inset-0 pointer-events-none [mask-image:linear-gradient(to_top,black_5%,transparent_50%)]">
-                <div className="absolute inset-0 rounded-[inherit] overflow-hidden isolate backdrop-blur-[4px] bg-black/10"></div>
+                <div className="absolute inset-0 rounded-[inherit] overflow-hidden isolate backdrop-blur-[4px] bg-black/10 will-change-transform translate-z-0"></div>
               </div>
               <div className="hidden md:block absolute -inset-x-2 -bottom-2 h-[calc(50%+8px)] bg-linear-to-t from-[#09090b] from-15% via-[#09090b]/60 to-transparent pointer-events-none" />
               {/* -- Meta -- */}
@@ -174,8 +174,7 @@ export default function ProjectCards({
                 <div className="flex flex-col flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
                     <h3
-                      className="text-sm md:text-base font-bold md:group-hover:brightness-125 text-white truncate min-w-0"
-                      style={{ transition: "filter 0.3s" }}
+                      className="text-sm md:text-base font-bold md:group-hover:text-white/90 text-white truncate min-w-0 transition-colors duration-300"
                     >
                       {project.title}
                     </h3>

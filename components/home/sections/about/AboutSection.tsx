@@ -245,10 +245,6 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
       </div>
 
-      {/* Hidden Image Preloader for About Section */}
-      <div className="hidden">
-        <img src="/ipb-drone.png" alt="preload" />
-      </div>
     </section>
   );
 }
