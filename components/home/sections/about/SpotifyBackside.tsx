@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { useTooltip } from "@/components/providers/TooltipProvider";
-import { useInView } from "framer-motion";
 
 interface SpotifyData {
   isPlaying: boolean;
@@ -77,6 +76,168 @@ const MOCK_TRACKS: SpotifyData[] = [
     songUrl: "https://open.spotify.com/track/4oE7MyJhqSD3BaHRpNs8Nl",
     progressMs: 120000,
     durationMs: 236000,
+  },
+  {
+    isPlaying: true,
+    title: "センチメンタルクライシス",
+    artist: "halca",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273d7a6c99c292eaa54ddf8a3f7",
+    songUrl: "https://open.spotify.com/track/31fN64zoCHnWmFmPVmiVJT",
+    durationMs: 235000,
+  },
+  {
+    isPlaying: true,
+    title: "VOICE",
+    artist: "ZAQ",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b27373d6f1bb38a4581030995c34",
+    songUrl: "https://open.spotify.com/track/6ysyGkEAHi2obFmW21eSyl",
+    durationMs: 212000,
+  },
+  {
+    isPlaying: true,
+    title: "Sleep Walking Orchestra",
+    artist: "BUMP OF CHICKEN",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2734fa6f800142c0e82a60b5bec",
+    songUrl: "https://open.spotify.com/track/0vMBqdJIkmflvFk728hKH7",
+    durationMs: 245000,
+  },
+  {
+    isPlaying: true,
+    title: "Aishite Aishite Aishite",
+    artist: "Ado",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273f5912abed0ea22e746552771",
+    songUrl: "https://open.spotify.com/track/4gpvY7b9wHA9G1ZsMDu15b",
+    durationMs: 204000,
+  },
+  {
+    isPlaying: true,
+    title: "風と行く道",
+    artist: "大原ゆい子",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2738e06192b20db0e7665e299c1",
+    songUrl: "https://open.spotify.com/track/0aNhn72dSTLI5DKcbx579b",
+    durationMs: 265000,
+  },
+  {
+    isPlaying: true,
+    title: "Ketsui no Uta",
+    artist: "大原ゆい子",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2739da7ea7ec3fdd889ada7462d",
+    songUrl: "https://open.spotify.com/track/4lOOJXa8XJWOmT5Ha3COIu",
+    durationMs: 278000,
+  },
+  {
+    isPlaying: true,
+    title: "Wind's Anthem (feat. suis From Yorushika)",
+    artist: "Eve",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2734b3802ca0f0cde9fb1da1b2c",
+    songUrl: "https://open.spotify.com/track/1xjyjzvD6l7nCHMySQrgVc",
+    durationMs: 251000,
+  },
+  {
+    isPlaying: true,
+    title: "KIRA",
+    artist: "Ado",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273422899ac4d2bf386921a9775",
+    songUrl: "https://open.spotify.com/track/7FTTLL9jM3wcpgeCAJU9L6",
+    durationMs: 198000,
+  },
+  {
+    isPlaying: true,
+    title: "LOVE 2000",
+    artist: "八奈見杏菜（CV: 遠野ひかる）",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2739f3bd62e5cb8053fb94ad2c0",
+    songUrl: "https://open.spotify.com/track/3SgrOFXKKNcffg5jFvU5Cf",
+    durationMs: 258000,
+  },
+  {
+    isPlaying: true,
+    title: "Fuyubiyori",
+    artist: "佐々木恵梨",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273e88c2d63e455f7c14c1082c0",
+    songUrl: "https://open.spotify.com/track/4Ts3FQkEs1jRIbcgxxT7R0",
+    durationMs: 242000,
+  },
+  {
+    isPlaying: true,
+    title: "会いたかった空",
+    artist: "茅原実里",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2730b2ec123c0a0916817a07083",
+    songUrl: "https://open.spotify.com/track/2WmY0S1XUdWaYiVRYap5H1",
+    durationMs: 312000,
+  },
+  {
+    isPlaying: true,
+    title: "秘密",
+    artist: "sumika",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2739324a240e4d3fc7ac67b225a",
+    songUrl: "https://open.spotify.com/track/7y06U9dmbU1d73cX0gjMCj",
+    durationMs: 215000,
+  },
+  {
+    isPlaying: true,
+    title: "春夏秋冬",
+    artist: "sumika",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2739324a240e4d3fc7ac67b225a",
+    songUrl: "https://open.spotify.com/track/3TQKZoYr4tH2YeJ02bcw1m",
+    durationMs: 235000,
+  },
+  {
+    isPlaying: true,
+    title: "Sincerely",
+    artist: "TRUE",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2732c3cbb74ae5cc1d3e8996983",
+    songUrl: "https://open.spotify.com/track/1774XGEDmmV7ynAzCQHrhU",
+    durationMs: 275000,
+  },
+  {
+    isPlaying: true,
+    title: "旅人の唄",
+    artist: "大原ゆい子",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2738e06192b20db0e7665e299c1",
+    songUrl: "https://open.spotify.com/track/7fgA5gjOjGlsIPLbUFvHDb",
+    durationMs: 250000,
+  },
+  {
+    isPlaying: true,
+    title: "全力少年",
+    artist: "Sukima Switch",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273d0624e5204e7871f088a65b9",
+    songUrl: "https://open.spotify.com/track/3Ztjw8utVpcrzms1RrsJvR",
+    durationMs: 275000,
+  },
+  {
+    isPlaying: true,
+    title: "Sincerely",
+    artist: "Lia",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273dddca4ba4d52751dd192c99c",
+    songUrl: "https://open.spotify.com/track/62X8QsHGfAImwjrCtlFByg",
+    durationMs: 285000,
+  },
+  {
+    isPlaying: true,
+    title: "Sing My Pleasure",
+    artist: "ヴィヴィ(Vo.八木海莉)",
+    album: "Spotify Track",
+    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b27330353054c4cdfe757f66997b",
+    songUrl: "https://open.spotify.com/track/6wOazYrDGLhMAhwU6RArlg",
+    durationMs: 275000,
   }
 ];
 
@@ -90,13 +251,7 @@ export default function SpotifyBackside() {
   const progressRef = useRef<number>(0);
   const trackRef = useRef<SpotifyData | null>(null);
 
-  const containerRef = useRef<HTMLAnchorElement>(null);
-  const isVisible = useInView(containerRef, { margin: "200px" });
-  const isVisibleRef = useRef(isVisible);
 
-  useEffect(() => {
-    isVisibleRef.current = isVisible;
-  }, [isVisible]);
 
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -106,44 +261,79 @@ export default function SpotifyBackside() {
   };
 
   useEffect(() => {
-    // Pick a random track from the mock array on mount to avoid hydration mismatch
-    const randomTrack = MOCK_TRACKS[Math.floor(Math.random() * MOCK_TRACKS.length)];
-    const startProgress = Math.floor(Math.random() * (randomTrack.durationMs || 100000));
-    const randomizedTrack = {
-      ...randomTrack,
-      progressMs: startProgress
-    };
+    const date = new Date();
+    const currentHour = date.getHours();
+    const isDowntime = currentHour >= 0 && currentHour < 7;
     
-    trackRef.current = randomizedTrack;
-    progressRef.current = startProgress;
+    // Freeze time at 23:59:59 of previous day if in downtime
+    const timeToUse = isDowntime 
+      ? new Date(date).setHours(0, 0, 0, 0) - 1 
+      : date.getTime();
+
+    const totalDuration = MOCK_TRACKS.reduce((acc, track) => acc + (track.durationMs || 0), 0);
+    const currentLoopTime = timeToUse % totalDuration;
+
+    let accumulatedTime = 0;
+    let initialIndex = 0;
+    let initialProgress = 0;
+
+    for (let i = 0; i < MOCK_TRACKS.length; i++) {
+      const duration = MOCK_TRACKS[i].durationMs || 100000;
+      if (currentLoopTime < accumulatedTime + duration) {
+        initialIndex = i;
+        initialProgress = currentLoopTime - accumulatedTime;
+        break;
+      }
+      accumulatedTime += duration;
+    }
+
+    const initialTrack = {
+      ...MOCK_TRACKS[initialIndex],
+      progressMs: initialProgress,
+      isPlaying: !isDowntime
+    };
+
+    trackRef.current = initialTrack;
+    progressRef.current = initialProgress;
+    
+    // Real-time anchors prevent drift and desync when tab is inactive
+    let startTime = Date.now();
+    let baseProgress = initialProgress;
     
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setData(randomizedTrack);
+    setData(initialTrack);
     setLoading(false);
 
-    // Simulate playback progress bypassing React state
     const interval = setInterval(() => {
-      if (!isVisibleRef.current) return;
-      
+      // Proper performance optimization: skip DOM updates when tab is hidden
+      if (document.hidden) return;
+
       const currentTrack = trackRef.current;
       if (!currentTrack || !currentTrack.isPlaying || currentTrack.durationMs === undefined) return;
 
-      progressRef.current += 1000;
-      
-      // Track finished, trigger React state change for new track
+      // Track elapsed time properly instead of naive +1000ms
+      const elapsed = Date.now() - startTime;
+      progressRef.current = baseProgress + elapsed;
+
       if (progressRef.current >= currentTrack.durationMs) {
-        let nextTrack = MOCK_TRACKS[Math.floor(Math.random() * MOCK_TRACKS.length)];
-        while (MOCK_TRACKS.length > 1 && nextTrack.songUrl === currentTrack.songUrl) {
-          nextTrack = MOCK_TRACKS[Math.floor(Math.random() * MOCK_TRACKS.length)];
-        }
-        const newTrack = { ...nextTrack, progressMs: 0 };
-        trackRef.current = newTrack;
+        const currentIndex = MOCK_TRACKS.findIndex(t => t.songUrl === currentTrack.songUrl);
+        const nextIndex = currentIndex !== -1 ? (currentIndex + 1) % MOCK_TRACKS.length : 0;
+        const nextTrack = {
+          ...MOCK_TRACKS[nextIndex],
+          progressMs: 0,
+          isPlaying: true
+        };
+        trackRef.current = nextTrack;
         progressRef.current = 0;
-        setData(newTrack);
+        
+        // Reset anchors for next track
+        startTime = Date.now();
+        baseProgress = 0;
+        
+        setData(nextTrack);
         return;
       }
 
-      // Update DOM directly to avoid 1-second React re-renders
       if (barRef.current) {
         const percentage = Math.min((progressRef.current / currentTrack.durationMs) * 100, 100);
         barRef.current.style.width = `${percentage}%`;
@@ -183,7 +373,6 @@ export default function SpotifyBackside() {
 
   return (
     <a
-      ref={containerRef}
       href={data.songUrl}
       target="_blank"
       rel="noopener noreferrer"
@@ -238,14 +427,14 @@ export default function SpotifyBackside() {
             <div
               ref={barRef}
               className="absolute top-0 left-0 h-full bg-white rounded-full transition-all duration-1000 ease-linear relative"
-              style={{ width: `${data.durationMs && data.progressMs ? Math.min((data.progressMs / data.durationMs) * 100, 100) : 0}%` }}
+              style={{ width: `${data.durationMs ? Math.min((progressRef.current / data.durationMs) * 100, 100) : 0}%` }}
             >
               {/* Progress Dot Handle */}
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full translate-x-1/2 shadow-[0_0_4px_rgba(0,0,0,0.5)]" />
             </div>
           </div>
           <div className="flex justify-between text-[10px] text-zinc-500 font-medium tracking-widest font-mono">
-            <span ref={timeRef}>{formatTime(data.progressMs || 0)}</span>
+            <span ref={timeRef}>{formatTime(progressRef.current)}</span>
             <span>{formatTime(data.durationMs || 0)}</span>
           </div>
         </div>
