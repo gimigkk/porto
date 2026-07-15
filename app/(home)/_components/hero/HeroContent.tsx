@@ -12,11 +12,9 @@ const ibmPlexSerif = IBM_Plex_Serif({
   style: ["normal"],
 });
 
-const ANIM_TITLE_INITIAL = { y: "100%" };
-const ANIM_TITLE_ANIMATE = { y: 0 };
-const ANIM_TITLE_TRANSITION = { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const };
-
-const ANIM_FADE_INITIAL = { opacity: 0, y: 10 };
+const ANIM_INITIAL = { opacity: 0, y: 120, scale: 0.95, filter: "blur(15px)" };
+const ANIM_ANIMATE = { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" };
+const ANIM_TRANSITION = { type: "spring" as const, stiffness: 100, damping: 20 };
 
 interface HeroContentProps {
   /** When true, SVG title fades in */
@@ -34,12 +32,12 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
     if (!ctaReady) return;
 
     subtextControls.start({
-      opacity: 1, y: 0,
-      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+      ...ANIM_ANIMATE,
+      transition: ANIM_TRANSITION,
     });
     ctaControls.start({
-      opacity: 1, y: 0,
-      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+      ...ANIM_ANIMATE,
+      transition: ANIM_TRANSITION,
     });
   }, [ctaReady, subtextControls, ctaControls]);
 
@@ -50,11 +48,11 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
       <div className="relative z-20 hidden md:flex flex-col items-center text-center text-white px-6 w-full max-w-4xl mx-auto md:-mt-24 lg:-mt-28 xl:-mt-32 2xl:-mt-52">
         {/* SVG Title */}
         {showTitle && (
-          <div className="w-full max-w-2xl mx-auto mb-6 overflow-hidden">
+          <div className="w-full max-w-2xl mx-auto mb-6">
             <motion.div
-              initial={ANIM_TITLE_INITIAL}
-              animate={ANIM_TITLE_ANIMATE}
-              transition={ANIM_TITLE_TRANSITION}
+              initial={ANIM_INITIAL}
+              animate={ANIM_ANIMATE}
+              transition={ANIM_TRANSITION}
             >
               <img src="/gimigkk.svg" alt="Gilang's Portfolio Title" className="w-full h-auto" fetchPriority="high" />
             </motion.div>
@@ -63,7 +61,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* Subtext - IBM Plex Serif */}
         <motion.p
-          initial={ANIM_FADE_INITIAL}
+          initial={ANIM_INITIAL}
           animate={subtextControls}
           className={`${ibmPlexSerif.className} font-[500] text-[24.5px] opacity-90 mb-3`}
         >
@@ -72,7 +70,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* CTA Buttons */}
         <motion.div
-          initial={ANIM_FADE_INITIAL}
+          initial={ANIM_INITIAL}
           animate={ctaControls}
           className="flex justify-center gap-1 w-full max-w-fit mx-auto drop-shadow-xl"
         >
@@ -125,11 +123,11 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
       <div className="relative z-20 flex md:hidden flex-col items-center text-center text-white px-4 w-full mx-auto pointer-events-auto">
         {/* SVG Title */}
         {showTitle && (
-          <div className="w-full max-w-[270px] mx-auto mb-10 overflow-hidden">
+          <div className="w-full max-w-[270px] mx-auto mb-10">
             <motion.div
-              initial={ANIM_TITLE_INITIAL}
-              animate={ANIM_TITLE_ANIMATE}
-              transition={ANIM_TITLE_TRANSITION}
+              initial={ANIM_INITIAL}
+              animate={ANIM_ANIMATE}
+              transition={ANIM_TRANSITION}
             >
               <img src="/gimigkk.svg" alt="Gilang's Portfolio Title" className="w-full h-auto" fetchPriority="high" />
             </motion.div>
@@ -138,7 +136,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* Subtext */}
         <motion.p
-          initial={ANIM_FADE_INITIAL}
+          initial={ANIM_INITIAL}
           animate={subtextControls}
           className={`${ibmPlexSerif.className} font-[400] text-[16.5px] opacity-90 mb-2`}
         >
@@ -147,7 +145,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* CTA Buttons */}
         <motion.div
-          initial={ANIM_FADE_INITIAL}
+          initial={ANIM_INITIAL}
           animate={ctaControls}
           className="flex justify-center gap-1 flex-wrap w-full max-w-fit mx-auto drop-shadow-md"
         >
