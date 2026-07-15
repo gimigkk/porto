@@ -9,12 +9,12 @@ export function ExperienceTooltipContent({ item }: { item: ExperienceItem }) {
         </div>
       )}
       
-      <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed">
+      <p className="text-sm text-neutral-800 leading-relaxed">
         {item.description}
       </p>
       
       <div className="mt-auto">
-        <p className="text-xs text-neutral-500 dark:text-neutral-500 italic">
+        <p className="text-xs text-neutral-500 italic">
           Impact score: {item.impressiveness}/10
         </p>
       </div>

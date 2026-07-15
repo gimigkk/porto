@@ -95,7 +95,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakartaSans.variable} h-full antialiased`}
+      className={`${plusJakartaSans.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
         {/* SSR loading screen — renders in initial HTML before any JS executes */}
