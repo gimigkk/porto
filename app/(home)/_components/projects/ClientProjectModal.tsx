@@ -33,23 +33,7 @@ const getProjectSlugSnapshot = () => {
 const getServerSnapshot = () => null;
 
 function useProjectSlug() {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hash = window.location.hash;
-      if (hash.startsWith("#project=")) {
-        const url = new URL(window.location.href);
-        url.hash = "";
-        window.history.replaceState(null, "", url.toString());
-      }
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMounted(true);
-  }, []);
-
-  const slug = useSyncExternalStore(subscribeToProjectSlug, getProjectSlugSnapshot, getServerSnapshot);
-  return isMounted ? slug : null;
+  return useSyncExternalStore(subscribeToProjectSlug, getProjectSlugSnapshot, getServerSnapshot);
 }
 
 

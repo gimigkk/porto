@@ -14,7 +14,10 @@ const ibmPlexSerif = IBM_Plex_Serif({
 
 const ANIM_INITIAL = { opacity: 0, y: 120, scale: 0.95, filter: "blur(15px)" };
 const ANIM_ANIMATE = { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" };
-const ANIM_TRANSITION = { type: "spring" as const, stiffness: 100, damping: 20 };
+const ANIM_TRANSITION = {
+  type: "spring" as const, stiffness: 100, damping: 20,
+  opacity: { type: "tween" as const, duration: 0.4, ease: "linear" },
+};
 
 interface HeroContentProps {
   /** When true, SVG title fades in */
@@ -74,9 +77,8 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
           animate={ctaControls}
           className="flex justify-center gap-1 w-full max-w-fit mx-auto drop-shadow-xl"
         >
-          <a
-            href="/cv.pdf"
-            className={`${styles.pushable} group`}
+          <span
+            className={`${styles.pushable} group cursor-default`}
           >
             <span className={styles.shadow}></span>
             <span className={styles.edgeDark}></span>
@@ -87,10 +89,9 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
               <Download size={16} className="transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-0.5" />
               <span>CV</span>
             </span>
-          </a>
-          <a
-            href="mailto:contact@example.com"
-            className={`${styles.pushable} group`}
+          </span>
+          <span
+            className={`${styles.pushable} group cursor-default`}
           >
             <span className={styles.shadow}></span>
             <span className={styles.edgeDark}></span>
@@ -101,10 +102,9 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
               <Send size={16} className="transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               <span>Send an Email</span>
             </span>
-          </a>
-          <a
-            href="#projects"
-            className={`${styles.pushable} group`}
+          </span>
+          <span
+            className={`${styles.pushable} group cursor-default`}
           >
             <span className={styles.shadow}></span>
             <span className={styles.edgeDark}></span>
@@ -115,7 +115,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
               <FolderOpen size={16} className="transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-110" />
               <span>Projects</span>
             </span>
-          </a>
+          </span>
         </motion.div>
       </div>
 
@@ -149,9 +149,8 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
           animate={ctaControls}
           className="flex justify-center gap-1 flex-wrap w-full max-w-fit mx-auto drop-shadow-md"
         >
-          <a
-            href="/cv.pdf"
-            className={`${styles.pushable} group`}
+          <span
+            className={`${styles.pushable} group cursor-default`}
           >
             <span className={styles.shadow}></span>
             <span className={styles.edgeDark}></span>
@@ -162,10 +161,9 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
               <Download size={14} className="transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-0.5" />
               <span>CV</span>
             </span>
-          </a>
-          <a
-            href="mailto:contact@example.com"
-            className={`${styles.pushable} group`}
+          </span>
+          <span
+            className={`${styles.pushable} group cursor-default`}
           >
             <span className={styles.shadow}></span>
             <span className={styles.edgeDark}></span>
@@ -176,10 +174,9 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
               <Send size={14} className="transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               <span>Email</span>
             </span>
-          </a>
-          <a
-            href="#projects"
-            className={`${styles.pushable} group`}
+          </span>
+          <span
+            className={`${styles.pushable} group cursor-default`}
           >
             <span className={styles.shadow}></span>
             <span className={styles.edgeDark}></span>
@@ -190,7 +187,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
               <FolderOpen size={14} className="transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-110" />
               <span>Projects</span>
             </span>
-          </a>
+          </span>
         </motion.div>
       </div>
     </>

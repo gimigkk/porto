@@ -147,7 +147,8 @@ export default function Navbar() {
       window.removeEventListener("hero-phase2", onReady);
       clearTimeout(safety);
     };
-  }, [pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Derive which accordion index matches current route: 1=Home, 2=Project Archive
   const currentPageAccordion = pathname === "/projects" ? 2 : 1;
@@ -326,8 +327,10 @@ export default function Navbar() {
         onMouseLeave={handleNavMouseLeave}
         style={{
           transform: (navVisible && !introCollapsed) ? "translateY(0)" : "translateY(-100%)",
-          transition: "transform 300ms cubic-bezier(0.22,1,0.36,1)",
-          willChange: "transform",
+          opacity: introCollapsed ? 0 : 1,
+          transition: "transform 300ms cubic-bezier(0.22,1,0.36,1), opacity 300ms cubic-bezier(0.22,1,0.36,1)",
+          willChange: "transform, opacity",
+          pointerEvents: introCollapsed ? "none" : "auto",
         }}
       >
         {/* Thin bar */}

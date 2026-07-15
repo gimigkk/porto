@@ -77,7 +77,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   useEffect(() => {
     const mobileMatch = window.matchMedia('(max-width: 768px)').matches;
     const chromeMatch = !!(window as Window & { chrome?: unknown }).chrome;
-    
+
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobile(mobileMatch);
     setIsChromium(chromeMatch);
@@ -112,9 +112,9 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
     // 1 & 2. SVG and Nav+Folders trigger immediately
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setFoldersReady(true);
-    
-    // 3. CTA + Subtext after 700ms total
-    const t3 = setTimeout(() => setCtaReady(true), 700);
+
+    // 3. CTA + Subtext after 300ms
+    const t3 = setTimeout(() => setCtaReady(true), 500);
 
     return () => {
       clearTimeout(t3);

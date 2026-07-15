@@ -98,6 +98,14 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Clear stale #project= hash BEFORE React hydrates.
+            Calling replaceState during React lifecycle causes Next.js Router
+            hook-ordering errors. This runs during HTML parsing, before any JS framework. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var h=location.hash;if(h&&h.indexOf("#project=")===0){history.replaceState(null,"",location.pathname+location.search)}})()`
+          }}
+        />
         {/* SSR loading screen — renders in initial HTML before any JS executes */}
         <div
           id="ssr-loading-screen"
