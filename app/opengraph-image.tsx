@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = "Gilang's Portfolio";
+export const alt = "Gilang Muhamad Widiagung Portfolio";
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -21,7 +21,7 @@ export default async function Image() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
-          <div style={{ fontSize: 48, fontWeight: 900, color: '#f59e0b', letterSpacing: '-0.02em', marginRight: '24px' }}>GILANG</div>
+          <div style={{ fontSize: 42, fontWeight: 900, color: '#f59e0b', letterSpacing: '-0.02em', marginRight: '24px' }}>GILANG MUHAMAD WIDIAGUNG</div>
           <div style={{ fontSize: 40, color: '#52525b', fontWeight: 300 }}>/</div>
           <div style={{ fontSize: 40, color: '#a1a1aa', fontWeight: 500, letterSpacing: '-0.01em', marginLeft: '24px' }}>Gimiaw</div>
         </div>

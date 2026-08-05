@@ -20,19 +20,18 @@ const siteUrl = "https://www.gimiaw.web.id";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Gilang | Full-stack Developer & Product Designer",
-    template: "%s | Gilang's Portfolio",
+    default: "Gilang Muhamad Widiagung | Full-stack Developer & Product Designer",
+    template: "%s | Gilang Muhamad Widiagung",
   },
-  description: "Portfolio of Gilang (gimiaw|@gimigkk), a Full-stack Developer and Product Designer specializing in React, Next.js, TypeScript, and creative technical solutions.",
+  description: "Official portfolio of Gilang Muhamad Widiagung (gimiaw | @gimigkk), a Full-stack Developer and Product Designer specializing in React, Next.js, TypeScript, and software engineering.",
   keywords: [
-    "Full-stack Developer", "Product Designer", "React", "Next.js", "TypeScript",
-    "Prisma", "PostgreSQL", "Astro", "Tailwind", "Rust", "Docker", "Supabase",
-    "Unity", "C#", "Flutter", "Godot", "Web Development", "Software Engineer",
-    "Gilang", "Gimiaw", "Indonesia"
+    "Gilang Muhamad Widiagung", "Gilang Widiagung", "Gilang Muhamad", "Gilang", "Gimiaw", "gimigkk",
+    "Full-stack Developer", "Product Designer", "Software Engineer", "Indonesia Developer",
+    "React", "Next.js", "TypeScript", "Prisma", "PostgreSQL", "Tailwind", "Rust", "Docker", "Godot"
   ],
-  authors: [{ name: "Gilang", url: siteUrl }],
-  creator: "Gilang",
-  publisher: "Gilang",
+  authors: [{ name: "Gilang Muhamad Widiagung", url: siteUrl }],
+  creator: "Gilang Muhamad Widiagung",
+  publisher: "Gilang Muhamad Widiagung",
   formatDetection: {
     email: false,
     address: false,
@@ -42,16 +41,16 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Gilang | Full-stack Developer & Product Designer",
-    description: "Portfolio of Gilang (Gimiaw), a Full-stack Developer and Product Designer.",
+    title: "Gilang Muhamad Widiagung | Full-stack Developer & Product Designer",
+    description: "Portfolio of Gilang Muhamad Widiagung (Gimiaw), Full-stack Developer and Product Designer.",
     url: siteUrl,
-    siteName: "Gilang's Portfolio",
+    siteName: "Gilang Muhamad Widiagung Portfolio",
     images: [
       {
         url: "/mukagw.JPG",
         width: 800,
         height: 600,
-        alt: "Gilang Profile Picture",
+        alt: "Gilang Muhamad Widiagung Profile Picture",
       },
     ],
     locale: "en_US",
@@ -59,8 +58,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Gilang | Full-stack Developer & Product Designer",
-    description: "Portfolio of Gilang (Gimiaw), a Full-stack Developer and Product Designer.",
+    title: "Gilang Muhamad Widiagung | Full-stack Developer & Product Designer",
+    description: "Portfolio of Gilang Muhamad Widiagung (Gimiaw), Full-stack Developer and Product Designer.",
     images: ["/mukagw.JPG"],
     creator: "@gimiaw",
   },
@@ -81,7 +80,7 @@ export const metadata: Metadata = {
     apple: "/munching-cat.gif",
   },
   appleWebApp: {
-    title: "Gilang's Portfolio",
+    title: "Gilang Muhamad Widiagung Portfolio",
     statusBarStyle: "black-translucent",
     capable: true,
   },
@@ -148,7 +147,11 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Person",
-              name: "Gilang",
+              name: "Gilang Muhamad Widiagung",
+              givenName: "Gilang",
+              additionalName: "Muhamad",
+              familyName: "Widiagung",
+              alternateName: ["Gilang Widiagung", "Gilang", "Gimiaw", "gimigkk"],
               url: "https://www.gimiaw.web.id",
               image: "https://www.gimiaw.web.id/mukagw.JPG",
               jobTitle: "Full-stack Developer & Product Designer",
@@ -168,7 +171,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              name: "Gilang's Portfolio",
+              name: "Gilang Muhamad Widiagung Portfolio",
               url: "https://www.gimiaw.web.id",
             })
           }}
