@@ -112,7 +112,7 @@ export default function FolderSection({
 
           {/* Main Body */}
           <div
-            className={`flex-1 w-full ${bodyRadius} ${pbClass} flex flex-col items-center justify-center relative z-20`}
+            className={`flex-1 w-full ${bodyRadius} ${pbClass} flex flex-col items-center justify-start relative z-20`}
           >
             {/* Top gap bridges for mobile border continuity (draws border ONLY where tab isn't) */}
             {tabPosition === "left" && (
@@ -144,7 +144,7 @@ export default function FolderSection({
             ) : (
               <div className={`absolute inset-0 z-0 ${bgClass} ${bodyRadius}`} />
             )}
-            <div className="relative z-10 w-full">
+            <div className="relative z-10 w-full h-full flex flex-col justify-start">
               {children}
             </div>
             {/* Infinite Downward Extension */}
