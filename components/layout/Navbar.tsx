@@ -125,11 +125,11 @@ export default function Navbar() {
     if (typeof window !== "undefined") {
       return window.location.pathname === "/";
     }
-    return pathname === "/";
+    return !pathname || pathname === "/";
   });
 
   useEffect(() => {
-    const isHome = window.location.pathname === "/";
+    const isHome = typeof window !== "undefined" ? window.location.pathname === "/" : (!pathname || pathname === "/");
     if (!isHome) {
       setIntroCollapsed(false);
       return;
@@ -140,15 +140,14 @@ export default function Navbar() {
     const onReady = () => setIntroCollapsed(false);
     window.addEventListener("hero-phase2", onReady);
     
-    // Safety fallback in case event is missed in prod due to race conditions
-    const safety = setTimeout(() => setIntroCollapsed(false), 8000);
+    // Safety fallback in case event is missed (extended to 20s to avoid interrupting intro)
+    const safety = setTimeout(() => setIntroCollapsed(false), 20000);
 
     return () => {
       window.removeEventListener("hero-phase2", onReady);
       clearTimeout(safety);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pathname]);
 
   // Derive which accordion index matches current route: 1=Home, 2=Project Archive
   const currentPageAccordion = pathname === "/projects" ? 2 : 1;
