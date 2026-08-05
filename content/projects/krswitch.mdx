@@ -21,10 +21,16 @@ export const metadata = {
 ## The Problem
 Getting stuck with a terrible class schedule is the worst. Students were trying to swap classes manually in massive WhatsApp groups, which was chaotic, slow, and mostly based on luck. People were constantly getting sniped or losing track of who wanted what.
 
-## The Solution
+## The Solution & Two-Phase KRS Pipeline
 I built **KRSwitch**, a platform that acts like a stock exchange for college schedules.
 
-Students just log in, pick the class they have, and pick the class they actually want. Instead of hunting for a trading partner, the system does it for them. The moment two students want each other's schedules, it instantly locks the match and executes the swap.
+KRSwitch represents **Phase 2** of the student KRS enrollment pipeline:
+- **Phase 1 (WAR Phase)**: Initial fast-paced seat grabbing platform built by **Ilham Goesasi**.
+- **Phase 2 (KRSwitch Phase)**: Post-WAR schedule bartering, package swapping, and targeted drop-seat offers.
+
+Active through **August 11th**, the platform supports **148 active users** who trade single classes, execute multi-course batch package swaps, and target specific seat drops.
+
+![KRSwitch Batch Barter & Targeted Drop Seat Modal](/projects/krswitch/batch-barter-modal.png)
 
 ## How the WebSocket Engine Works
 Because class availability changes by the millisecond during registration, I had to make sure the data was always live. I built a real-time event system using Socket.IO so users see availability updates the exact moment they happen.
@@ -36,10 +42,16 @@ Because class availability changes by the millisecond during registration, I had
 ## Masalahnya
 Dapet jadwal kuliah yang jelek itu emang paling nyebelin. Mahasiswa biasanya nyoba tukeran kelas manual lewat grup angkatan di WhatsApp, yang pastinya kacau, lambat, dan hoki-hokian. Sering banget udah nemu yang pas tapi keduluan orang, atau pusing sendiri nyari siapa yang mau nuker.
 
-## Solusinya
+## Solusi & Pipeline KRS 2-Fase
 Kita ngebangun **KRSwitch**, platform yang cara kerjanya mirip bursa saham tapi buat jadwal kuliah.
 
-Mahasiswa tinggal login, pilih kelas yang mereka dapet, dan pilih kelas yang sebenernya mereka mau. Daripada ribet nyari partner tukeran, sistem yang bakal nyariin. Begitu ada dua mahasiswa yang jadwalnya saling cocok, sistem langsung ngunci *match*-nya dan ngeksekusi penukarannya secara otomatis.
+KRSwitch beroperasi sebagai **Fase 2** dari pipeline pengisian KRS mahasiswa:
+- **Fase 1 (Fase WAR)**: Platform perebutan slot kelas berkecepatan tinggi yang dibangun oleh **Ilham Goesasi**.
+- **Fase 2 (Fase KRSwitch)**: Mesin penukaran jadwal pasca-WAR, pertukaran paket kelas, dan penawaran *drop seat* terarah.
+
+Sedang aktif berjalan sampai **11 Agustus**, platform ini melayani **148 pengguna aktif** yang bertransaksi kelas, mengeksekusi *batch barter* paket mata kuliah, hingga melakukan *targeted drop seat*.
+
+![Modal Tukar Banyak & Drop Seat KRSwitch](/projects/krswitch/batch-barter-modal.png)
 
 ## Cara Kerja Mesin WebSocket
 Karena slot kelas bisa berubah dalam hitungan milidetik pas masa KRS, kita harus mastiin datanya bener-bener *live*. Kita bikin sistem event real-time pake Socket.IO biar pengguna bisa liat update ketersediaan tepat di detik kejadiannya.
@@ -79,9 +91,10 @@ For the backend, the matchmaking had to be bulletproof. I wrapped the swapping l
 For the frontend, I skipped the flashy animations. The light mode looks like Microsoft Excel because it needed extreme data density, and the dark mode looks like a crypto trading terminal for late-night schedule sniping.
 
 Other technical details:
+- **Batch Bartering & Targeted Drops**: Multi-course preset swapping (Paket) and targeted seat drop offers to optimize complex class schedules.
 - **State Batching**: The React frontend is heavily optimized so that live Socket.IO events don't cause the UI to stutter.
 - **Prisma ORM**: The database schema was pretty complex, so Prisma kept the backend readable and strongly typed.
-- **Admin Dashboard**: I added an operator view so university staff can monitor the swaps and manually override things if something goes wrong.
+- **Admin Dashboard**: Operator view for monitoring live barter trades, toggling system state, and handling manual overrides.
 
 </Trans>
 
@@ -95,8 +108,9 @@ Untuk backend, sistem *matchmaking*-nya harus kebal dari error. Kita ngebungkus 
 Untuk frontend, kita skip animasi-animasi lebay. *Light mode*-nya keliatan kayak Microsoft Excel karena butuh kepadatan data yang ekstrem, dan *dark mode*-nya dibikin mirip terminal *trading crypto* buat sensasi *sniping* jadwal tengah malem.
 
 Detail teknis lainnya:
+- **Tukar Banyak & Targeted Drop**: Penukaran beberapa kelas sekaligus (Paket) dan penawaran *drop seat* terarah untuk optimasi jadwal yang kompleks.
 - **State Batching**: Frontend React kita optimasi habis-habisan biar event Socket.IO yang masuk bertubi-tubi gak bikin UI-nya patah-patah.
 - **Prisma ORM**: Skema database-nya lumayan ribet, jadi Prisma ngebantu banget ngejaga backend tetep rapi dan *strongly typed*.
-- **Dashboard Admin**: Kita nambahin tampilan buat operator biar staf kampus bisa mantau proses tukeran dan ngelakuin *override* manual kalo ada yang error.
+- **Dashboard Admin**: Tampilan operator untuk memantau transaksi barter secara live, mengubah status sistem, dan melakukan *override* manual.
 
 </Trans>
