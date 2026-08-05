@@ -61,22 +61,22 @@ export default function FolderSection({
   const renderTabContent = () => (
     <button
       onClick={handleTabClick}
-      className="relative w-40 h-8 sm:w-55 sm:h-11 md:w-80 md:h-16 -mt-3 sm:-mt-4 md:-mt-6 flex items-center justify-center z-10 focus:outline-none cursor-pointer"
+      className="relative w-40 h-8 sm:w-55 sm:h-11 md:w-80 md:h-16 -mt-3 sm:-mt-4 md:-mt-6 flex items-center justify-center z-10 focus:outline-none cursor-pointer overflow-visible"
     >
       <svg
         viewBox="0 0 320 64"
-        className="absolute inset-0 w-full h-full overflow-visible"
+        className="absolute inset-0 w-full h-full overflow-visible z-10"
       >
-        {/* Base fill — bgBase is real hex color */}
-        <path d="M 0 64.8 L 12 64.8 Q 32 64.8, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64.8, 308 64.8 L 320 64.8 Z" fill={bgBase || fillClass} />
-        {/* Faded overlay — same opacity as body bg */}
+        {/* Base fill — extends 1px (y=65.5) below stroke to mask main body border-t under tab */}
+        <path d="M 0 65.5 L 12 65.5 Q 32 65.5, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 65.5, 308 65.5 L 320 65.5 Z" fill={bgBase || fillClass} />
+        {/* Faded overlay — same extended fill */}
         {bgFaded && (
-          <motion.path d="M 0 64.8 L 12 64.8 Q 32 64.8, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64.8, 308 64.8 L 320 64.8 Z" fill={bgFaded} style={{ opacity: overlayOpacity }} />
+          <motion.path d="M 0 65.5 L 12 65.5 Q 32 65.5, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 65.5, 308 65.5 L 320 65.5 Z" fill={bgFaded} style={{ opacity: overlayOpacity }} />
         )}
-        {/* Mobile border stroke (unclosed path to avoid bottom line) */}
-        <path d="M 0 64.8 L 12 64.8 Q 32 64.8, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64.8, 308 64.8 L 320 64.8" fill="none" className="max-md:stroke-zinc-800 stroke-transparent" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+        {/* Border stroke (unclosed path at y=64.5 to align flush with main body border-t) */}
+        <path d="M 0 64.5 L 12 64.5 Q 32 64.5, 40 48 L 56 16 Q 64 0, 84 0 L 236 0 Q 256 0, 264 16 L 280 48 Q 288 64.5, 308 64.5 L 320 64.5" fill="none" className="stroke-zinc-800" strokeWidth="1" vectorEffect="non-scaling-stroke" />
       </svg>
-      <span className="text-white/80 font-semibold tracking-wide text-[12px] sm:text-sm md:text-lg relative z-10 pb-0.5 md:pb-1">
+      <span className="text-white/80 font-semibold tracking-wide text-[12px] sm:text-sm md:text-lg relative z-20 pb-0.5 md:pb-1">
         {tabTitle}
       </span>
     </button>
@@ -92,7 +92,7 @@ export default function FolderSection({
         <div className="w-full h-full flex flex-col">
           {/* Tab Row */}
           <div className="w-full relative z-30">
-            <div className="flex w-full max-w-350 mx-auto h-5 sm:h-7 md:h-10 px-0 sm:px-2 md:px-1.25">
+            <div className="flex w-full max-w-350 mx-auto h-5 sm:h-7 md:h-10 px-0">
               {/* Left Tab Slot */}
               <div className="flex-1 flex items-end">
                 {tabPosition === "left" && renderTabContent()}
@@ -112,38 +112,18 @@ export default function FolderSection({
 
           {/* Main Body */}
           <div
-            className={`flex-1 w-full ${bodyRadius} ${pbClass} flex flex-col items-center justify-start relative z-20`}
+            className={`flex-1 w-full ${bodyRadius} ${pbClass} flex flex-col items-center justify-start relative z-20 border-t border-x border-zinc-800 overflow-hidden`}
+            style={bgBase ? { background: bgBase } : undefined}
           >
-            {/* Top gap bridges for mobile border continuity (draws border ONLY where tab isn't) */}
-            {tabPosition === "left" && (
-              <div className="absolute top-0 left-[159px] right-0 h-[1px] bg-zinc-800 z-50 pointer-events-none hidden max-md:block" />
-            )}
-            {tabPosition === "center" && (
-              <>
-                <div className="absolute top-0 left-0 w-[calc(50%-79px)] h-[1px] bg-zinc-800 z-50 pointer-events-none hidden max-md:block" />
-                <div className="absolute top-0 right-0 w-[calc(50%-79px)] h-[1px] bg-zinc-800 z-50 pointer-events-none hidden max-md:block" />
-              </>
-            )}
-            {tabPosition === "right" && (
-              <div className="absolute top-0 left-0 right-[159px] h-[1px] bg-zinc-800 z-50 pointer-events-none hidden max-md:block" />
-            )}
-            {/* Background: Tailwind class or hex */}
-            {bgBase ? (
-              <>
-                <div
-                  className={`absolute inset-0 z-0 ${bodyRadius}`}
-                  style={{ background: bgBase }}
-                />
-                {bgFaded && (
-                  <motion.div
-                    className={`absolute inset-0 z-0 ${bodyRadius}`}
-                    style={{ background: bgFaded, opacity: overlayOpacity, willChange: "opacity" }}
-                  />
-                )}
-              </>
-            ) : (
-              <div className={`absolute inset-0 z-0 ${bgClass} ${bodyRadius}`} />
-            )}
+            {/* Background overlay for smooth parallax fade */}
+            {bgBase && bgFaded ? (
+              <motion.div
+                className="absolute inset-0 z-0"
+                style={{ background: bgFaded, opacity: overlayOpacity, willChange: "opacity" }}
+              />
+            ) : !bgBase && bgClass ? (
+              <div className={`absolute inset-0 z-0 ${bgClass}`} />
+            ) : null}
             <div className="relative z-10 w-full h-full flex flex-col justify-start">
               {children}
             </div>
