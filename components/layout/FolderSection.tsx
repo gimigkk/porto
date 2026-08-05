@@ -18,6 +18,8 @@ interface FolderSectionProps {
   fadeRange?: [number, number];
   bgBase?: string;
   bgFaded?: string;
+  extendDownward?: boolean;
+  pbClass?: string;
 }
 
 export default function FolderSection({
@@ -34,6 +36,8 @@ export default function FolderSection({
   fadeRange,
   bgBase,
   bgFaded,
+  extendDownward = true,
+  pbClass = "py-8",
 }: FolderSectionProps) {
   const fallbackProgress = useMotionValue(0);
   const source = scrollYProgress || fallbackProgress;
@@ -108,7 +112,7 @@ export default function FolderSection({
 
           {/* Main Body */}
           <div
-            className={`flex-1 w-full ${bodyRadius} py-8 flex flex-col items-center justify-center relative z-20`}
+            className={`flex-1 w-full ${bodyRadius} ${pbClass} flex flex-col items-center justify-center relative z-20`}
           >
             {/* Top gap bridges for mobile border continuity (draws border ONLY where tab isn't) */}
             {tabPosition === "left" && (
@@ -140,23 +144,25 @@ export default function FolderSection({
             ) : (
               <div className={`absolute inset-0 z-0 ${bgClass} ${bodyRadius}`} />
             )}
-            <div className="relative z-10 w-full h-full">
+            <div className="relative z-10 w-full">
               {children}
             </div>
             {/* Infinite Downward Extension */}
-            {bgFaded ? (
-              <>
-                {bgBase && (
-                  <div className={`absolute top-full left-0 w-full h-svh z-0`} style={{ background: bgBase }} />
-                )}
-                <motion.div
-                  className="absolute top-full left-0 w-full h-svh z-0"
-                  style={{ background: bgFaded, opacity: overlayOpacity, willChange: "opacity" }}
-                />
-              </>
-            ) : bgClass ? (
-              <div className={`absolute top-full left-0 w-full h-svh z-0 ${bgClass}`} />
-            ) : null}
+            {extendDownward && (
+              bgFaded ? (
+                <>
+                  {bgBase && (
+                    <div className={`absolute top-full left-0 w-full h-svh z-0`} style={{ background: bgBase }} />
+                  )}
+                  <motion.div
+                    className="absolute top-full left-0 w-full h-svh z-0"
+                    style={{ background: bgFaded, opacity: overlayOpacity, willChange: "opacity" }}
+                  />
+                </>
+              ) : bgClass ? (
+                <div className={`absolute top-full left-0 w-full h-svh z-0 ${bgClass}`} />
+              ) : null
+            )}
           </div>
         </div>
       </motion.div>

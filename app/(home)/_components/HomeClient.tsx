@@ -124,6 +124,9 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   // Fire event for navbar phase2 uncollapse
   useEffect(() => {
     if (foldersReady) {
+      if (typeof window !== "undefined") {
+        (window as unknown as { __heroPhase2?: boolean }).__heroPhase2 = true;
+      }
       window.dispatchEvent(new Event("hero-phase2"));
     }
   }, [foldersReady]);
@@ -180,7 +183,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
 
   return (
     <LanguageProvider>
-      <main role="main" className="w-full min-h-svh bg-[#141416]">
+      <main role="main" className="w-full min-h-svh bg-[#09090b]">
 
         {/* Hero height via CSS transition — starts 100svh, shrinks to 95/70svh on Phase 2 */}
         <div className="relative z-20 w-full">
@@ -264,17 +267,9 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
             />
           )}
 
-          {/* Sections 2, 3, 4 (Stacked Folders) — id used for dock measurement */}
+          {/* Sections 2, 3, 4 (Stacked Folders with nested Footer inside Projects) */}
           <StackedSections projects={projects} isReady={foldersReady} githubGraph={githubGraph} />
         </div>
-
-        {/* Section 5 / Footer */}
-        <section role="contentinfo" className="h-svh w-full flex flex-col items-center justify-center bg-zinc-950 text-white relative z-30">
-          <h2 className="text-5xl font-bold mb-6 text-amber-500">Section 5</h2>
-          <div className="text-xl opacity-80 max-w-xl text-center">
-            CTA Kerja Sama
-          </div>
-        </section>
 
         <ClientProjectModal projects={projects} />
 

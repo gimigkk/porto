@@ -9,6 +9,7 @@ import FolderSection from "@/components/layout/FolderSection";
 import AboutSection from "@/app/(home)/_components/about/AboutSection";
 import ExperienceSection from "@/app/(home)/_components/experience/ExperienceSection";
 import ProjectsSection from "@/app/(home)/_components/projects/ProjectsSection";
+import Footer from "@/components/layout/Footer";
 
 interface StackedSectionsProps {
 	projects: ProjectMeta[];
@@ -109,7 +110,7 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 		<motion.div
 			ref={containerRef}
 			id="stacked-sections"
-			className="relative z-9999 w-full -mt-14 -mb-20"
+			className="relative z-9999 w-full -mt-14 mb-0"
 			initial={{ y: 200 }}
 			animate={isReady ? { y: 0 } : { y: 200 }}
 			transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0 }}
@@ -153,13 +154,20 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 				tabPosition="right"
 				bgClass="bg-zinc-950"
 				fillClass="fill-zinc-950"
-				stickyClass="min-h-[calc(100svh-128px)] md:min-h-[calc(100svh-160px)] z-30 relative"
+				stickyClass="z-30 relative"
 				scrollYProgress={effectiveProgress}
-				parallaxOffset={-80}
+				parallaxOffset={0}
 				scrollOffset={-160}
 				bgBase="#09090b"
+				extendDownward={false}
+				pbClass="pt-8 pb-0"
 			>
-				<ProjectsSection projects={projects} />
+				<div className="flex flex-col justify-between w-full">
+					<ProjectsSection projects={projects} />
+					<div className="mt-6 sm:mt-10 w-full">
+						<Footer />
+					</div>
+				</div>
 			</FolderSection>
 		</motion.div>
 	);

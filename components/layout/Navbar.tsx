@@ -123,6 +123,9 @@ export default function Navbar() {
   // Intro collapse logic (only on homepage)
   const [introCollapsed, setIntroCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
+      if ((window as unknown as { __heroPhase2?: boolean }).__heroPhase2) {
+        return false;
+      }
       return window.location.pathname === "/";
     }
     return !pathname || pathname === "/";
@@ -134,14 +137,24 @@ export default function Navbar() {
       setIntroCollapsed(false);
       return;
     }
+
+    if ((window as unknown as { __heroPhase2?: boolean }).__heroPhase2 || (typeof window !== "undefined" && window.scrollY > 100)) {
+      setIntroCollapsed(false);
+      return;
+    }
     
     setIntroCollapsed(true);
     
-    const onReady = () => setIntroCollapsed(false);
+    const onReady = () => {
+      if (typeof window !== "undefined") {
+        (window as unknown as { __heroPhase2?: boolean }).__heroPhase2 = true;
+      }
+      setIntroCollapsed(false);
+    };
     window.addEventListener("hero-phase2", onReady);
     
-    // Safety fallback in case event is missed (extended to 20s to avoid interrupting intro)
-    const safety = setTimeout(() => setIntroCollapsed(false), 20000);
+    // Safety fallback in case event is missed
+    const safety = setTimeout(() => setIntroCollapsed(false), 5000);
 
     return () => {
       window.removeEventListener("hero-phase2", onReady);
