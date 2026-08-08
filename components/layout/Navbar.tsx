@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useRef, useCallback, useLayoutEffect, useEffect } from "react";
+import { useState, useRef, useCallback, useLayoutEffect, useEffect, useReducer } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download, ChevronDown, Menu, X } from "lucide-react";
 import { useLenis } from "lenis/react";
+import {
+  INITIAL_NAVBAR_INTRO_STATE,
+  isNavbarIntroCollapsed,
+  navbarIntroReducer,
+} from "@/components/layout/navbarIntroState";
 
 interface SubLink {
   label: string;
@@ -120,45 +125,24 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Intro collapse logic (only on homepage)
-  const [introCollapsed, setIntroCollapsed] = useState(() => {
-    if (typeof window !== "undefined") {
-      if ((window as unknown as { __heroPhase2?: boolean }).__heroPhase2) {
-        return false;
-      }
-      return window.location.pathname === "/";
-    }
-    return !pathname || pathname === "/";
-  });
+  // Root layouts persist across client navigation. Reset readiness in a layout
+  // effect so a repeated homepage visit is collapsed before browser paint.
+  const [introState, dispatchIntro] = useReducer(
+    navbarIntroReducer,
+    INITIAL_NAVBAR_INTRO_STATE,
+  );
+  const introCollapsed = isNavbarIntroCollapsed(pathname, introState);
 
-  useEffect(() => {
-    const isHome = typeof window !== "undefined" ? window.location.pathname === "/" : (!pathname || pathname === "/");
-    if (!isHome) {
-      setIntroCollapsed(false);
-      return;
-    }
+  useLayoutEffect(() => {
+    dispatchIntro({ type: "route-change" });
 
-    if ((window as unknown as { __heroPhase2?: boolean }).__heroPhase2 || (typeof window !== "undefined" && window.scrollY > 100)) {
-      setIntroCollapsed(false);
-      return;
-    }
-    
-    setIntroCollapsed(true);
-    
-    const onReady = () => {
-      if (typeof window !== "undefined") {
-        (window as unknown as { __heroPhase2?: boolean }).__heroPhase2 = true;
-      }
-      setIntroCollapsed(false);
-    };
+    if (pathname !== "/") return;
+
+    const onReady = () => dispatchIntro({ type: "intro-ready" });
     window.addEventListener("hero-phase2", onReady);
-    
-    // Safety fallback in case event is missed
-    const safety = setTimeout(() => setIntroCollapsed(false), 5000);
 
     return () => {
       window.removeEventListener("hero-phase2", onReady);
-      clearTimeout(safety);
     };
   }, [pathname]);
 

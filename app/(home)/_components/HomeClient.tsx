@@ -124,9 +124,6 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   // Fire event for navbar phase2 uncollapse
   useEffect(() => {
     if (foldersReady) {
-      if (typeof window !== "undefined") {
-        (window as unknown as { __heroPhase2?: boolean }).__heroPhase2 = true;
-      }
       window.dispatchEvent(new Event("hero-phase2"));
     }
   }, [foldersReady]);
