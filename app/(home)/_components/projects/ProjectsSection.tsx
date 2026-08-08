@@ -7,7 +7,7 @@ import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
 export default function ProjectsSection({ projects }: { projects: ProjectMeta[] }) {
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center pt-4 pb-0">
+    <div className="w-full h-full flex flex-col items-center justify-center">
       {/* -- Header ----------------------------------------------- */}
       <div className="w-full max-w-350 mx-auto hidden md:flex flex-row items-end justify-between gap-6 mb-8 px-12">
         <div className="text-left">

@@ -14,6 +14,7 @@ import BackToTop from "@/components/shared/BackToTop";
 import type { ProjectMeta } from "@/lib/projects";
 import type { GithubGraphDay } from "@/lib/github";
 import ClientProjectModal from "@/app/(home)/_components/projects/ClientProjectModal";
+import { MOBILE_MEDIA_QUERY } from "@/components/layout/stackGeometry";
 
 // IMPORT: Loading Cormorant Garamond for the stylish accent
 
@@ -75,7 +76,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   const [needsWarning, setNeedsWarning] = useState(false);
 
   useEffect(() => {
-    const mobileMatch = window.matchMedia('(max-width: 768px)').matches;
+    const mobileMatch = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
     const chromeMatch = !!(window as Window & { chrome?: unknown }).chrome;
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -94,7 +95,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
       setWarningResolved(true);
     }
 
-    const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
+    const checkMobile = () => setIsMobile(window.matchMedia(MOBILE_MEDIA_QUERY).matches);
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);

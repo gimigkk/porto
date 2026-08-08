@@ -5,6 +5,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLenis } from "lenis/react";
 import { FileText, ArrowUpRight } from "lucide-react";
+import {
+  getDocumentTop,
+  resolveSectionNavigationOffset,
+  resolveSectionNavigationTarget,
+} from "@/components/layout/stackGeometry";
 
 export default function Footer() {
   const lenis = useLenis();
@@ -39,10 +44,14 @@ export default function Footer() {
     const selector = targetId.startsWith("#") ? targetId : `#${targetId}`;
     const element = document.querySelector(selector);
     if (element) {
+      const anchor = element as HTMLElement;
+      const offset = resolveSectionNavigationOffset(anchor);
+      const target = resolveSectionNavigationTarget(anchor) || anchor;
+      const position = getDocumentTop(target) + offset;
       if (lenis) {
-        lenis.scrollTo(element as HTMLElement, { offset: -48, duration: 1.2 });
+        lenis.scrollTo(position, { duration: 1.2 });
       } else {
-        element.scrollIntoView({ behavior: "smooth" });
+        window.scrollTo({ top: position, behavior: "smooth" });
       }
     }
   };

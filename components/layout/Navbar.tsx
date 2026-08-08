@@ -6,6 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Download, ChevronDown, Menu, X } from "lucide-react";
 import { useLenis } from "lenis/react";
 import {
+  getDocumentTop,
+  resolveSectionNavigationOffset,
+  resolveSectionNavigationTarget,
+} from "@/components/layout/stackGeometry";
+import {
   INITIAL_NAVBAR_INTRO_STATE,
   isNavbarIntroCollapsed,
   navbarIntroReducer,
@@ -257,11 +262,15 @@ export default function Navbar() {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }
       } else {
+        const element = document.getElementById(sectionId);
+        if (!element) return;
+        const targetElement = resolveSectionNavigationTarget(element) || element;
+        const offset = resolveSectionNavigationOffset(element);
+        const position = getDocumentTop(targetElement) + offset;
         if (lenis) {
-          lenis.scrollTo(`#${sectionId}`, { offset: -48 });
+          lenis.scrollTo(position);
         } else {
-          const el = document.getElementById(sectionId);
-          if (el) el.scrollIntoView({ behavior: "smooth" });
+          window.scrollTo({ top: position, behavior: "smooth" });
         }
       }
       closeAll();

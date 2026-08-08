@@ -8,7 +8,7 @@ import ProfileFlipCard from "@/app/(home)/_components/about/ProfileFlipCard";
 import BadgeLanyardCanvas from "@/app/(home)/_components/about/BadgeLanyardCanvas";
 import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
 import type { GithubGraphDay } from "@/lib/github";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, type CSSProperties } from "react";
 import { useInView } from "framer-motion";
 import { useTooltip } from "@/components/providers/TooltipProvider";
 import { NameTooltipContent } from "./tooltips/NameTooltipContent";
@@ -45,19 +45,19 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
     transition: `transform 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${index * 0.1}s, opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${index * 0.1}s`
   });
 
-  const getCardTransition = (delay: number) => ({
+  const getCardTransition = (delay: number): CSSProperties => ({
     transform: isInView ? "translateY(0px)" : "translateY(-30px)",
     opacity: isInView ? 1 : 0,
     filter: isInView ? "blur(0px)" : "blur(6px)",
     transition: `transform 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s, opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s, filter 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s`,
-    willChange: (isAnimationSettled ? "auto" : "transform, opacity, filter") as any
+    willChange: isAnimationSettled ? "auto" : "transform, opacity, filter"
   });
 
   return (
     <section
       id="about"
       ref={ref}
-      className="w-full text-white pt-0 md:pt-8 flex flex-col items-center overflow-hidden md:overflow-visible"
+      className="w-full text-white flex flex-col items-center overflow-hidden md:overflow-visible"
     >
       {/* Use the exact same container padding and max-width as the Navbar */}
       <div className="w-full max-w-350 mx-auto px-4 md:px-12">

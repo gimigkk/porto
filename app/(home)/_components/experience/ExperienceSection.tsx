@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useInView } from "framer-motion";
 import { Baby, Bed } from "lucide-react";
 import { ExperienceNode } from "./ExperienceNode";
@@ -11,13 +11,13 @@ export default function ExperienceSection() {
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
 
   return (
-    <section ref={containerRef} className="relative w-full flex-1 h-full flex flex-col items-start md:justify-center [@media(min-height:900px)]:-mt-12">
-      <div className="relative mx-auto w-full max-w-350 px-4 md:px-12 h-full md:h-auto max-md:flex max-md:flex-col max-md:flex-1">
+    <section ref={containerRef} className="relative w-full flex flex-col items-start md:justify-center md:mt-6">
+      <div className="relative mx-auto w-full max-w-350 px-4 md:px-12">
         
         {/* Mobile Vertical Timeline Line Segment (Placed outside flex container to avoid any possible layout clipping) */}
         <div 
           className="md:hidden absolute left-[31px] w-[2px] border-l-[2px] border-dotted border-neutral-300 dark:border-neutral-700 -z-10 pointer-events-none" 
-          style={{ top: '32px', bottom: '-2000px' }}
+          style={{ top: '32px', bottom: '48px' }}
         />
 
         {/* -- Desktop Header (Absolutely positioned to overlap the empty space above the graph, preventing section overflow) -- */}
@@ -39,7 +39,7 @@ export default function ExperienceSection() {
           <Bed className="w-5 h-5 text-neutral-400 dark:text-neutral-600 shrink-0" />
         </div>
 
-        <div className="relative max-md:flex-1 flex flex-col-reverse justify-between h-full max-h-[650px] md:max-h-none md:block w-full pt-2 pb-12 md:pt-0 md:pb-0 md:h-[500px] gap-4 md:gap-0">
+        <div className="relative flex flex-col-reverse md:block w-full pt-2 pb-12 md:pt-0 md:pb-0 md:h-[500px] gap-12 md:gap-0">
 
           {/* Nodes */}
           {experienceData.map((item, index, arr) => {

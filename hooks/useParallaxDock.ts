@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { useLenis } from "lenis/react";
+import type Lenis from "lenis";
+import { getDocumentTop } from "@/components/layout/stackGeometry";
 // ─── Types ──────────────────────────────────────────────────────
 
 type ParallaxTarget =
@@ -23,6 +25,8 @@ interface ParallaxDockOptions {
   startSpeed?: number;
   /** If true, parallax is disabled and transform resets to 0 */
   disabled?: boolean;
+  /** Additional elements whose resize can move the dock anchor */
+  observeSelectors?: readonly string[];
 }
 
 interface ParallaxDockResult {
@@ -35,7 +39,15 @@ interface ParallaxDockResult {
 // ─── Hook ───────────────────────────────────────────────────────
 
 export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResult {
-  const { dockAnchor, target = "auto", visibleFrac = 0, startSpeed = 0.5, dockOffset, disabled = false } = options;
+  const {
+    dockAnchor,
+    target = "auto",
+    visibleFrac = 0,
+    startSpeed = 0.5,
+    dockOffset,
+    disabled = false,
+    observeSelectors = [],
+  } = options;
 
   const parallaxRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef(0);
@@ -69,7 +81,9 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
       const dockEl = document.querySelector(dockAnchor);
       if (dockEl) {
         const rect = dockEl.getBoundingClientRect();
-        const absoluteBottom = rect.top + window.scrollY + rect.height;
+        const absoluteBottom = dockEl instanceof HTMLElement
+          ? getDocumentTop(dockEl) + rect.height
+          : rect.top + window.scrollY + rect.height;
         let dockScroll = absoluteBottom - window.innerHeight;
         if (dockOffset) dockScroll += parseCssLength(dockOffset);
         dockScrollRef.current = Math.max(0, dockScroll);
@@ -93,12 +107,6 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
     }
   }, [dockAnchor, target, visibleFrac, dockOffset, startSpeed]);
 
-  useEffect(() => {
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [measure]);
-
   // ── Parallax: quadratic ease-out = linear deceleration, always ──
   const update = useCallback((scroll: number) => {
     const dock = dockScrollRef.current;
@@ -119,6 +127,45 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
   const lenis = useLenis();
 
   useEffect(() => {
+    let frameId = 0;
+    let disposed = false;
+    const scheduleMeasure = () => {
+      if (disposed) return;
+      cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        if (!disposed) {
+          measure();
+          update(lenis?.scroll ?? window.scrollY);
+        }
+      });
+    };
+
+    const resizeObserver = new ResizeObserver(scheduleMeasure);
+    const elements = new Set<Element>();
+    const addSelector = (selector: string) => {
+      const element = document.querySelector(selector);
+      if (element) elements.add(element);
+    };
+
+    if (typeof dockAnchor === "string") addSelector(dockAnchor);
+    if (typeof target === "string" && target !== "auto") addSelector(target);
+    for (const selector of observeSelectors) addSelector(selector);
+    if (target === "auto" && parallaxRef.current) elements.add(parallaxRef.current);
+    for (const element of elements) resizeObserver.observe(element);
+
+    window.addEventListener("resize", scheduleMeasure);
+    void document.fonts.ready.then(scheduleMeasure);
+    scheduleMeasure();
+
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(frameId);
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", scheduleMeasure);
+    };
+  }, [dockAnchor, lenis, measure, observeSelectors, target, update]);
+
+  useEffect(() => {
     if (disabled) {
       if (parallaxRef.current) {
         parallaxRef.current.style.transform = "translateY(0px)";
@@ -128,29 +175,28 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
 
     let lastScroll = -1;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const onScroll = (e?: any) => {
-      // Use Lenis cached scroll value if available to prevent DOM read layout thrashing
-      const scroll = e && typeof e.scroll === 'number' ? e.scroll : window.scrollY;
+    const applyScroll = (scroll: number) => {
       if (scroll !== lastScroll) {
         update(scroll);
         lastScroll = scroll;
       }
     };
+    const onLenisScroll = (instance: Lenis) => applyScroll(instance.scroll);
+    const onNativeScroll = () => applyScroll(window.scrollY);
 
     if (lenis) {
-      lenis.on("scroll", onScroll);
+      lenis.on("scroll", onLenisScroll);
     } else {
-      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("scroll", onNativeScroll, { passive: true });
     }
-    
-    onScroll();
+
+    applyScroll(lenis?.scroll ?? window.scrollY);
 
     return () => {
       if (lenis) {
-        lenis.off("scroll", onScroll);
+        lenis.off("scroll", onLenisScroll);
       } else {
-        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("scroll", onNativeScroll);
       }
     };
   }, [disabled, update, lenis]);
