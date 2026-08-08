@@ -1,12 +1,14 @@
 export interface NavbarIntroState {
+  readonly routeResolved: boolean;
   readonly homeIntroReady: boolean;
 }
 
 export type NavbarIntroAction =
-  | { readonly type: "route-change" }
+  | { readonly type: "route-change"; readonly pathname: string | null }
   | { readonly type: "intro-ready" };
 
 export const INITIAL_NAVBAR_INTRO_STATE: NavbarIntroState = {
+  routeResolved: false,
   homeIntroReady: false,
 };
 
@@ -15,15 +17,22 @@ export function navbarIntroReducer(
   action: NavbarIntroAction,
 ): NavbarIntroState {
   if (action.type === "route-change") {
-    return state.homeIntroReady ? INITIAL_NAVBAR_INTRO_STATE : state;
+    if (action.pathname === null) return INITIAL_NAVBAR_INTRO_STATE;
+
+    return {
+      routeResolved: true,
+      homeIntroReady: false,
+    };
   }
 
-  return state.homeIntroReady ? state : { homeIntroReady: true };
+  return state.homeIntroReady ? state : { ...state, homeIntroReady: true };
 }
 
 export function isNavbarIntroCollapsed(
-  pathname: string,
+  pathname: string | null,
   state: NavbarIntroState,
 ): boolean {
+  if (!state.routeResolved) return true;
+
   return pathname === "/" && !state.homeIntroReady;
 }

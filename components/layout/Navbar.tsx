@@ -134,7 +134,7 @@ export default function Navbar() {
   const introCollapsed = isNavbarIntroCollapsed(pathname, introState);
 
   useLayoutEffect(() => {
-    dispatchIntro({ type: "route-change" });
+    dispatchIntro({ type: "route-change", pathname });
 
     if (pathname !== "/") return;
 
