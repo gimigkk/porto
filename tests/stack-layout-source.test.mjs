@@ -18,6 +18,10 @@ const geometryHookSource = readFileSync(
   new URL("../hooks/useStackedSectionGeometry.ts", import.meta.url),
   "utf8",
 );
+const lenisProviderSource = readFileSync(
+  new URL("../components/providers/LenisProvider.tsx", import.meta.url),
+  "utf8",
+);
 
 test("TestV15_ExperienceIntrinsicHeightHasNoNegativeOuterCompensation", () => {
   assert.doesNotMatch(experienceSource, /min-height:900px[^"\n]*-mt-/);
@@ -82,4 +86,12 @@ test("TestV23_CroppedFoldersReservePaddingOutsideInnerClip", () => {
 test("TestV24_AboutUsesFlowFallbackWithoutInnerClip", () => {
   assert.match(geometryHookSource, /getFolderDockMode\([\s\S]*?stackTops\.about,[\s\S]*?"flow"/);
   assert.match(folderSectionSource, /dockMode === "flow" \? 0 : y/);
+});
+
+test("TestV25_WheelInputReversesWithoutLenisMomentumBacklog", () => {
+  assert.match(lenisProviderSource, /smoothWheel:\s*true/);
+  assert.match(lenisProviderSource, /virtualScroll:\s*handleVirtualScroll/);
+  assert.match(lenisProviderSource, /Math\.sign\(deltaY\) !== Math\.sign\(pendingDelta\)/);
+  assert.match(lenisProviderSource, /lenis\.scrollTo\(lenis\.actualScroll, \{ immediate: true \}\)/);
+  assert.match(lenisProviderSource, /return true/);
 });

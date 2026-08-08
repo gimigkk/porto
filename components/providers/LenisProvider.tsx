@@ -1,12 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ReactLenis } from "lenis/react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import type { VirtualScrollData } from "lenis";
+import { ReactLenis, type LenisRef } from "lenis/react";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function LenisProvider({ children }: { children: any }) {
+export default function LenisProvider({ children }: { children: ReactNode }) {
   const [isClient, setIsClient] = useState(false);
   const [isFirefox, setIsFirefox] = useState(false);
+  const lenisRef = useRef<LenisRef>(null);
+
+  const handleVirtualScroll = useCallback(({ deltaY, event }: VirtualScrollData): boolean => {
+    if (event.type !== "wheel" || deltaY === 0) return true;
+
+    const lenis = lenisRef.current?.lenis;
+    if (!lenis || lenis.isStopped || lenis.isLocked) return true;
+
+    const pendingDelta = lenis.targetScroll - lenis.animatedScroll;
+    if (pendingDelta !== 0 && Math.sign(deltaY) !== Math.sign(pendingDelta)) {
+      // Drop old-direction momentum; Lenis still smooths this wheel delta.
+      lenis.scrollTo(lenis.actualScroll, { immediate: true });
+    }
+
+    return true;
+  }, []);
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsClient(true);
@@ -29,7 +46,16 @@ export default function LenisProvider({ children }: { children: any }) {
   if (isClient && isFirefox) return <>{children}</>;
 
   return (
-    <ReactLenis root options={{ lerp: 0.15, duration: 0.7, smoothWheel: true }}>
+    <ReactLenis
+      ref={lenisRef}
+      root
+      options={{
+        lerp: 0.15,
+        duration: 0.7,
+        smoothWheel: true,
+        virtualScroll: handleVirtualScroll,
+      }}
+    >
       {children}
     </ReactLenis>
   );

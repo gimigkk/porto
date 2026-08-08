@@ -21,6 +21,7 @@ Portfolio navigation + intrinsic-height stacked sections deterministic across SS
 - browser: `ResizeObserver`, `requestAnimationFrame`, `window.matchMedia('(width < 48rem)')`
 - file: `components/layout/Navbar.tsx` — pathname + `hero-phase2` → intro visibility
 - file: `app/(home)/_components/HomeClient.tsx` — emits `hero-phase2` for current intro
+- file: `components/providers/LenisProvider.tsx` — Lenis smooth wheel + immediate direction reversal + programmatic scroll context
 
 ## §V INVARIANTS
 V1: Desktop + mobile stack progress share measured geometry path; no viewport-height timing algebra
@@ -47,6 +48,7 @@ V21: About/Experience/Projects content each owns `py-16 md:py-24`; Projects Foot
 V22: Section positioning inset participates in layout; transforms cannot consume opposite-side content padding
 V23: Crop mode reserves top/bottom content padding outside inner overflow clip; oversized descendants cannot paint through breathing room
 V24: About content has no inner overflow clip; oversized About disables docking/parallax and flows with tab attached
+V25: Wheel input stays Lenis-smoothed (`smoothWheel: true`); opposite-direction wheel resets queued momentum before same delta applies
 
 ## §T TASKS
 id|status|task|cites
@@ -65,6 +67,7 @@ T12|x|compensate parallax-created Experience→Projects seam with motion-matched
 T13|x|replace detached sticky-tab fallback with whole-folder viewport crop|V8,V9,V13,V20
 T14|x|add shared responsive vertical padding to all three section contents|V14,V21
 T15|x|make padding visibly larger + restrict clipping to Experience timeline|V13,V14,V21,V23,V24
+T16|x|keep Lenis smooth wheel + cancel stale momentum on reversal + regression test|V25,I.LenisProvider
 
 ## §B BUGS
 id|date|cause|fix|
@@ -82,3 +85,4 @@ B11|2026-08-08|Experience `translate-y-6` moved pixels without layout height; 64
 B12|2026-08-08|Crop overflow applied outside padded wrapper; oversized content painted through bottom padding before shell clip|V21,V23
 B13|2026-08-08|New desktop 64px matched About legacy 32px shell + 32px inner spacing; visual distance stayed unchanged|V21
 B14|2026-08-08|Generic inner crop clipped About `ProfileFlipCard` upward animation despite crop intent applying only to timeline|V23,V24
+B15|2026-08-08|`smoothWheel:true` + `lerp:0.15` kept Lenis target ahead of rendered scroll; upward ticks first canceled queued downward distance|V25
