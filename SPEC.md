@@ -49,6 +49,8 @@ V22: Section positioning inset participates in layout; transforms cannot consume
 V23: Crop mode reserves top/bottom content padding outside inner overflow clip; oversized descendants cannot paint through breathing room
 V24: About content has no inner overflow clip; oversized About disables docking/parallax and flows with tab attached
 V25: Wheel input stays Lenis-smoothed (`smoothWheel: true`); opposite-direction wheel resets queued momentum before same delta applies
+V26: Missing Project Archive route stays visible as disabled/gray controls; no control navigates to `/projects`
+V27: Each featured project has unique metadata slug + repo/link target + existing thumbnail, small-video, poster assets
 
 ## §T TASKS
 id|status|task|cites
@@ -68,6 +70,8 @@ T13|x|replace detached sticky-tab fallback with whole-folder viewport crop|V8,V9
 T14|x|add shared responsive vertical padding to all three section contents|V14,V21
 T15|x|make padding visibly larger + restrict clipping to Experience timeline|V13,V14,V21,V23,V24
 T16|x|keep Lenis smooth wheel + cancel stale momentum on reversal + regression test|V25,I.LenisProvider
+T17|x|disable Project Archive controls while preserving visible affordances|V26
+T18|x|replace Rupiyeah placeholder with BIMAyKRS project + approved demo video|V27
 
 ## §B BUGS
 id|date|cause|fix|

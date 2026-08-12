@@ -5,7 +5,6 @@ import { motion, useInView, type Variants } from "framer-motion";
 import type { ProjectMeta } from "@/lib/projects";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import TechIcon from "@/components/shared/TechIcon";
 import JumpingDots from "@/components/shared/JumpingDots";
 import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
@@ -254,16 +253,26 @@ export default function ProjectCards({
           <div className="absolute inset-x-0 top-0 bottom-20 bg-linear-to-t from-[#09090b]/80 via-[#09090b]/30 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-20 bg-[#09090b]/80" />
           {/* Desktop view more link */}
-          <a
-            href="/projects"
-            className="hidden md:flex pointer-events-auto relative z-10 items-center text-sm text-zinc-400 hover:text-white font-medium transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group hover:-translate-y-0.5"
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            title="Project Archive unavailable"
+            className="hidden md:flex pointer-events-auto relative z-10 items-center text-sm text-zinc-500/60 font-medium opacity-60 grayscale cursor-not-allowed"
           >
             <span>view more</span>
             <ArrowRight className="w-4 h-4 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45 mt-0.5" />
-          </a>
+          </button>
 
           {/* Mobile View Archive CTA */}
-          <Link href="/projects" className={`md:hidden ${styles.pushable} group shrink-0 pointer-events-auto relative z-10`} aria-label="View Archive">
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            title="Project Archive unavailable"
+            className={`md:hidden ${styles.pushable} group shrink-0 pointer-events-auto relative z-10 opacity-45 grayscale cursor-not-allowed`}
+            aria-label="View Archive (unavailable)"
+          >
             <span className={styles.shadow}></span>
             <span className={styles.edge}></span>
             <span
@@ -276,7 +285,7 @@ export default function ProjectCards({
               <span>View Archive</span>
               <ArrowRight className="w-3 h-3 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
             </span>
-          </Link>
+          </button>
         </div>
       )}
     </div>

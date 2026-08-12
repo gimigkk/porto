@@ -151,8 +151,8 @@ export default function Navbar() {
     };
   }, [pathname]);
 
-  // Derive which accordion index matches current route: 1=Home, 2=Project Archive
-  const currentPageAccordion = pathname === "/projects" ? 2 : 1;
+  // Open Home accordion when mobile menu first opens.
+  const currentPageAccordion = 1;
 
   // ASCII clouds pause/resume is handled by StackedSections on dock/undock.
 
@@ -312,6 +312,7 @@ export default function Navbar() {
 
   const activeSublinks =
     hoveredIndex !== null ? NAV_ITEMS[hoveredIndex]?.sublinks ?? null : null;
+  const isArchiveDropdown = hoveredIndex !== null && NAV_ITEMS[hoveredIndex]?.target === "projects";
   const isExpanded = hoveredIndex !== null;
 
   return (
@@ -361,13 +362,20 @@ export default function Navbar() {
                 {NAV_ITEMS.slice(1, -1).map((item, idx) => {
                   const i = idx + 1;
                   const isHovered = hoveredIndex === i;
+                  const isArchive = item.target === "projects";
                   return (
                     <button
                       key={item.label}
                       type="button"
-                      onClick={() => scrollTo(item.target)}
+                      aria-label={isArchive ? "Project Archive unavailable" : item.label}
+                      onClick={() => {
+                        if (!isArchive) scrollTo(item.target);
+                      }}
                       onMouseEnter={(e) => handleNavEnter(i, e)}
-                      className="group/navlink flex items-center gap-1.5 text-sm font-medium text-zinc-700 transition-colors duration-200 tracking-tight px-3 py-1.5 rounded-full hover:bg-zinc-100 cursor-pointer focus:outline-none"
+                      className={`group/navlink flex items-center gap-1.5 text-sm font-medium transition-colors duration-200 tracking-tight px-3 py-1.5 rounded-full focus:outline-none ${isArchive
+                        ? "text-zinc-400 cursor-pointer"
+                        : "text-zinc-700 hover:bg-zinc-100 cursor-pointer"
+                        }`}
                     >
                       <span className={isHovered ? "text-zinc-950" : ""}>
                         {item.label}
@@ -461,8 +469,15 @@ export default function Navbar() {
                         key={sublink.label}
                         type="button"
                         variants={itemVariants}
-                        onClick={() => handleSublinkClick(sublink)}
-                        className="text-left text-base font-medium text-zinc-600 hover:text-zinc-950 transition-colors duration-200 tracking-tight w-fit cursor-pointer focus:outline-none flex items-center gap-2.5 pr-2"
+                        disabled={isArchiveDropdown}
+                        aria-disabled={isArchiveDropdown}
+                        onClick={() => {
+                          if (!isArchiveDropdown) handleSublinkClick(sublink);
+                        }}
+                        className={`text-left text-base font-medium transition-colors duration-200 tracking-tight w-fit focus:outline-none flex items-center gap-2.5 pr-2 ${isArchiveDropdown
+                          ? "text-zinc-400 cursor-not-allowed"
+                          : "text-zinc-600 hover:text-zinc-950 cursor-pointer"
+                          }`}
                       >
                         <span>{sublink.label}</span>
                         {sublink.icon === "download" && <Download className="w-4 h-4" />}
@@ -543,25 +558,32 @@ export default function Navbar() {
         <div
           className={`md:hidden fixed top-11.75 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1 ${mobileMenuOpen ? "block" : "hidden"}`}
         >
-          {/* Home accordion + Project Archive accordion */}
+          {/* Home + Project Archive + CV accordions */}
           {NAV_ITEMS.slice(1).map((item, idx) => {
             const i = idx + 1;
             const isOpen = activeAccordion === i;
+            const isArchive = item.target === "projects";
 
             return (
               <div key={item.label} className="flex flex-col gap-1">
                 <button
                   type="button"
+                  aria-label={isArchive ? "Project Archive unavailable" : item.label}
                   onClick={() => {
-                    // Navigate to route + expand this accordion
-                    if (item.target === "projects") {
-                      router.push("/projects");
-                    } else if (item.target !== "cv") {
+                    if (isArchive) {
+                      setActiveAccordion(isOpen ? null : i);
+                      return;
+                    }
+                    // Keep mobile menu on homepage while expanding Home.
+                    if (item.target !== "cv") {
                       router.push("/");
                     }
                     setActiveAccordion(i);
                   }}
-                  className="flex items-center justify-between w-full py-3 text-sm font-medium text-zinc-800 hover:text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none"
+                  className={`flex items-center justify-between w-full py-3 text-sm font-medium transition-colors duration-200 tracking-tight focus:outline-none ${isArchive
+                    ? "text-zinc-400 cursor-pointer"
+                    : "text-zinc-800 hover:text-zinc-950 cursor-pointer"
+                    }`}
                 >
                   <span>{item.label}</span>
                   <ChevronDown
@@ -583,11 +605,17 @@ export default function Navbar() {
                         <button
                           key={sublink.label}
                           type="button"
+                          disabled={isArchive}
+                          aria-disabled={isArchive}
                           onClick={() => {
+                            if (isArchive) return;
                             handleSublinkClick(sublink);
                             closeMobileMenu();
                           }}
-                          className="flex items-center justify-between w-full text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
+                          className={`flex items-center justify-between w-full text-left text-sm font-medium transition-colors duration-200 tracking-tight py-1.5 focus:outline-none ${isArchive
+                            ? "text-zinc-400 cursor-not-allowed"
+                            : "text-zinc-500 hover:text-zinc-950 cursor-pointer"
+                            }`}
                         >
                           <span>{sublink.label}</span>
                           {sublink.icon === "download" && <Download className="w-4 h-4 mr-2" />}

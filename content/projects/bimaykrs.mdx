@@ -1,0 +1,99 @@
+export const metadata = {
+  title: "BIMAyKRS",
+  slug: "bimaykrs",
+  description:
+    "An automated KRS monitoring and enrollment bot for BIMA UPN Veteran Yogyakarta, with priority-based seat detection, resilient retries, and instant alerts.",
+  stack: ["python", "playwright", "smtp", "pytest"],
+  year: "2026",
+  category: "Automation Tool",
+  accent: "#16a34a",
+  thumbnail: "/projects/bimaykrs/BIMAyKRS.mp4",
+  github: "https://github.com/gimigkk/BIMAyKRS-upnvyk",
+  weight: 4,
+};
+
+<Trans lang="en">
+
+## The Problem
+
+Course registration at UPN Veteran Yogyakarta can turn into a race. Students need to watch BIMA for open seats, refresh at the right moment, and enroll before someone else takes the slot.
+
+## The Solution
+
+I built **BIMAyKRS**, an automation tool that monitors the BIMA KRS portal and acts on a prioritized course list. It keeps a persistent browser session, checks availability, and enrolls as soon as a matching seat appears.
+
+The tool is designed for unattended monitoring: it remembers the authenticated browser context, keeps checking on an interval, and reports important events instead of forcing me to stare at a browser tab.
+
+## A Slightly Shady Disclaimer
+
+Allegedly, automating course enrollment is a little shady. This was built as a personal experiment for my own registration workflow—not to bypass authentication, overload BIMA, or take seats outside the intended process. Check the portal rules before using automation.
+
+## Key Features
+
+- **Priority Auto-Enroll**: Monitor multiple courses and enroll according to a defined priority order.
+- **Reliable Checkbox Interaction**: Inject clean JavaScript click events for Radix UI checkbox controls.
+- **Persistent Sessions**: Reuse Playwright browser data to preserve login state and reduce repeated CAPTCHA challenges.
+- **Resilient Recovery**: Detect expired sessions and transient 500/502/503 responses without spamming retries.
+- **Multi-Channel Alerts**: Send SMTP email and desktop notifications when a slot appears or the system needs attention.
+- **Tested Slot Logic**: Keep the availability and enrollment decisions covered by a focused unit-test suite.
+
+## Architecture
+
+```text
+main.py
+├── config_reader.py   # .env and target-course configuration
+├── notifier.py        # SMTP and desktop notifications
+├── utils.py           # shared checks and formatting
+└── tests/             # slot-checking tests
+```
+
+The monitor separates configuration, browser automation, notification delivery, and slot-checking logic. That keeps the high-risk enrollment path small and makes it easier to test without a live BIMA session.
+
+## Why I Built It This Way
+
+The useful part was not clicking faster once. It was making the process dependable enough to run for hours without supervision. Persistent sessions reduce repeated login friction, priority rules make enrollment decisions explicit, and backoff-aware recovery keeps temporary portal failures from turning into an aggressive refresh loop.
+
+</Trans>
+
+<Trans lang="id">
+
+## Masalahnya
+
+Pengisian KRS di UPN Veteran Yogyakarta bisa berubah jadi perlombaan. Mahasiswa harus terus memantau BIMA, refresh di waktu yang tepat, lalu mengambil slot sebelum didahului orang lain.
+
+## Solusinya
+
+Saya membuat **BIMAyKRS**, alat otomasi yang memantau portal KRS BIMA dan bekerja berdasarkan daftar mata kuliah berprioritas. Alat ini menyimpan sesi browser, mengecek ketersediaan, lalu mengambil mata kuliah saat slot yang sesuai muncul.
+
+BIMAyKRS dirancang untuk berjalan tanpa harus diawasi terus-menerus: sesi browser yang sudah login bisa dipakai kembali, pengecekan berjalan berkala, dan kejadian penting dikirim sebagai notifikasi.
+
+## Disclaimer yang Agak Abu-Abu
+
+Katanya, mengotomatisasi pengambilan KRS memang agak abu-abu. Project ini dibuat sebagai eksperimen personal untuk workflow registrasi saya sendiri—bukan untuk melewati autentikasi, membebani BIMA, atau mengambil slot di luar proses yang berlaku. Cek aturan portal sebelum menggunakan otomasi.
+
+## Fitur Utama
+
+- **Auto-Enroll Berprioritas**: Memantau beberapa mata kuliah dan mengambilnya sesuai urutan prioritas.
+- **Interaksi Checkbox yang Stabil**: Menyuntikkan event JavaScript untuk kontrol checkbox Radix UI.
+- **Sesi Persisten**: Menggunakan kembali data browser Playwright untuk menjaga status login dan mengurangi CAPTCHA berulang.
+- **Pemulihan Error**: Mendeteksi sesi kedaluwarsa dan respons 500/502/503 tanpa membanjiri server dengan retry.
+- **Notifikasi Multi-Channel**: Mengirim email SMTP dan notifikasi desktop saat slot tersedia atau sistem butuh perhatian.
+- **Logika Slot Teruji**: Menjaga keputusan pengecekan dan enrollment dengan unit test terfokus.
+
+## Arsitektur
+
+```text
+main.py
+├── config_reader.py   # konfigurasi .env dan mata kuliah target
+├── notifier.py        # notifikasi SMTP dan desktop
+├── utils.py           # pengecekan dan format bersama
+└── tests/             # test pengecekan slot
+```
+
+Struktur ini memisahkan konfigurasi, otomasi browser, notifikasi, dan logika pengecekan slot. Jalur enrollment tetap kecil dan lebih mudah diuji tanpa sesi BIMA langsung.
+
+## Kenapa Dibangun Kayak Gini
+
+Bagian terpentingnya bukan sekadar bisa klik lebih cepat sekali. Prosesnya harus cukup stabil untuk berjalan berjam-jam tanpa diawasi. Sesi persisten mengurangi proses login berulang, aturan prioritas membuat keputusan enrollment tetap jelas, dan pemulihan dengan jeda mencegah error sementara berubah menjadi loop refresh yang agresif.
+
+</Trans>
