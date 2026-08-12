@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useLayoutEffect, useEffect, useReducer } from "react";
+import { useState, useRef, useCallback, useLayoutEffect, useEffect, useReducer, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download, ChevronDown, Menu, X } from "lucide-react";
@@ -117,6 +117,21 @@ const itemVariants = {
   },
 };
 
+const subscribeToProjectModal = (callback: () => void) => {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("popstate", callback);
+  window.addEventListener("project-modal-changed", callback);
+  return () => {
+    window.removeEventListener("popstate", callback);
+    window.removeEventListener("project-modal-changed", callback);
+  };
+};
+
+const getProjectModalSnapshot = () =>
+  typeof window !== "undefined" && window.location.hash.startsWith("#project=");
+
+const getProjectModalServerSnapshot = () => false;
+
 export default function Navbar() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [hoveredOffset, setHoveredOffset] = useState(0);
@@ -129,6 +144,11 @@ export default function Navbar() {
   const contentRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const isProjectModalOpen = useSyncExternalStore(
+    subscribeToProjectModal,
+    getProjectModalSnapshot,
+    getProjectModalServerSnapshot,
+  );
 
   // Root layouts persist across client navigation. Reset readiness in a layout
   // effect so a repeated homepage visit is collapsed before browser paint.
@@ -166,7 +186,15 @@ export default function Navbar() {
     menuStateRef.current = { mobileMenuOpen, gimigkkPanelOpen, hoveredIndex };
   }, [mobileMenuOpen, gimigkkPanelOpen, hoveredIndex]);
 
-  const isNavbarOn = navVisible && !introCollapsed;
+  const isNavbarOn = isProjectModalOpen || (navVisible && !introCollapsed);
+
+  const wasProjectModalOpenRef = useRef(false);
+  useEffect(() => {
+    if (wasProjectModalOpenRef.current && !isProjectModalOpen) {
+      setNavVisible(true);
+    }
+    wasProjectModalOpenRef.current = isProjectModalOpen;
+  }, [isProjectModalOpen]);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--top-loader-color', isNavbarOn ? '#000000' : '#ffffff');
@@ -332,11 +360,11 @@ export default function Navbar() {
         className="fixed top-0 inset-x-0 z-[30000]"
         onMouseLeave={handleNavMouseLeave}
         style={{
-          transform: (navVisible && !introCollapsed) ? "translateY(0)" : "translateY(-100%)",
+          transform: (isNavbarOn) ? "translateY(0)" : "translateY(-100%)",
           opacity: introCollapsed ? 0 : 1,
           transition: "transform 300ms cubic-bezier(0.22,1,0.36,1), opacity 300ms cubic-bezier(0.22,1,0.36,1)",
           willChange: "transform, opacity",
-          pointerEvents: introCollapsed ? "none" : "auto",
+          pointerEvents: isProjectModalOpen || !introCollapsed ? "auto" : "none",
         }}
       >
         {/* Thin bar */}

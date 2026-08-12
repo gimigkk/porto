@@ -246,14 +246,14 @@ export default function ProjectCards({
         <div className="absolute bottom-0 left-0 right-0 h-52 pointer-events-none flex flex-col justify-end items-center pb-8 z-50">
           <div className="md:hidden absolute inset-x-0 top-0 bottom-20 bg-linear-to-t from-[#09090b]/80 via-[#09090b]/30 to-transparent" />
           <div className="md:hidden absolute inset-x-0 bottom-0 h-20 bg-[#09090b]/80" />
-          {/* Mobile View Archive CTA */}
+          {/* Mobile View More CTA */}
           <button
             type="button"
             disabled
             aria-disabled="true"
             title="Project Archive unavailable"
             className={`md:hidden ${styles.pushable} group shrink-0 pointer-events-auto relative z-10 opacity-45 grayscale cursor-not-allowed`}
-            aria-label="View Archive (unavailable)"
+            aria-label="View More (unavailable)"
           >
             <span className={styles.shadow}></span>
             <span className={styles.edge}></span>
@@ -264,7 +264,7 @@ export default function ProjectCards({
                 fontSize: "0.75rem"
               }}
             >
-              <span>View Archive</span>
+              <span>View More</span>
               <ArrowRight className="w-3 h-3 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
             </span>
           </button>

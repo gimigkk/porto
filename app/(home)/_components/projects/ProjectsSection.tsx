@@ -21,7 +21,7 @@ export default function ProjectsSection({ projects }: { projects: ProjectMeta[] 
           type="button"
           title="Project Archive coming soon"
           className={`${styles.pushable} group shrink-0`}
-          aria-label="View Archive"
+          aria-label="View More"
         >
           <span className={styles.shadow}></span>
           <span className={styles.edge}></span>
@@ -32,7 +32,7 @@ export default function ProjectsSection({ projects }: { projects: ProjectMeta[] 
               fontSize: "0.85rem"
             }}
           >
-            <span>View Archive</span>
+            <span>View More</span>
             <ArrowRight className="w-3.5 h-3.5 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
           </span>
         </button>

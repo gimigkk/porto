@@ -8,6 +8,7 @@ import {
   siSocketdotio, siVercel, siGithub, siLinux, siNginx, siGodotengine,
   siUnity, siBlender, siAndroid
 } from "simple-icons";
+import { Maildeveloper, Playwright } from "@dev.icons/react/mono";
 
 /** Maps our tech slug → simple-icons icon data */
 const iconMap: Record<string, { title: string; svg: string }> = {
@@ -71,11 +72,35 @@ export default function TechIcon({
   className = "text-zinc-400",
   title,
 }: TechIconProps) {
-  const icon = iconMap[tech.toLowerCase()];
+  const normalizedTech = tech.toLowerCase();
+
+  if (normalizedTech === "playwright") {
+    return (
+      <Playwright
+        size={size}
+        className={className}
+        role="img"
+        aria-label={title ?? "Playwright"}
+      />
+    );
+  }
+
+  if (normalizedTech === "smtp") {
+    return (
+      <Maildeveloper
+        size={size}
+        className={className}
+        role="img"
+        aria-label={title ?? "SMTP"}
+      />
+    );
+  }
+
+  const icon = iconMap[normalizedTech];
 
   if (!icon) {
     // Fallback: Custom text for known weird slugs, or 2-char badge
-    const badgeText = tech.toLowerCase() === "csharp" ? "C#" : tech.slice(0, 2).toUpperCase();
+    const badgeText = normalizedTech === "csharp" ? "C#" : tech.slice(0, 2).toUpperCase();
     return (
       <span
         className={`inline-flex items-center justify-center font-mono font-bold select-none tracking-tighter ${className}`}
