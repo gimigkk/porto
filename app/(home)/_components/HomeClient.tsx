@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useLenis } from "lenis/react";
 import { usePreloader } from "@/hooks/usePreloader";
 import LoadingScreen from "@/app/(home)/_components/LoadingScreen";
 import SkyBackground from "@/components/layout/SkyBackground";
@@ -66,6 +67,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   const [foldersReady, setFoldersReady] = useState(false);
   const [ctaReady, setCtaReady] = useState(false);
   const [firstFrameRendered, setFirstFrameRendered] = useState(false);
+  const lenis = useLenis();
 
 
 
@@ -161,17 +163,20 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!introComplete) {
+      lenis?.stop();
       document.body.style.overflow = "hidden";
       document.documentElement.style.overflow = "hidden";
     } else {
+      lenis?.start();
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
     }
     return () => {
+      lenis?.start();
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
     };
-  }, [introComplete]);
+  }, [introComplete, lenis]);
 
   const handleLoadingComplete = useCallback(() => {
     setLoadingComplete(true);

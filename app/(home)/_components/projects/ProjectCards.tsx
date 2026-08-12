@@ -57,7 +57,7 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
           <img
             src={posterSrc}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover blur-md scale-105 pointer-events-none"
+            className="absolute inset-0 w-full h-full object-cover scale-105 pointer-events-none"
           />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <JumpingDots />
@@ -197,7 +197,7 @@ export default function ProjectCards({
 
               {/* -- Desktop-only overlays -- */}
               <div className="hidden md:block absolute inset-0 pointer-events-none [mask-image:linear-gradient(to_top,black_5%,transparent_50%)]">
-                <div className="absolute inset-0 rounded-[inherit] overflow-hidden isolate backdrop-blur-[4px] bg-black/10 will-change-transform translate-z-0"></div>
+                <div className="absolute inset-0 rounded-[inherit] overflow-hidden isolate bg-black/10"></div>
               </div>
               <div className="hidden md:block absolute -inset-x-2 -bottom-2 h-[calc(50%+8px)] bg-linear-to-t from-[#09090b] from-15% via-[#09090b]/60 to-transparent pointer-events-none" />
               {/* -- Meta -- */}

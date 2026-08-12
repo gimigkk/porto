@@ -51,6 +51,9 @@ V24: About content has no inner overflow clip; oversized About disables docking/
 V25: Wheel input stays Lenis-smoothed (`smoothWheel: true`); opposite-direction wheel resets queued momentum before same delta applies
 V26: Missing Project Archive route stays visible as disabled/gray controls; no control navigates to `/projects`
 V27: Each featured project has unique metadata slug + repo/link target + existing thumbnail, small-video, poster assets
+V28: Project perf compare uses production Chromium 1366×768, 4× CPU, 5s frame sample; retain only non-regressing cadence + unchanged card geometry
+V29: Muted featured Project preview MP4 assets contain video only; no unused audio stream
+V30: Project backdrop blur stays visually same without forced transform compositing layer
 
 ## §T TASKS
 id|status|task|cites
@@ -72,6 +75,8 @@ T15|x|make padding visibly larger + restrict clipping to Experience timeline|V13
 T16|x|keep Lenis smooth wheel + cancel stale momentum on reversal + regression test|V25,I.LenisProvider
 T17|x|disable Project Archive controls while preserving visible affordances|V26
 T18|x|replace Rupiyeah placeholder with BIMAyKRS project + approved demo video|V27
+T19|x|strip muted preview audio; add repeatable perf/media checks|V14,V28,V29
+T20|x|remove forced Project backdrop transform layer; trace scroll cadence + visual regression|V14,V28,V30
 
 ## §B BUGS
 id|date|cause|fix|
@@ -90,3 +95,4 @@ B12|2026-08-08|Crop overflow applied outside padded wrapper; oversized content p
 B13|2026-08-08|New desktop 64px matched About legacy 32px shell + 32px inner spacing; visual distance stayed unchanged|V21
 B14|2026-08-08|Generic inner crop clipped About `ProfileFlipCard` upward animation despite crop intent applying only to timeline|V23,V24
 B15|2026-08-08|`smoothWheel:true` + `lerp:0.15` kept Lenis target ahead of rendered scroll; upward ticks first canceled queued downward distance|V25
+B16|2026-08-12|Project 50%-visibility video cull cut controlled Chromium cadence 60→30fps|revert; retain only measured non-regressing perf changes
