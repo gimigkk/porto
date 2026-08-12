@@ -173,12 +173,11 @@ export default function ProjectCards({
                 window.history.pushState(null, "", url);
                 window.dispatchEvent(new Event("project-modal-changed"));
               }}
-              className="relative z-10 flex flex-col md:justify-end md:aspect-video md:rounded-lg md:bg-zinc-900 overflow-hidden no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:border-zinc-400/45 md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] border border-transparent"
+              className="relative z-10 flex w-full flex-col overflow-hidden md:overflow-visible no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)]"
               style={{ willChange: isAnimationSettled ? "auto" : "transform" }}
             >
               {/* -- Thumbnail -- */}
-              {/* Mobile: in-flow 16:9 rounded | Desktop: absolute fill */}
-              <div className="relative aspect-video rounded-lg md:rounded-[inherit] md:absolute md:inset-[1px] md:aspect-auto md:h-auto w-full shrink-0 overflow-hidden">
+              <div className="relative z-10 box-border aspect-video w-full shrink-0 overflow-hidden rounded-lg bg-zinc-900">
                 {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
                   <CulledVideo
                     src={project.thumbnail.replace(/\.(mp4|webm)$/i, '-sm.$1')}
@@ -195,29 +194,24 @@ export default function ProjectCards({
                 )}
               </div>
 
-              {/* -- Desktop-only overlays -- */}
-              <div className="hidden md:block absolute inset-0 pointer-events-none [mask-image:linear-gradient(to_top,black_5%,transparent_50%)]">
-                <div className="absolute inset-0 rounded-[inherit] overflow-hidden isolate bg-black/10"></div>
-              </div>
-              <div className="hidden md:block absolute -inset-x-2 -bottom-2 h-[calc(50%+8px)] bg-linear-to-t from-[#09090b] from-15% via-[#09090b]/60 to-transparent pointer-events-none" />
-              {/* -- Meta -- */}
-              <div className="relative z-10 w-full flex items-end justify-between gap-3 px-1 pt-2 pb-1 md:p-3 md:pt-12">
+              {/* -- Metadata plate -- */}
+              <div className="relative z-10 box-border flex w-full items-end justify-between gap-3 px-1 pt-2 pb-1 md:z-0 md:-mt-2 md:gap-4 md:rounded-b-lg md:bg-white md:px-4 md:pt-4 md:pb-2.5 md:text-zinc-950 md:shadow-[0_10px_20px_-14px_rgba(0,0,0,0.8)]">
                 {/* Left side: Title & Description */}
                 <div className="flex flex-col flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
                     <h3
-                      className="text-sm md:text-base font-bold md:group-hover:text-white/90 text-white truncate min-w-0 transition-colors duration-300"
+                      className="text-sm font-bold text-white md:text-base md:text-zinc-950 truncate min-w-0 transition-colors duration-300"
                     >
                       {project.title}
                     </h3>
                   </div>
-                  <p className="text-xs text-zinc-400 md:text-zinc-300 leading-snug truncate">
+                  <p className="text-xs text-zinc-400 md:font-semibold md:text-zinc-600 leading-snug truncate">
                     {project.description}
                   </p>
                 </div>
 
                 {/* Right side: Tech & Actions */}
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 md:items-end">
                   {/* Tech stack — Mobile (limited) */}
                   <div className="md:hidden flex items-center gap-1.5 overflow-hidden">
                     {project.stack.slice(0, 3).map((tech) => (
@@ -231,13 +225,13 @@ export default function ProjectCards({
                   </div>
 
                   {/* Tech stack — Desktop */}
-                  <div className="hidden md:flex flex-wrap-reverse justify-end gap-2 shrink-0 w-[36px]">
+                  <div className="hidden md:flex flex-wrap-reverse items-end justify-end gap-2 shrink-0 w-[36px] leading-none">
                     {project.stack.slice(0, 4).map((tech) => (
                       <TechIcon
                         key={tech}
                         tech={tech}
                         size={14}
-                        className="text-zinc-300 hover:text-white transition-colors"
+                        className="text-zinc-700 hover:text-zinc-950 transition-colors"
                       />
                     ))}
                   </div>
@@ -250,20 +244,8 @@ export default function ProjectCards({
 
       {hasMore && (
         <div className="absolute bottom-0 left-0 right-0 h-52 pointer-events-none flex flex-col justify-end items-center pb-8 z-50">
-          <div className="absolute inset-x-0 top-0 bottom-20 bg-linear-to-t from-[#09090b]/80 via-[#09090b]/30 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-20 bg-[#09090b]/80" />
-          {/* Desktop view more link */}
-          <button
-            type="button"
-            disabled
-            aria-disabled="true"
-            title="Project Archive unavailable"
-            className="hidden md:flex pointer-events-auto relative z-10 items-center text-sm text-zinc-500/60 font-medium opacity-60 grayscale cursor-not-allowed"
-          >
-            <span>view more</span>
-            <ArrowRight className="w-4 h-4 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45 mt-0.5" />
-          </button>
-
+          <div className="md:hidden absolute inset-x-0 top-0 bottom-20 bg-linear-to-t from-[#09090b]/80 via-[#09090b]/30 to-transparent" />
+          <div className="md:hidden absolute inset-x-0 bottom-0 h-20 bg-[#09090b]/80" />
           {/* Mobile View Archive CTA */}
           <button
             type="button"

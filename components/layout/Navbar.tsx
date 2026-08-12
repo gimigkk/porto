@@ -329,7 +329,7 @@ export default function Navbar() {
 
       <nav
         aria-label="Main Navigation"
-        className="fixed top-0 inset-x-0 z-10000"
+        className="fixed top-0 inset-x-0 z-[30000]"
         onMouseLeave={handleNavMouseLeave}
         style={{
           transform: (navVisible && !introCollapsed) ? "translateY(0)" : "translateY(-100%)",

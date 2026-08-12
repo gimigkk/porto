@@ -46,7 +46,7 @@ interface TocItem {
   level: number;
 }
 
-function CulledVideo({ src, className }: { src: string, className?: string }) {
+function CulledVideo({ src, className }: { src: string; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { margin: "200px" });
 
@@ -60,9 +60,8 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
           muted
           playsInline
           controls
-          onCanPlay={(e) => {
-            const video = e.target as HTMLVideoElement;
-            video.playbackRate = 1.5;
+          onCanPlay={(event) => {
+            event.currentTarget.playbackRate = 1.5;
           }}
           className="w-full h-full object-cover"
         />
@@ -193,6 +192,7 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
       // Start exit animation
       setIsAnimating(false);
       if (lenis) lenis.start();
+      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
 
       if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
@@ -230,6 +230,7 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
   useEffect(() => {
     if (isAnimating) {
       if (lenis) lenis.stop();
+      document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
     }
   }, [isAnimating, lenis]);
@@ -266,6 +267,7 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
       if (!newSlug) {
         setIsAnimating(false);
         if (lenis) lenis.start();
+        document.documentElement.style.overflow = "";
         document.body.style.overflow = "";
 
         if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);

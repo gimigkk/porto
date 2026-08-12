@@ -19,11 +19,9 @@ export default function ProjectsSection({ projects }: { projects: ProjectMeta[] 
         </div>
         <button
           type="button"
-          disabled
-          aria-disabled="true"
-          title="Project Archive unavailable"
-          className={`${styles.pushable} group shrink-0 opacity-45 grayscale cursor-not-allowed pointer-events-none`}
-          aria-label="View Archive (unavailable)"
+          title="Project Archive coming soon"
+          className={`${styles.pushable} group shrink-0`}
+          aria-label="View Archive"
         >
           <span className={styles.shadow}></span>
           <span className={styles.edge}></span>
