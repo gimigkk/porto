@@ -1,129 +1,82 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, AnimatePresence, useTransform } from "framer-motion";
 import { useTooltip } from "@/components/providers/TooltipProvider";
+import { tooltipRotationForVelocity } from "./tooltipMotion";
 
 export function TooltipRenderer() {
   const { isVisible, content } = useTooltip();
   const [mounted, setMounted] = useState(false);
 
-  const contentRef = useRef<HTMLDivElement>(null);
-  const lastMouse = useRef({ x: 0, y: 0 });
-  const [flipX, setFlipX] = useState(false);
-  const [flipY, setFlipY] = useState(false);
-  const contentSize = useRef({ width: 0, height: 0 });
+  const lastPointerSample = useRef<{ y: number; time: number } | null>(null);
+  const rotationResetTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Create separated motion values for cursor and offset
+  // Keep cursor coordinates independent so each axis can track smoothly.
   const cursorX = useMotionValue(0);
   const cursorY = useMotionValue(0);
-  const offsetX = useMotionValue(15);
-  const offsetY = useMotionValue(15);
 
-  // Tight spring for snappy cursor tracking
-  const cursorSpringConfig = { damping: 20, stiffness: 400, mass: 0.2 };
-  // Faster but overdamped spring for snappy, non-bouncy flipping
-  const offsetSpringConfig = { damping: 25, stiffness: 300, mass: 0.2 };
+  // Faster spring for responsive cursor tracking
+  const cursorSpringConfig = { damping: 24, stiffness: 700, mass: 0.15 };
 
   const smoothCursorX = useSpring(cursorX, cursorSpringConfig);
   const smoothCursorY = useSpring(cursorY, cursorSpringConfig);
-  const smoothOffsetX = useSpring(offsetX, offsetSpringConfig);
-  const smoothOffsetY = useSpring(offsetY, offsetSpringConfig);
+  const rotationTarget = useMotionValue(0);
+  const smoothRotation = useSpring(rotationTarget, {
+    damping: 24,
+    stiffness: 500,
+    mass: 0.2,
+  });
 
   // Combine them into the final rendered coordinates
-  const finalX = useTransform([smoothCursorX, smoothOffsetX], ([c, o]: number[]) => c + o);
-  const finalY = useTransform([smoothCursorY, smoothOffsetY], ([c, o]: number[]) => c + o);
-
-  const updatePosition = useCallback(() => {
-    let xOffset = 15;
-    let yOffset = 15;
-
-    if (contentRef.current) {
-      // Use cached dimensions to avoid layout thrashing during parent width/height animations
-      const { width, height } = contentSize.current;
-      let newFlipX = false;
-      let newFlipY = false;
-
-      // Flip left if cut off on the right
-      if (lastMouse.current.x + 15 + width > window.innerWidth - 10) {
-        xOffset = -(width + 15);
-        newFlipX = true;
-      }
-
-      // Flip up if cut off on the bottom
-      if (lastMouse.current.y + 15 + height > window.innerHeight - 10) {
-        yOffset = -(height + 15);
-        newFlipY = true;
-      }
-
-      setFlipX((prev) => (prev !== newFlipX ? newFlipX : prev));
-      setFlipY((prev) => (prev !== newFlipY ? newFlipY : prev));
-    }
-
-    cursorX.set(lastMouse.current.x);
-    cursorY.set(lastMouse.current.y);
-    offsetX.set(xOffset);
-    offsetY.set(yOffset);
-  }, [cursorX, cursorY, offsetX, offsetY]);
+  const finalX = useTransform(smoothCursorX, (value) => value + 15);
+  const finalY = useTransform(smoothCursorY, (value) => value + 15);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
 
     const handleMouseMove = (e: MouseEvent) => {
-      lastMouse.current = { x: e.clientX, y: e.clientY };
-      updatePosition();
+      const now = performance.now();
+      const previousSample = lastPointerSample.current;
+
+      if (previousSample) {
+        const elapsed = Math.max(now - previousSample.time, 1);
+        const verticalVelocity = ((e.clientY - previousSample.y) / elapsed) * 1000;
+        rotationTarget.set(tooltipRotationForVelocity(verticalVelocity));
+
+        if (rotationResetTimeout.current) {
+          clearTimeout(rotationResetTimeout.current);
+        }
+        rotationResetTimeout.current = setTimeout(() => {
+          rotationTarget.set(0);
+          rotationResetTimeout.current = null;
+        }, 80);
+      }
+
+      lastPointerSample.current = { y: e.clientY, time: now };
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
     };
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
+      if (rotationResetTimeout.current) {
+        clearTimeout(rotationResetTimeout.current);
+        rotationResetTimeout.current = null;
+      }
     };
-  }, [updatePosition]);
-
-  // Recalculate immediately when content mounts or changes
-  useEffect(() => {
-    if (isVisible && content && contentRef.current) {
-      // Initial synchronous read is okay when first showing
-      contentSize.current = {
-        width: contentRef.current.offsetWidth,
-        height: contentRef.current.offsetHeight,
-      };
-
-      const observer = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          contentSize.current = {
-            width: (entry.target as HTMLElement).offsetWidth,
-            height: (entry.target as HTMLElement).offsetHeight,
-          };
-        }
-        updatePosition();
-      });
-
-      observer.observe(contentRef.current);
-
-      requestAnimationFrame(() => {
-        updatePosition();
-      });
-
-      return () => observer.disconnect();
-    }
-  }, [isVisible, content, updatePosition]);
+  }, [cursorX, cursorY, rotationTarget]);
 
   // Don't render anything until mounted to avoid hydration mismatch
   if (!mounted) return null;
-
-  let cornerClass = "rounded-xl";
-  if (!flipX && !flipY) cornerClass += " rounded-tl-sm";
-  else if (flipX && !flipY) cornerClass += " rounded-tr-sm";
-  else if (!flipX && flipY) cornerClass += " rounded-bl-sm";
-  else if (flipX && flipY) cornerClass += " rounded-br-sm";
 
   return (
     <AnimatePresence>
       {isVisible && content && (
         <motion.div
-          className={`bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden transition-[border-radius] duration-300 ease-out ${cornerClass}`}
+          className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden rounded-xl rounded-tl-sm"
           initial={{ scale: 0, opacity: 0, filter: "blur(24px)" }}
           animate={{ scale: 1, opacity: 1, filter: "blur(0px)", transition: { type: "spring", stiffness: 400, damping: 30 } }}
           exit={{ scale: 0, opacity: 0, filter: "blur(24px)", transition: { duration: 0.1, ease: "easeIn" } }}
@@ -133,13 +86,14 @@ export function TooltipRenderer() {
             top: 0,
             x: finalX,
             y: finalY,
+            rotate: smoothRotation,
             zIndex: 99999, // Super high z-index to stay above everything
             pointerEvents: "none", // Don't block hover events on things underneath
             willChange: "transform, opacity, filter", // Hardware acceleration
-            transformOrigin: `${flipX ? "calc(100% + 15px)" : "-15px"} ${flipY ? "calc(100% + 15px)" : "-15px"}`,
+            transformOrigin: "-15px -15px",
           }}
         >
-          <div className="w-max" ref={contentRef}>
+          <div className="w-max">
             {content}
           </div>
         </motion.div>
