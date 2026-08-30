@@ -40,14 +40,14 @@ ffmpeg -y -loop 1 -i "$BG" -ss "00:00:$FRAME_AT" -i "$SRC" \
   -filter_complex "
     [0:v]scale=1920:1080:force_original_aspect_ratio=increase,
       crop=1920:1080,gblur=sigma=30:steps=2[bg];
-    [1:v]crop=iw:floor(ih*0.95):0:0,scale=1728:-2:flags=lanczos,format=rgba[fg];
-    nullsrc=s=1728x924,format=gray,
+    [1:v]crop=iw:floor(ih*0.96):0:0,scale=1728:-2:flags=lanczos,format=rgba[fg];
+    nullsrc=s=1728x932,format=gray,
       geq=lum='if(lte(hypot(max(0,6-min(X,W-1-X)),max(0,6-min(Y,H-1-Y))),6),255,0)',
       split=2[fgmask][shadowmask];
     [fg][fgmask]alphamerge[rounded];
-    [shadowmask]pad=1840:1036:56:56:color=black,
+    [shadowmask]pad=1840:1044:56:56:color=black,
       gblur=sigma=24:steps=2,lut=y='val*0.45'[shadowalpha];
-    color=c=black:s=1840x1036,format=rgba[shadowbase];
+    color=c=black:s=1840x1044,format=rgba[shadowbase];
     [shadowbase][shadowalpha]alphamerge[shadow];
     [bg][shadow]overlay=(W-w)/2:(H-h)/2+10:format=auto[withshadow];
     [withshadow][rounded]overlay=(W-w)/2:(H-h)/2:format=auto,format=rgb24[out]
@@ -61,8 +61,8 @@ ffmpeg -y -loop 1 -i "$BG" -ss "00:00:$FRAME_AT" -i "$SRC" \
 | --- | ---: | --- |
 | Canvas | `1920×1080` | project video output |
 | Background | `gblur sigma=30` | recognizable but defocused |
-| Bottom crop | `5%` | hides taskbar in screen recordings |
-| Clip size | `1728×972` | 90% of 1920×1080 |
+| Bottom crop | `4%` | hides taskbar in screen recordings |
+| Clip size | `1728×932` | 90% width, 4% bottom cropped |
 | Corner radius | `6 px` | subtle rounding |
 | Shadow | `sigma=24`, opacity `.45` | visible soft separation |
 | Shadow Y offset | `+10 px` | slight downward depth |
@@ -85,15 +85,15 @@ ffmpeg -y -hide_banner \
     [v1][a1][v2][a2]concat=n=2:v=1:a=1[clipv][outa];
     [0:v]scale=1920:1080:force_original_aspect_ratio=increase,
       crop=1920:1080,gblur=sigma=30:steps=2,fps=60[bg];
-    [clipv]crop=iw:floor(ih*0.95):0:0,
+    [clipv]crop=iw:floor(ih*0.96):0:0,
       scale=1728:-2:flags=lanczos,setsar=1,format=rgba[fg];
-    nullsrc=s=1728x924:r=60,format=gray,
+    nullsrc=s=1728x932:r=60,format=gray,
       geq=lum='if(lte(hypot(max(0,6-min(X,W-1-X)),max(0,6-min(Y,H-1-Y))),6),255,0)',
       split=2[fgmask][shadowmask];
     [fg][fgmask]alphamerge[rounded];
-    [shadowmask]pad=1840:1036:56:56:color=black,
+    [shadowmask]pad=1840:1044:56:56:color=black,
       gblur=sigma=24:steps=2,lut=y='val*0.45'[shadowalpha];
-    color=c=black:s=1840x1036:r=60,format=rgba[shadowbase];
+    color=c=black:s=1840x1044:r=60,format=rgba[shadowbase];
     [shadowbase][shadowalpha]alphamerge[shadow];
     [bg][shadow]overlay=(W-w)/2:(H-h)/2+10:format=auto[withshadow];
     [withshadow][rounded]overlay=(W-w)/2:(H-h)/2:format=auto:shortest=1,
@@ -107,7 +107,7 @@ ffmpeg -y -hide_banner \
 
 ### Filter graph notes
 
-- `crop=iw:floor(ih*0.95):0:0` removes bottom 5% without stretching.
+- `crop=iw:floor(ih*0.96):0:0` removes bottom 4% without stretching.
 - `scale=1728:-2` preserves the clip aspect ratio while making it 90% wide.
 - The gray `geq` mask creates rounded alpha corners.
 - The shadow is made from the same mask, padded, blurred, darkened, and shifted down.
