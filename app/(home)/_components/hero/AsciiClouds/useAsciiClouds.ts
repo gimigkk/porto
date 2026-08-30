@@ -14,6 +14,8 @@ import { updateGusts, updateBlobs, updateDisruptions } from "./CloudAsciiPhysics
 import { AsciiRenderer } from "./CloudAsciiRenderer";
 import type { PreloadedAssets } from "@/hooks/usePreloader";
 
+import { getHasCompletedHomeIntro } from "@/app/(home)/_components/HomeClient";
+
 interface UseAsciiCloudsOptions {
   /** Signal: start animation only when true */
   isReady?: boolean;
@@ -42,11 +44,17 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     if (!canvas) return;
 
     const renderer = new AsciiRenderer(canvas);
-    
-    let simTimeMs = 0;
+
+    const isRevisit = getHasCompletedHomeIntro();
+    let simTimeMs = isRevisit ? CONFIG.introDuration * 1000 : 0;
     let lastRealTime = performance.now();
-    let lastPhysicsTime = 0;
-    let lastRenderTime = 0;
+    let lastPhysicsTime = isRevisit ? simTimeMs : 0;
+    let lastRenderTime = isRevisit ? simTimeMs : 0;
+
+    if (isRevisit) {
+      introCompleteRef.current = true;
+      onIntroComplete?.();
+    }
 
     const mouse: MouseState = { x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0, active: false, hasMoved: false };
     const state: CloudState = {
@@ -224,10 +232,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
 
     function startLoop() {
       lastRealTime = performance.now();
-      simTimeMs = 0;
+      simTimeMs = isRevisit ? CONFIG.introDuration * 1000 : 0;
       // Offset so physics + render fire on first frame
-      lastPhysicsTime = -(1000 / 30);
-      lastRenderTime = -(1000 / 60);
+      lastPhysicsTime = isRevisit ? simTimeMs - (1000 / 30) : -(1000 / 30);
+      lastRenderTime = isRevisit ? simTimeMs - (1000 / 60) : -(1000 / 60);
       rafRef.current = requestAnimationFrame(loop);
     }
 

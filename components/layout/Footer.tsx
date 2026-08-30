@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLenis } from "lenis/react";
 import { FileText, ArrowUpRight } from "lucide-react";
@@ -153,15 +154,12 @@ export default function Footer() {
               </h3>
               <ul className="flex flex-col gap-2 sm:gap-2.5 text-[11px] sm:text-sm font-semibold text-white">
                 <li>
-                  <button
-                    type="button"
-                    disabled
-                    aria-disabled="true"
-                    title="Project Archive unavailable"
-                    className="inline-flex items-center gap-1 text-white/40 cursor-not-allowed"
+                  <Link
+                    href="/projects"
+                    className="hover:text-white/70 transition-colors duration-200 inline-flex items-center gap-1"
                   >
                     All Projects <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-70" />
-                  </button>
+                  </Link>
                 </li>
                 <li>
                   <button

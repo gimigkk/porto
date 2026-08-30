@@ -33,17 +33,11 @@ export default function BrowserWarning({ isReady, isMobile, isChromium, onComple
     return "";
   };
 
-  const handleContinue = useCallback(async () => {
+  const handleContinue = useCallback(() => {
     if (hasStartedOutro) return;
     setHasStartedOutro(true);
-
-    await containerControl.start({
-      opacity: 0,
-      transition: { duration: 0.3, ease: "easeIn" }
-    });
-
-    onComplete();
-  }, [containerControl, hasStartedOutro, onComplete]);
+    setTimeout(onComplete, 300);
+  }, [hasStartedOutro, onComplete]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -67,18 +61,11 @@ export default function BrowserWarning({ isReady, isMobile, isChromium, onComple
     };
   }, [handleContinue]);
 
-  useEffect(() => {
-    if (!isReady) return;
-    containerControl.start({
-      opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
-    });
-  }, [isReady, containerControl]);
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={containerControl}
+      animate={hasStartedOutro ? { opacity: 0 } : (isReady ? { opacity: 1 } : { opacity: 0 })}
+      transition={{ duration: hasStartedOutro ? 0.3 : 0.6, ease: hasStartedOutro ? "easeIn" : "easeOut" }}
       className="absolute inset-0 z-30 flex flex-col items-center justify-center text-white pointer-events-none px-6 text-center"
     >
       <div className="mb-5 text-white/90 drop-shadow-sm scale-[1.1]">

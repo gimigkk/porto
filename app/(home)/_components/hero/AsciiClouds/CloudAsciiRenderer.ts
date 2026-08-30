@@ -78,8 +78,8 @@ export class AsciiRenderer {
     });
     this.ro.observe(cvs);
     const r = cvs.getBoundingClientRect();
-    this.currentW = r.width;
-    this.currentH = r.height;
+    this.currentW = r.width || cvs.parentElement?.clientWidth || (typeof window !== "undefined" ? window.innerWidth : 1200);
+    this.currentH = r.height || cvs.parentElement?.clientHeight || (typeof window !== "undefined" ? window.innerHeight : 800);
   }
 
   destroy() {

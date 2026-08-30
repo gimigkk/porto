@@ -13,7 +13,7 @@ export default function ProjectModal({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (lenis) lenis.stop();
     document.body.style.overflow = "hidden";
-    
+
     return () => {
       if (lenis) lenis.start();
       document.body.style.overflow = "";

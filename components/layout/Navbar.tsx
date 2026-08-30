@@ -66,9 +66,10 @@ const NAV_ITEMS: NavItem[] = [
     label: "Project Archive",
     target: "projects",
     sublinks: [
-      { label: "All Projects", target: "all-projects" },
-      { label: "Case Studies", target: "case-studies" },
-      { label: "Side Projects", target: "side-projects" },
+      { label: "All Projects", target: "all-projects", href: "/projects" },
+      { label: "AI Backend Systems", target: "ai-backend-systems", href: "/projects?category=AI+Backend+Systems" },
+      { label: "Full-Stack Web", target: "full-stack-web", href: "/projects?category=Full-Stack+Web" },
+      { label: "Game Development", target: "game-development", href: "/projects?category=Game+Development" },
     ],
   },
   {
@@ -281,7 +282,18 @@ export default function Navbar() {
   const scrollTo = useCallback(
     (target: string) => {
       if (target === "cv") return;
+      if (target === "projects" || target === "all-projects" || target === "case-studies" || target === "side-projects") {
+        router.push("/projects");
+        closeAll();
+        return;
+      }
       const sectionId = TARGET_ID_MAP[target] || target;
+
+      if (pathname !== "/") {
+        router.push(sectionId === "home" ? "/" : `/#${sectionId}`);
+        closeAll();
+        return;
+      }
 
       if (sectionId === "home") {
         if (lenis) {
@@ -303,19 +315,21 @@ export default function Navbar() {
       }
       closeAll();
     },
-    [lenis, closeAll]
+    [lenis, pathname, router, closeAll]
   );
 
   const handleSublinkClick = useCallback(
     (sublink: SubLink) => {
       if (sublink.external && sublink.href) {
         window.open(sublink.href, "_blank", "noopener noreferrer");
+      } else if (sublink.href) {
+        router.push(sublink.href);
       } else {
         scrollTo(sublink.target);
       }
       closeAll();
     },
-    [scrollTo, closeAll]
+    [router, scrollTo, closeAll]
   );
 
   const handleNavEnter = useCallback(
@@ -340,7 +354,6 @@ export default function Navbar() {
 
   const activeSublinks =
     hoveredIndex !== null ? NAV_ITEMS[hoveredIndex]?.sublinks ?? null : null;
-  const isArchiveDropdown = hoveredIndex !== null && NAV_ITEMS[hoveredIndex]?.target === "projects";
   const isExpanded = hoveredIndex !== null;
 
   return (
@@ -390,20 +403,14 @@ export default function Navbar() {
                 {NAV_ITEMS.slice(1, -1).map((item, idx) => {
                   const i = idx + 1;
                   const isHovered = hoveredIndex === i;
-                  const isArchive = item.target === "projects";
                   return (
                     <button
                       key={item.label}
                       type="button"
-                      aria-label={isArchive ? "Project Archive unavailable" : item.label}
-                      onClick={() => {
-                        if (!isArchive) scrollTo(item.target);
-                      }}
+                      aria-label={item.label}
+                      onClick={() => scrollTo(item.target)}
                       onMouseEnter={(e) => handleNavEnter(i, e)}
-                      className={`group/navlink flex items-center gap-1.5 text-sm font-medium transition-colors duration-200 tracking-tight px-3 py-1.5 rounded-full focus:outline-none ${isArchive
-                        ? "text-zinc-400 cursor-pointer"
-                        : "text-zinc-700 hover:bg-zinc-100 cursor-pointer"
-                        }`}
+                      className="group/navlink flex items-center gap-1.5 text-sm font-medium transition-colors duration-200 tracking-tight px-3 py-1.5 rounded-full focus:outline-none text-zinc-700 hover:bg-zinc-100 cursor-pointer"
                     >
                       <span className={isHovered ? "text-zinc-950" : ""}>
                         {item.label}
@@ -497,15 +504,8 @@ export default function Navbar() {
                         key={sublink.label}
                         type="button"
                         variants={itemVariants}
-                        disabled={isArchiveDropdown}
-                        aria-disabled={isArchiveDropdown}
-                        onClick={() => {
-                          if (!isArchiveDropdown) handleSublinkClick(sublink);
-                        }}
-                        className={`text-left text-base font-medium transition-colors duration-200 tracking-tight w-fit focus:outline-none flex items-center gap-2.5 pr-2 ${isArchiveDropdown
-                          ? "text-zinc-400 cursor-not-allowed"
-                          : "text-zinc-600 hover:text-zinc-950 cursor-pointer"
-                          }`}
+                        onClick={() => handleSublinkClick(sublink)}
+                        className="text-left text-base font-medium transition-colors duration-200 tracking-tight w-fit focus:outline-none flex items-center gap-2.5 pr-2 text-zinc-600 hover:text-zinc-950 cursor-pointer"
                       >
                         <span>{sublink.label}</span>
                         {sublink.icon === "download" && <Download className="w-4 h-4" />}
@@ -590,15 +590,14 @@ export default function Navbar() {
           {NAV_ITEMS.slice(1).map((item, idx) => {
             const i = idx + 1;
             const isOpen = activeAccordion === i;
-            const isArchive = item.target === "projects";
 
             return (
               <div key={item.label} className="flex flex-col gap-1">
                 <button
                   type="button"
-                  aria-label={isArchive ? "Project Archive unavailable" : item.label}
+                  aria-label={item.label}
                   onClick={() => {
-                    if (isArchive) {
+                    if (item.target === "projects") {
                       setActiveAccordion(isOpen ? null : i);
                       return;
                     }
@@ -608,10 +607,7 @@ export default function Navbar() {
                     }
                     setActiveAccordion(i);
                   }}
-                  className={`flex items-center justify-between w-full py-3 text-sm font-medium transition-colors duration-200 tracking-tight focus:outline-none ${isArchive
-                    ? "text-zinc-400 cursor-pointer"
-                    : "text-zinc-800 hover:text-zinc-950 cursor-pointer"
-                    }`}
+                  className="flex items-center justify-between w-full py-3 text-sm font-medium transition-colors duration-200 tracking-tight focus:outline-none text-zinc-800 hover:text-zinc-950 cursor-pointer"
                 >
                   <span>{item.label}</span>
                   <ChevronDown
@@ -633,17 +629,11 @@ export default function Navbar() {
                         <button
                           key={sublink.label}
                           type="button"
-                          disabled={isArchive}
-                          aria-disabled={isArchive}
                           onClick={() => {
-                            if (isArchive) return;
                             handleSublinkClick(sublink);
                             closeMobileMenu();
                           }}
-                          className={`flex items-center justify-between w-full text-left text-sm font-medium transition-colors duration-200 tracking-tight py-1.5 focus:outline-none ${isArchive
-                            ? "text-zinc-400 cursor-not-allowed"
-                            : "text-zinc-500 hover:text-zinc-950 cursor-pointer"
-                            }`}
+                          className="flex items-center justify-between w-full text-left text-sm font-medium transition-colors duration-200 tracking-tight py-1.5 focus:outline-none text-zinc-500 hover:text-zinc-950 cursor-pointer"
                         >
                           <span>{sublink.label}</span>
                           {sublink.icon === "download" && <Download className="w-4 h-4 mr-2" />}
@@ -660,3 +650,4 @@ export default function Navbar() {
     </>
   );
 }
+

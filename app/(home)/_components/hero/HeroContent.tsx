@@ -24,15 +24,27 @@ interface HeroContentProps {
   showTitle?: boolean;
   /** When true, subtext + CTA start their animation */
   ctaReady?: boolean;
+  /** When true, renders immediately without entrance transitions */
+  skipIntroAnimation?: boolean;
 }
 
-export default function HeroContent({ showTitle = false, ctaReady = false }: HeroContentProps) {
+export default function HeroContent({
+  showTitle = false,
+  ctaReady = false,
+  skipIntroAnimation = false,
+}: HeroContentProps) {
   const subtextControls = useAnimationControls();
   const ctaControls = useAnimationControls();
 
-  // Phase 2: Subtext + CTA animate when ctaReady flips
+  // Phase 2: Subtext + CTA animate when ctaReady flips (if not skipping intro)
   useEffect(() => {
     if (!ctaReady) return;
+
+    if (skipIntroAnimation) {
+      subtextControls.set(ANIM_ANIMATE);
+      ctaControls.set(ANIM_ANIMATE);
+      return;
+    }
 
     subtextControls.start({
       ...ANIM_ANIMATE,
@@ -42,7 +54,10 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
       ...ANIM_ANIMATE,
       transition: ANIM_TRANSITION,
     });
-  }, [ctaReady, subtextControls, ctaControls]);
+  }, [ctaReady, skipIntroAnimation, subtextControls, ctaControls]);
+
+  const initialAnim = skipIntroAnimation ? ANIM_ANIMATE : ANIM_INITIAL;
+  const animTransition = skipIntroAnimation ? { duration: 0 } : ANIM_TRANSITION;
 
   return (
     <>
@@ -53,9 +68,9 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
         {showTitle && (
           <div className="w-full max-w-2xl mx-auto mb-6">
             <motion.div
-              initial={ANIM_INITIAL}
+              initial={initialAnim}
               animate={ANIM_ANIMATE}
-              transition={ANIM_TRANSITION}
+              transition={animTransition}
             >
               <img src="/gimigkk.svg" alt="Gilang's Portfolio Title" className="w-full h-auto" fetchPriority="high" />
             </motion.div>
@@ -64,7 +79,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* Subtext - IBM Plex Serif */}
         <motion.p
-          initial={ANIM_INITIAL}
+          initial={initialAnim}
           animate={subtextControls}
           className={`${ibmPlexSerif.className} font-[500] text-[24.5px] opacity-90 mb-3`}
         >
@@ -73,7 +88,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* CTA Buttons */}
         <motion.div
-          initial={ANIM_INITIAL}
+          initial={initialAnim}
           animate={ctaControls}
           className="flex justify-center gap-1 w-full max-w-fit mx-auto drop-shadow-xl"
         >
@@ -125,9 +140,9 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
         {showTitle && (
           <div className="w-full max-w-[270px] mx-auto mb-10">
             <motion.div
-              initial={ANIM_INITIAL}
+              initial={initialAnim}
               animate={ANIM_ANIMATE}
-              transition={ANIM_TRANSITION}
+              transition={animTransition}
             >
               <img src="/gimigkk.svg" alt="Gilang's Portfolio Title" className="w-full h-auto" fetchPriority="high" />
             </motion.div>
@@ -136,7 +151,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* Subtext */}
         <motion.p
-          initial={ANIM_INITIAL}
+          initial={initialAnim}
           animate={subtextControls}
           className={`${ibmPlexSerif.className} font-[400] text-[16.5px] opacity-90 mb-2`}
         >
@@ -145,7 +160,7 @@ export default function HeroContent({ showTitle = false, ctaReady = false }: Her
 
         {/* CTA Buttons */}
         <motion.div
-          initial={ANIM_INITIAL}
+          initial={initialAnim}
           animate={ctaControls}
           className="flex justify-center gap-1 flex-wrap w-full max-w-fit mx-auto drop-shadow-md"
         >

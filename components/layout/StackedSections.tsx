@@ -24,9 +24,10 @@ interface StackedSectionsProps {
 	projects: ProjectMeta[];
 	isReady?: boolean;
 	githubGraph: GithubGraphDay[][];
+	isRevisit?: boolean;
 }
 
-export default function StackedSections({ projects, isReady = true, githubGraph }: StackedSectionsProps) {
+export default function StackedSections({ projects, isReady = true, githubGraph, isRevisit = false }: StackedSectionsProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const aboutAnchorRef = useRef<HTMLDivElement>(null);
 	const aboutRootRef = useRef<HTMLDivElement>(null);
@@ -53,9 +54,9 @@ export default function StackedSections({ projects, isReady = true, githubGraph 
 			ref={containerRef}
 			id="stacked-sections"
 			className="relative z-9999 w-full -mt-14 mb-0"
-			initial={{ y: 200 }}
+			initial={isRevisit ? false : { y: 200 }}
 			animate={isReady ? { y: 0 } : { y: 200 }}
-			transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0 }}
+			transition={isRevisit ? { duration: 0 } : { duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0 }}
 		>
 			<div ref={viewportProbeRef} className="absolute h-svh w-0 invisible pointer-events-none" aria-hidden="true" />
 			<FolderSection

@@ -60,6 +60,13 @@ interface HomeClientProps {
   githubGraph: GithubGraphDay[][];
 }
 
+// Module-level in-memory flag: resets on browser refresh (F5), persists during client SPA navigation
+let hasCompletedHomeIntroSession = false;
+
+export function getHasCompletedHomeIntro() {
+  return hasCompletedHomeIntroSession;
+}
+
 export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   const { isReady, assets } = usePreloader();
   const [loadingComplete, setLoadingComplete] = useState(false);
@@ -67,9 +74,25 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   const [foldersReady, setFoldersReady] = useState(false);
   const [ctaReady, setCtaReady] = useState(false);
   const [firstFrameRendered, setFirstFrameRendered] = useState(false);
+  const [isRevisit, setIsRevisit] = useState(false);
   const lenis = useLenis();
 
-
+  // Handle revisit within same SPA session (not on page reload/F5)
+  useEffect(() => {
+    if (hasCompletedHomeIntroSession) {
+      const mobileMatch = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+      setIsRevisit(true);
+      setLoadingComplete(true);
+      setIntroComplete(true);
+      setFoldersReady(true);
+      setCtaReady(true);
+      setFirstFrameRendered(true);
+      setHeroHeight(mobileMatch ? "70svh" : "95svh");
+      const el = document.getElementById("ssr-loading-screen");
+      if (el) el.style.display = "none";
+      window.dispatchEvent(new Event("hero-phase2"));
+    }
+  }, []);
 
   // Detect mobile and update on resize
   const [isMobile, setIsMobile] = useState(false);
@@ -112,6 +135,17 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   useEffect(() => {
     if (!introComplete) return;
 
+    hasCompletedHomeIntroSession = true;
+
+    if (isRevisit) {
+      setFoldersReady(true);
+      setCtaReady(true);
+      const el = document.getElementById("ssr-loading-screen");
+      if (el) el.style.display = "none";
+      window.dispatchEvent(new Event("hero-phase2"));
+      return;
+    }
+
     // 1 & 2. SVG and Nav+Folders trigger immediately
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setFoldersReady(true);
@@ -122,7 +156,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
     return () => {
       clearTimeout(t3);
     };
-  }, [introComplete]);
+  }, [introComplete, isRevisit]);
 
   // Fire event for navbar phase2 uncollapse
   useEffect(() => {
@@ -136,10 +170,14 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
 
   useEffect(() => {
     if (foldersReady) {
+      if (isRevisit) {
+        setHeroHeight(isMobile ? "70svh" : "95svh");
+        return;
+      }
       // Slight delay so CSS transition kicks after layout
       requestAnimationFrame(() => setHeroHeight(isMobile ? "70svh" : "95svh"));
     }
-  }, [foldersReady, isMobile]);
+  }, [foldersReady, isMobile, isRevisit]);
 
   const handleIntroComplete = useCallback(() => {
     // no-op — kept for clouds callback compatibility
@@ -196,7 +234,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
             className="w-full flex flex-col items-center justify-start pt-[120px] md:pt-0 md:justify-center text-zinc-900 sticky z-10 overflow-hidden"
             style={{
               height: heroHeight,
-              transition: "height 600ms cubic-bezier(0.22,1,0.36,1), top 600ms cubic-bezier(0.22,1,0.36,1)",
+              transition: isRevisit ? "none" : "height 600ms cubic-bezier(0.22,1,0.36,1), top 600ms cubic-bezier(0.22,1,0.36,1)",
               top: `calc(136px - ${heroHeight})`,
             }}
           >
@@ -208,6 +246,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
               onFirstFrameRendered={handleFirstFrameRendered}
               heroHeight={heroHeight}
               isMobile={isMobile}
+              isRevisit={isRevisit}
             />
             {/* dark gradient overlay — fades in with folders and fades out on scroll */}
             <motion.div
@@ -259,11 +298,12 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
             <HeroContent
               showTitle={introComplete}
               ctaReady={ctaReady}
+              skipIntroAnimation={isRevisit}
             />
           </section>
 
           {/* Loading screen — waits for fonts AND first canvas frame to finish */}
-          {!loadingComplete && (
+          {!loadingComplete && !isRevisit && (
             <LoadingScreen
               isReady={isReady && firstFrameRendered}
               onComplete={handleLoadingComplete}
@@ -271,7 +311,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
           )}
 
           {/* Sections 2, 3, 4 (Stacked Folders with nested Footer inside Projects) */}
-          <StackedSections projects={projects} isReady={foldersReady} githubGraph={githubGraph} />
+          <StackedSections projects={projects} isReady={foldersReady} githubGraph={githubGraph} isRevisit={isRevisit} />
         </div>
 
         <ClientProjectModal projects={projects} />

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { ProjectMeta } from "@/lib/projects";
 import ProjectCards from "@/app/(home)/_components/projects/ProjectCards";
@@ -17,11 +18,10 @@ export default function ProjectsSection({ projects }: { projects: ProjectMeta[] 
             Gloat-worthy projects, experiments, and highlights from my development journey. Click a card to read more about it.
           </p>
         </div>
-        <button
-          type="button"
-          title="Project Archive coming soon"
+        <Link
+          href="/projects"
           className={`${styles.pushable} group shrink-0`}
-          aria-label="View More"
+          aria-label="View Project Archive"
         >
           <span className={styles.shadow}></span>
           <span className={styles.edge}></span>
@@ -35,7 +35,7 @@ export default function ProjectsSection({ projects }: { projects: ProjectMeta[] 
             <span>View More</span>
             <ArrowRight className="w-3.5 h-3.5 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
           </span>
-        </button>
+        </Link>
       </div>
 
       {/* -- Cards (client component for animations) -------------- */}

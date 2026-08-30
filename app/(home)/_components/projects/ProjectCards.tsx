@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useEffect, useState } from "react";
 import { motion, useInView, type Variants } from "framer-motion";
 import type { ProjectMeta } from "@/lib/projects";
@@ -52,18 +53,20 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
 
   return (
     <div ref={containerRef} className={`${className} bg-zinc-800/50 relative overflow-hidden`} style={{ contentVisibility: "auto" }}>
-      {showPoster && (
-        <>
-          <img
-            src={posterSrc}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover scale-105 pointer-events-none"
-          />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <JumpingDots />
-          </div>
-        </>
-      )}
+      <div
+        className={`absolute inset-0 transition-opacity duration-700 ease-out pointer-events-none z-10 ${
+          isLoaded ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <img
+          src={posterSrc}
+          alt=""
+          className="w-full h-full object-cover scale-105"
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <JumpingDots />
+        </div>
+      </div>
       {isInView && (
         <video
           ref={videoRef}
@@ -73,9 +76,6 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
           muted
           playsInline
           onLoadedData={() => setIsLoaded(true)}
-          onTransitionEnd={() => {
-            if (isLoaded) setShowPoster(false);
-          }}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}
         />
       )}
@@ -247,13 +247,10 @@ export default function ProjectCards({
           <div className="md:hidden absolute inset-x-0 top-0 bottom-20 bg-linear-to-t from-[#09090b]/80 via-[#09090b]/30 to-transparent" />
           <div className="md:hidden absolute inset-x-0 bottom-0 h-20 bg-[#09090b]/80" />
           {/* Mobile View More CTA */}
-          <button
-            type="button"
-            disabled
-            aria-disabled="true"
-            title="Project Archive unavailable"
-            className={`md:hidden ${styles.pushable} group shrink-0 pointer-events-auto relative z-10 opacity-45 grayscale cursor-not-allowed`}
-            aria-label="View More (unavailable)"
+          <Link
+            href="/projects"
+            className={`md:hidden ${styles.pushable} group shrink-0 pointer-events-auto relative z-10`}
+            aria-label="View Project Archive"
           >
             <span className={styles.shadow}></span>
             <span className={styles.edge}></span>
@@ -267,7 +264,7 @@ export default function ProjectCards({
               <span>View More</span>
               <ArrowRight className="w-3 h-3 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
             </span>
-          </button>
+          </Link>
         </div>
       )}
     </div>

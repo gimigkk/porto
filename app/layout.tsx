@@ -6,7 +6,6 @@ import Navbar from "@/components/layout/Navbar";
 import NextTopLoader from 'nextjs-toploader';
 import { TooltipProvider } from "@/components/providers/TooltipProvider";
 import { TooltipRenderer } from "@/components/ui/tooltip/TooltipRenderer";
-import JumpingDots from "@/components/shared/JumpingDots";
 
 import { WdyrProvider } from "@/components/providers/WdyrProvider";
 
@@ -97,31 +96,12 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
-        {/* Clear stale #project= hash BEFORE React hydrates.
-            Calling replaceState during React lifecycle causes Next.js Router
-            hook-ordering errors. This runs during HTML parsing, before any JS framework. */}
+        {/* Clear stale #project= hash BEFORE React hydrates */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){var h=location.hash;if(h&&h.indexOf("#project=")===0){history.replaceState(null,"",location.pathname+location.search)}})()`
           }}
         />
-        {/* SSR loading screen — renders in initial HTML before any JS executes */}
-        <div
-          id="ssr-loading-screen"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'linear-gradient(to bottom, #0c3888, #50aaff)',
-            transition: 'opacity 400ms cubic-bezier(0.22, 1, 0.36, 1)',
-          }}
-          aria-hidden="true"
-        >
-          <JumpingDots />
-        </div>
         <NextTopLoader
           color="var(--top-loader-color, #000000)"
           initialPosition={0.08}

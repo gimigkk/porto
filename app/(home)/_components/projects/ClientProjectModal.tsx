@@ -233,6 +233,11 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
       document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
     }
+    return () => {
+      if (lenis) lenis.start();
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
   }, [isAnimating, lenis]);
 
   const close = useCallback(() => {
@@ -253,59 +258,6 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [close]);
-  // Track isOpen to prevent flickering on pagination
-  const isOpenRef = useRef(isOpen);
-  useEffect(() => {
-    isOpenRef.current = isOpen;
-  }, [isOpen]);
-
-  // Handle browser back button AND pushState from card clicks
-  useEffect(() => {
-    const handlePop = () => {
-      const hash = window.location.hash;
-      const newSlug = hash.startsWith("#project=") ? hash.substring(9) : null;
-      if (!newSlug) {
-        setIsAnimating(false);
-        if (lenis) lenis.start();
-        document.documentElement.style.overflow = "";
-        document.body.style.overflow = "";
-
-        if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
-        closeTimeoutRef.current = setTimeout(() => {
-          setIsOpen(false);
-          setPost(null);
-          setProject(null);
-        }, 400);
-      } else {
-        // Opening a project or paginating
-        const proj = allProjects.find((p) => p.slug === newSlug);
-        if (!proj) return;
-        setProject(proj);
-
-        const wasOpen = isOpenRef.current;
-        if (!wasOpen) {
-          setIsOpen(true);
-        }
-
-        if (mdxModules[newSlug]) {
-          setPost(() => mdxModules[newSlug]);
-          if (!wasOpen) requestAnimationFrame(() => requestAnimationFrame(() => setIsAnimating(true)));
-        } else {
-          setPost(null); // Show skeleton
-          if (!wasOpen) requestAnimationFrame(() => requestAnimationFrame(() => setIsAnimating(true))); // Slide up instantly
-
-          NProgress.start();
-          import(`@/content/projects/${newSlug}.mdx`).then((mod) => {
-            mdxModules[newSlug] = mod.default;
-            setPost(() => mod.default);
-            NProgress.done();
-          });
-        }
-      }
-    };
-    window.addEventListener("popstate", handlePop);
-    return () => window.removeEventListener("popstate", handlePop);
-  }, [lenis, allProjects]);
 
   if (!isOpen || !project || allProjects.length === 0) return null;
 

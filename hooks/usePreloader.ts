@@ -15,6 +15,8 @@ export interface PreloadedAssets {
  * Returns isReady=true only when everything is loaded.
  * Also extracts cloud image pixel data so AsciiClouds can skip its own Image load.
  */
+let cachedAssets: PreloadedAssets | null = null;
+
 export function usePreloader(): {
   isReady: boolean;
   assets: PreloadedAssets | null;
@@ -23,6 +25,12 @@ export function usePreloader(): {
   const [assets, setAssets] = useState<PreloadedAssets | null>(null);
 
   useEffect(() => {
+    if (cachedAssets) {
+      setIsReady(true);
+      setAssets(cachedAssets);
+      return;
+    }
+
     let cancelled = false;
 
     async function preload() {
@@ -69,6 +77,7 @@ export function usePreloader(): {
             glyphAtlas: atlas,
             glyphTileSize: tileSize,
           };
+          cachedAssets = imageAssets;
           setAssets(imageAssets);
           setIsReady(true);
         }

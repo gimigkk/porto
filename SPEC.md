@@ -49,7 +49,7 @@ V22: Section positioning inset participates in layout; transforms cannot consume
 V23: Crop mode reserves top/bottom content padding outside inner overflow clip; oversized descendants cannot paint through breathing room
 V24: About content has no inner overflow clip; oversized About disables docking/parallax and flows with tab attached
 V25: Wheel input stays Lenis-smoothed (`smoothWheel: true`); opposite-direction wheel resets queued momentum before same delta applies
-V26: Missing Project Archive route stays visible as disabled/gray controls; no control navigates to `/projects`
+V26: Project Archive controls navigate to `/projects`; `/projects` route renders 2-column archive with hash modal
 V27: Each featured project has unique metadata slug + repo/link target + existing thumbnail, small-video, poster assets
 V28: Project perf compare uses production Chromium 1366×768, 4× CPU, 5s frame sample; retain only non-regressing cadence + unchanged card geometry
 V29: Muted featured Project preview MP4 assets contain video only; no unused audio stream
@@ -77,6 +77,8 @@ T17|x|disable Project Archive controls while preserving visible affordances|V26
 T18|x|replace Rupiyeah placeholder with BIMAyKRS project + approved demo video|V27
 T19|x|strip muted preview audio; add repeatable perf/media checks|V14,V28,V29
 T20|x|remove forced Project backdrop transform layer; trace scroll cadence + visual regression|V14,V28,V30
+T21|x|create /projects 2-column magazine archive + wire landing/nav/footer controls|V26,V27
+
 
 ## §B BUGS
 id|date|cause|fix|
@@ -96,3 +98,6 @@ B13|2026-08-08|New desktop 64px matched About legacy 32px shell + 32px inner spa
 B14|2026-08-08|Generic inner crop clipped About `ProfileFlipCard` upward animation despite crop intent applying only to timeline|V23,V24
 B15|2026-08-08|`smoothWheel:true` + `lerp:0.15` kept Lenis target ahead of rendered scroll; upward ticks first canceled queued downward distance|V25
 B16|2026-08-12|Project 50%-visibility video cull cut controlled Chromium cadence 60→30fps|revert; retain only measured non-regressing perf changes
+B17|2026-08-30|SessionStorage intro flag persisted across hard page reload (F5) → skipped loading & intro animation on refresh|switch to in-memory session flag
+B18|2026-08-30|Dynamic import latency + initial simTimeMs 0 reset caused slow cloud mount & low FPS on revisit|import AsciiClouds statically; preserve simTimeMs
+B19|2026-08-30|Duplicate popstate/hash effects in ClientProjectModal + onTransitionEnd poster state desync|unify modal effects; make poster overlay declarative

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useState } from "react";
+import JumpingDots from "@/components/shared/JumpingDots";
 
 interface LoadingScreenProps {
   isReady: boolean;
@@ -10,47 +11,58 @@ interface LoadingScreenProps {
   onComplete: () => void;
 }
 
-/**
- * Controls the SSR-rendered #ssr-loading-screen element in layout.tsx.
- * 
- * The loading screen is already visible as pure HTML from the initial server render.
- * This component only handles fading it out and removing it once assets are ready.
- * Renders no DOM of its own.
- */
 export default function LoadingScreen({
   isReady,
   fadeOutMs = 400,
   onComplete,
 }: LoadingScreenProps) {
-  const removedRef = useRef(false);
-
-  const dismiss = useCallback(() => {
-    if (removedRef.current) return;
-    removedRef.current = true;
-
-    const el = document.getElementById("ssr-loading-screen");
-    if (!el) {
-      onComplete();
-      return;
-    }
-
-    // Fade out — keep element in DOM for React reconciler
-    el.style.opacity = "0";
-    el.style.pointerEvents = "none";
-
-    // Signal complete after transition — keep element in DOM
-    // (removing it confuses React hydration reconciler)
-    setTimeout(() => {
-      onComplete();
-    }, fadeOutMs);
-  }, [fadeOutMs, onComplete]);
+  const [fading, setFading] = useState(false);
 
   useEffect(() => {
-    if (isReady) {
-      dismiss();
-    }
-  }, [isReady, dismiss]);
+    // Hide SSR fallback if present in initial document
+    const el = document.getElementById("ssr-loading-screen");
+    if (el) el.style.display = "none";
+  }, []);
 
-  // Renders nothing — the SSR element in layout.tsx is the visual loading screen
-  return null;
+  useEffect(() => {
+    if (isReady && !fading) {
+      setFading(true);
+      const t = setTimeout(() => {
+        onComplete();
+      }, fadeOutMs);
+      return () => clearTimeout(t);
+    }
+  }, [isReady, fading, fadeOutMs, onComplete]);
+
+  // Safety fallback: ensure loading screen never locks the UI if ready events stall
+  useEffect(() => {
+    const safety = setTimeout(() => {
+      setFading(true);
+      const t = setTimeout(() => {
+        onComplete();
+      }, fadeOutMs);
+      return () => clearTimeout(t);
+    }, 1000);
+    return () => clearTimeout(safety);
+  }, [fadeOutMs, onComplete]);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(to bottom, #0c3888, #50aaff)",
+        opacity: fading ? 0 : 1,
+        pointerEvents: fading ? "none" : "auto",
+        transition: `opacity ${fadeOutMs}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+      }}
+      aria-hidden="true"
+    >
+      <JumpingDots />
+    </div>
+  );
 }
