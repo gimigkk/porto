@@ -34,10 +34,17 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
   const skippedRef = useRef(false);
   const [isSpaceDown, setIsSpaceDown] = useState(false);
 
-  // Animation controls for imperative triggering
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const wordControls = words.map(() => useAnimationControls());
-  const contactControls = [useAnimationControls(), useAnimationControls(), useAnimationControls()];
+  // Animation controls declared statically at top-level to satisfy React Rules of Hooks
+  const wordCtrl0 = useAnimationControls();
+  const wordCtrl1 = useAnimationControls();
+  const wordCtrl2 = useAnimationControls();
+  const wordCtrl3 = useAnimationControls();
+  const wordControls = [wordCtrl0, wordCtrl1, wordCtrl2, wordCtrl3];
+
+  const contactCtrl0 = useAnimationControls();
+  const contactCtrl1 = useAnimationControls();
+  const contactCtrl2 = useAnimationControls();
+  const contactControls = [contactCtrl0, contactCtrl1, contactCtrl2];
   const skipButtonControl = useAnimationControls();
 
   // Width matching: scale contact text font-size to match headline width
