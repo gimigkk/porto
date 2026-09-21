@@ -66,7 +66,7 @@ const COLLAB_CURSORS: CursorData[] = [
     id: "gimiaw",
     name: "Gimiaw",
     message: "Love the ASCII clouds ☁️",
-    color: "#0284c7",
+    color: "#dc2626",
     initialPos: { x: -500, y: -300 },
     targetPos: { top: "20%", left: "10%" },
     personality: {
