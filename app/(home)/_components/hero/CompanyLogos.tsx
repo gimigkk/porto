@@ -37,7 +37,7 @@ export const COMPANY_LOGOS: CompanyLogoItem[] = [
   },
   {
     id: "clyora",
-    name: "Clyora Academic Team",
+    name: "Clyora",
     src: "/logos/clyora.svg",
   },
 ];
