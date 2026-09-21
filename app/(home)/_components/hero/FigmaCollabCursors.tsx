@@ -1,7 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
+import { motion, useMotionValue, animate } from "framer-motion";
+
+/* ─── Personality traits that shape each cursor's movement character ─── */
+interface CursorPersonality {
+  range: number;          // max displacement from origin (px)
+  minPause: number;       // min seconds between moves
+  maxPause: number;       // max seconds between moves
+  speedVariation: number; // 0-1, how much spring config varies per move
+  burstChance: number;    // 0-1, probability of a fast "flick" move
+  inwardDir: { x: number; y: number }; // normalized direction pointing inward towards screen center
+  microCorrectionChance: number; // 0-1, chance of a quick follow-up tweak
+}
 
 interface CursorData {
   id: string;
@@ -10,92 +21,226 @@ interface CursorData {
   color: string;
   initialPos: { x: number; y: number };
   targetPos: { top: string; left: string };
-  humanMotion: {
-    x: number[];
-    y: number[];
-    times: number[];
-    duration: number;
-  };
+  personality: CursorPersonality;
   delay: number;
 }
 
 const COLLAB_CURSORS: CursorData[] = [
   {
-    id: "velma",
-    name: "Velma",
+    id: "siwowok",
+    name: "Siwowok",
     message: "Gimiaw cookin fr 🔥",
     color: "#ea580c",
     initialPos: { x: 500, y: -250 },
     targetPos: { top: "18%", left: "82%" },
-    humanMotion: {
-      x: [0, 0, -35, -35, 25, 25, 10, 10, 0],
-      y: [0, 0, 25, 25, -15, -15, 30, 30, 0],
-      times: [0, 0.14, 0.22, 0.40, 0.50, 0.68, 0.76, 0.88, 1.0],
-      duration: 11.5,
+    personality: {
+      range: 110,
+      minPause: 1.0,
+      maxPause: 3.2,
+      speedVariation: 0.5,
+      burstChance: 0.25,
+      inwardDir: { x: -0.85, y: 0.53 }, // Left & Down into hero center
+      microCorrectionChance: 0.3,
     },
     delay: 0.2,
   },
   {
-    id: "robinhood",
-    name: "Robin hood",
+    id: "tutua",
+    name: "Tutua",
     message: "Check out the projects! 🏹",
     color: "#059669",
     initialPos: { x: -450, y: 350 },
     targetPos: { top: "66%", left: "10%" },
-    humanMotion: {
-      x: [0, 0, 35, 35, -20, -20, 20, 20, 0],
-      y: [0, 0, -35, -35, -15, -15, 25, 25, 0],
-      times: [0, 0.15, 0.24, 0.42, 0.50, 0.68, 0.78, 0.88, 1.0],
-      duration: 13.0,
+    personality: {
+      range: 125,
+      minPause: 0.4,
+      maxPause: 1.8,
+      speedVariation: 0.7,
+      burstChance: 0.45,
+      inwardDir: { x: 0.88, y: -0.47 }, // Right & Up into hero center
+      microCorrectionChance: 0.5,
     },
     delay: 0.5,
   },
   {
-    id: "blackonblue",
-    name: "Black on blue",
+    id: "gimiaw",
+    name: "Gimiaw",
     message: "Love the ASCII clouds ☁️",
     color: "#0284c7",
     initialPos: { x: -500, y: -300 },
     targetPos: { top: "20%", left: "10%" },
-    humanMotion: {
-      x: [0, 0, 30, 30, -15, -15, 15, 15, 0],
-      y: [0, 0, 35, 35, 20, 20, -10, -10, 0],
-      times: [0, 0.16, 0.25, 0.44, 0.52, 0.70, 0.80, 0.90, 1.0],
-      duration: 10.5,
+    personality: {
+      range: 90,
+      minPause: 1.8,
+      maxPause: 4.5,
+      speedVariation: 0.3,
+      burstChance: 0.1,
+      inwardDir: { x: 0.82, y: 0.57 }, // Right & Down into hero center
+      microCorrectionChance: 0.15,
     },
     delay: 0.35,
   },
   {
-    id: "letsgo",
-    name: "Sarah",
+    id: "bunga",
+    name: "Bunga",
     message: "Lets goooo! 🚀",
     color: "#db2777",
     initialPos: { x: 400, y: 400 },
     targetPos: { top: "68%", left: "84%" },
-    humanMotion: {
-      x: [0, 0, -30, -30, 20, 20, -10, -10, 0],
-      y: [0, 0, -35, -35, -15, -15, 20, 20, 0],
-      times: [0, 0.14, 0.22, 0.42, 0.52, 0.70, 0.80, 0.90, 1.0],
-      duration: 12.0,
+    personality: {
+      range: 115,
+      minPause: 0.5,
+      maxPause: 2.2,
+      speedVariation: 0.6,
+      burstChance: 0.5,
+      inwardDir: { x: -0.85, y: -0.53 }, // Left & Up into hero center
+      microCorrectionChance: 0.45,
     },
     delay: 0.65,
   },
   {
-    id: "salambraat",
-    name: "Braaat",
-    message: "Salam braaat! Clean UI ✨",
-    color: "#7c3aed", // Figma Violet
+    id: "julio",
+    name: "Julio",
+    message: "Salam bro! Clean UI ✨",
+    color: "#7c3aed",
     initialPos: { x: 0, y: 450 },
-    targetPos: { top: "72%", left: "48%" },
-    humanMotion: {
-      x: [0, 0, -35, -35, 35, 35, 10, 10, 0],
-      y: [0, 0, -18, -18, -15, -15, 15, 15, 0],
-      times: [0, 0.16, 0.26, 0.44, 0.54, 0.72, 0.82, 0.90, 1.0],
-      duration: 12.5,
+    targetPos: { top: "78%", left: "48%" },
+    personality: {
+      range: 80,
+      minPause: 0.5,
+      maxPause: 2.8,
+      speedVariation: 0.7,
+      burstChance: 0.35,
+      inwardDir: { x: 0.0, y: -1.0 }, // Gentle upward float
+      microCorrectionChance: 0.5,
     },
     delay: 0.8,
   },
 ];
+
+/* ─── Procedural organic movement hook ─── */
+function useOrganicMovement(personality: CursorPersonality, startDelay: number) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout>;
+    let activeControls: Array<{ stop: () => void }> = [];
+
+    // Direction vectors: u is inward pointing, v is perpendicular tangential
+    const ux = personality.inwardDir.x;
+    const uy = personality.inwardDir.y;
+    const vx = -uy;
+    const vy = ux;
+
+    const pickTarget = () => {
+      const roll = Math.random();
+      let dIn: number;
+      let dTan: number;
+
+      if (roll < 0.15) {
+        // Slight retreat back toward anchor base
+        dIn = 4 + Math.random() * (personality.range * 0.2);
+        dTan = (Math.random() - 0.5) * (personality.range * 0.4);
+      } else if (roll < 0.45) {
+        // Small/medium fidget inward
+        dIn = 15 + Math.random() * (personality.range * 0.45);
+        dTan = (Math.random() - 0.5) * (personality.range * 0.6);
+      } else {
+        // Bold deep sweep inwards towards hero center
+        dIn = personality.range * 0.45 + Math.random() * (personality.range * 0.55);
+        dTan = (Math.random() - 0.5) * (personality.range * 0.8);
+      }
+
+      return {
+        x: ux * dIn + vx * dTan,
+        y: uy * dIn + vy * dTan,
+      };
+    };
+
+    const pickSpring = (isBurst: boolean) => {
+      const v = personality.speedVariation;
+      if (isBurst) {
+        return {
+          type: "spring" as const,
+          stiffness: 80 + Math.random() * 70 * v,
+          damping: 9 + Math.random() * 6 * v,
+          mass: 0.6 + Math.random() * 0.3,
+        };
+      }
+      return {
+        type: "spring" as const,
+        stiffness: 18 + Math.random() * 35 * v,
+        damping: 14 + Math.random() * 10 * v,
+        mass: 0.8 + Math.random() * 0.5,
+      };
+    };
+
+    const moveToNext = () => {
+      if (cancelled) return;
+
+      // Random pause (simulates reading/thinking)
+      const pause = personality.minPause + Math.random() * (personality.maxPause - personality.minPause);
+
+      timeoutId = setTimeout(() => {
+        if (cancelled) return;
+
+        const target = pickTarget();
+        const isBurst = Math.random() < personality.burstChance;
+        const spring = pickSpring(isBurst);
+
+        // Slightly different config per axis for organic asymmetry
+        const cx = animate(x, target.x, {
+          ...spring,
+          damping: spring.damping + (Math.random() - 0.5) * 3,
+        });
+        const cy = animate(y, target.y, {
+          ...spring,
+          stiffness: spring.stiffness + (Math.random() - 0.5) * 8,
+        });
+        activeControls = [cx, cy];
+
+        // After spring settles → maybe micro-correction, then next waypoint
+        Promise.all([cx, cy]).then(() => {
+          if (cancelled) return;
+
+          // Chance of a quick follow-up tweak (human "oops, a bit more")
+          if (Math.random() < personality.microCorrectionChance) {
+            const nudgeIn = (Math.random() - 0.3) * 14;
+            const nudgeTan = (Math.random() - 0.5) * 14;
+            const nx = target.x + ux * nudgeIn + vx * nudgeTan;
+            const ny = target.y + uy * nudgeIn + vy * nudgeTan;
+            const microPause = 80 + Math.random() * 250;
+
+            timeoutId = setTimeout(() => {
+              if (cancelled) return;
+              const mcx = animate(x, nx, { type: "spring", stiffness: 120, damping: 14, mass: 0.5 });
+              const mcy = animate(y, ny, { type: "spring", stiffness: 120, damping: 14, mass: 0.5 });
+              activeControls = [mcx, mcy];
+              Promise.all([mcx, mcy]).then(() => {
+                if (!cancelled) moveToNext();
+              });
+            }, microPause);
+          } else {
+            moveToNext();
+          }
+        });
+      }, pause * 1000);
+    };
+
+    // Stagger start per cursor
+    timeoutId = setTimeout(moveToNext, startDelay * 1000 + Math.random() * 800);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+      activeControls.forEach((c) => c.stop());
+    };
+  }, [personality, startDelay, x, y]);
+
+  return { x, y };
+}
 
 interface FigmaCollabCursorsProps {
   isReady?: boolean;
@@ -166,6 +311,9 @@ function CollabCursorItem({ cursor, isHovered, onHover, onLeave }: CollabCursorI
     };
   }, []);
 
+  // Procedural organic movement — never repeats, never resets
+  const { x: motionX, y: motionY } = useOrganicMovement(cursor.personality, cursor.delay);
+
   const targetWidth = isHovered ? (msgW ?? 140) : (nameW ?? 60);
 
   return (
@@ -178,20 +326,8 @@ function CollabCursorItem({ cursor, isHovered, onHover, onLeave }: CollabCursorI
       style={{ position: "absolute", top: cursor.targetPos.top, left: cursor.targetPos.left }}
       className="pointer-events-none select-none"
     >
-      {/* Human-like cursor movement: multi-speed travel, curved paths, pauses */}
-      <motion.div
-        animate={{
-          x: cursor.humanMotion.x,
-          y: cursor.humanMotion.y,
-        }}
-        transition={{
-          duration: cursor.humanMotion.duration,
-          times: cursor.humanMotion.times,
-          ease: "easeInOut",
-          repeat: Infinity,
-          repeatType: "loop",
-        }}
-      >
+      {/* Organic procedural movement — driven by useMotionValue, independent of hover */}
+      <motion.div style={{ x: motionX, y: motionY }}>
         <div className="relative flex items-start">
           {/* Expanded Hitbox: 2x base size, grows larger when hovered, debounced */}
           <div

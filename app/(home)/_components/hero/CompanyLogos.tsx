@@ -36,8 +36,8 @@ export const COMPANY_LOGOS: CompanyLogoItem[] = [
     src: "/logos/icodmi.svg",
   },
   {
-    id: "ilkomers",
-    name: "Ilkomers Batch 61",
-    src: "/logos/ilkomers.svg",
+    id: "clyora",
+    name: "Clyora Academic Team",
+    src: "/logos/clyora.svg",
   },
 ];
