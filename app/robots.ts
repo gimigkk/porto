@@ -8,5 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: '/api/',
     },
     sitemap: 'https://www.gimiaw.web.id/sitemap.xml',
+    host: 'https://www.gimiaw.web.id',
   };
 }

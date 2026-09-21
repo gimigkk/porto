@@ -1,10 +1,9 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getAllProjects } from "@/lib/projects";
 import ProjectsArchiveClient from "@/app/projects/_components/ProjectsArchiveClient";
 
 export const metadata: Metadata = {
-  title: "Project Archive | All Projects",
+  title: "Project Archive",
   description:
     "Complete portfolio archive of software projects, full-stack platforms, tools, games, and web applications built by Gilang Muhamad Widiagung (@gimigkk).",
   alternates: {
@@ -25,6 +24,9 @@ export default function ProjectsPage() {
   const projectItemList = {
     "@context": "https://schema.org",
     "@type": "ItemList",
+    name: "Software Projects & Applications",
+    description: "Portfolio archive of software projects built by Gilang Muhamad Widiagung",
+    numberOfItems: projects.length,
     itemListElement: projects.map((project, index) => ({
       "@type": "ListItem",
       position: index + 1,
@@ -32,8 +34,17 @@ export default function ProjectsPage() {
         "@type": "SoftwareApplication",
         name: project.title,
         description: project.description,
-        applicationCategory: "DeveloperApplication",
+        applicationCategory: project.category || "DeveloperApplication",
+        operatingSystem: "Web",
+        image: project.thumbnail.startsWith("http")
+          ? project.thumbnail
+          : `https://www.gimiaw.web.id${project.thumbnail}`,
         url: `https://www.gimiaw.web.id/projects#project=${project.slug}`,
+        author: {
+          "@type": "Person",
+          name: "Gilang Muhamad Widiagung",
+          url: "https://www.gimiaw.web.id",
+        },
       },
     })),
   };
@@ -44,9 +55,7 @@ export default function ProjectsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(projectItemList) }}
       />
-      <Suspense fallback={null}>
-        <ProjectsArchiveClient projects={projects} />
-      </Suspense>
+      <ProjectsArchiveClient projects={projects} />
     </>
   );
 }

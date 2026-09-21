@@ -78,6 +78,7 @@ export default function Footer() {
             <button
               type="button"
               onClick={() => handleNavClick("home")}
+              aria-label="Back to top"
               className="cursor-pointer focus:outline-none"
             >
               <Image

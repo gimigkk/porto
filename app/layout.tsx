@@ -43,14 +43,6 @@ export const metadata: Metadata = {
     description: "Portfolio of Gilang Muhamad Widiagung (Gimiaw), Full-stack Developer and Product Designer.",
     url: siteUrl,
     siteName: "Gilang Muhamad Widiagung Portfolio",
-    images: [
-      {
-        url: "/mukagw.JPG",
-        width: 800,
-        height: 600,
-        alt: "Gilang Muhamad Widiagung Profile Picture",
-      },
-    ],
     locale: "en_US",
     type: "website",
   },
@@ -58,7 +50,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Gilang Muhamad Widiagung | Full-stack Developer & Product Designer",
     description: "Portfolio of Gilang Muhamad Widiagung (Gimiaw), Full-stack Developer and Product Designer.",
-    images: ["/mukagw.JPG"],
     creator: "@gimiaw",
   },
   robots: {
@@ -72,19 +63,6 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
-  },
-  icons: {
-    icon: [
-      {
-        url: "/favicon.svg",
-        type: "image/svg+xml",
-      },
-      {
-        url: "/favicon.ico",
-        sizes: "any",
-      },
-    ],
-    apple: "/apple-icon.png",
   },
   appleWebApp: {
     title: "Gilang Muhamad Widiagung Portfolio",
@@ -107,7 +85,7 @@ export default function RootLayout({
         {/* Clear stale #project= hash BEFORE React hydrates */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var h=location.hash;if(h&&h.indexOf("#project=")===0){history.replaceState(null,"",location.pathname+location.search)}})()`
+            __html: `(function(){var h=location.hash;if(h&&h.indexOf("#project=")===0){history.replaceState(null,"",location.pathname+location.search)}})`
           }}
         />
         <NextTopLoader
@@ -133,6 +111,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Person",
+              "@id": "https://www.gimiaw.web.id/#person",
               name: "Gilang Muhamad Widiagung",
               givenName: "Gilang",
               additionalName: "Muhamad",
@@ -143,12 +122,13 @@ export default function RootLayout({
               jobTitle: "Full-stack Developer & Product Designer",
               worksFor: {
                 "@type": "Organization",
-                name: "Freelance"
+                name: "Freelance",
               },
               sameAs: [
-                "https://github.com/gimigkk"
-              ]
-            })
+                "https://github.com/gimigkk",
+                "https://instagram.com/gimigkk",
+              ],
+            }),
           }}
         />
         <script
@@ -157,9 +137,15 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
+              "@id": "https://www.gimiaw.web.id/#website",
               name: "Gilang Muhamad Widiagung Portfolio",
               url: "https://www.gimiaw.web.id",
-            })
+              description: "Official portfolio of Gilang Muhamad Widiagung (gimiaw | @gimigkk), a Full-stack Developer and Product Designer.",
+              inLanguage: "en-US",
+              publisher: {
+                "@id": "https://www.gimiaw.web.id/#person",
+              },
+            }),
           }}
         />
       </body>

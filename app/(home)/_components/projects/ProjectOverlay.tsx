@@ -22,9 +22,9 @@ export default async function ProjectOverlay({ slug }: { slug: string }) {
                 <span className="text-[11px] font-mono text-zinc-400">{project.year}</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-zinc-100 tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-zinc-100 tracking-tight">
                 {project.title}
-              </h1>
+              </h2>
 
               <p className="text-base text-zinc-400 leading-relaxed mb-6">
                 {project.description}

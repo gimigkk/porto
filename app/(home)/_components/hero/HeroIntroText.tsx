@@ -29,7 +29,7 @@ interface HeroIntroTextProps {
 export default function HeroIntroText({ isReady, sequenced = false, onComplete }: HeroIntroTextProps) {
   const words = ['Digitalisasi', 'dimulai', 'dari', 'hati,'];
 
-  const headlineRef = useRef<HTMLHeadingElement>(null);
+  const headlineRef = useRef<HTMLParagraphElement>(null);
   const contactRef = useRef<HTMLParagraphElement>(null);
   const skippedRef = useRef(false);
   const [isSpaceDown, setIsSpaceDown] = useState(false);
@@ -184,7 +184,7 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
   return (
     <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-white pointer-events-none">
       {/* Headline */}
-      <h1
+      <p
         ref={headlineRef}
         className={`${plusJakartaSans.className} text-5xl md:text-5xl text-[7vw] font-[700] tracking-tight mb-2 drop-shadow-xs flex flex-nowrap justify-center gap-x-2.5 md:gap-x-2.5 gap-1 whitespace-nowrap leading-none`}
       >
@@ -199,7 +199,7 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
             </motion.span>
           </span>
         ))}
-      </h1>
+      </p>
 
       {/* Contact text */}
       <p

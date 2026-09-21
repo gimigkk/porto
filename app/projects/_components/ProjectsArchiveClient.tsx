@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, useMemo } from "react";
+import { useRef, useEffect, useState, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, useInView, type Variants } from "framer-motion";
@@ -33,7 +33,7 @@ const cardVariants: Variants = {
   },
 };
 
-function ArchiveCardVideo({ src, poster }: { src: string; poster: string }) {
+function ArchiveCardVideo({ src, poster, title }: { src: string; poster: string; title?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const isInView = useInView(containerRef, { margin: "200px" });
@@ -65,7 +65,7 @@ function ArchiveCardVideo({ src, poster }: { src: string; poster: string }) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={poster}
-          alt=""
+          alt={title ? `${title} video preview poster` : "Project video preview poster"}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 flex items-center justify-center">
@@ -91,10 +91,18 @@ function ArchiveCardVideo({ src, poster }: { src: string; poster: string }) {
   );
 }
 
-export default function ProjectsArchiveClient({ projects }: { projects: ProjectMeta[] }) {
+function CategoryQuerySync({ onCategoryChange }: { onCategoryChange: (cat: string) => void }) {
   const searchParams = useSearchParams();
+  const category = searchParams?.get("category") || "All";
+  useEffect(() => {
+    onCategoryChange(category);
+  }, [category, onCategoryChange]);
+  return null;
+}
+
+export default function ProjectsArchiveClient({ projects }: { projects: ProjectMeta[] }) {
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const router = useRouter();
-  const selectedCategory = searchParams?.get("category") || "All";
 
   useEffect(() => {
     const el = document.getElementById("ssr-loading-screen");
@@ -119,6 +127,7 @@ export default function ProjectsArchiveClient({ projects }: { projects: ProjectM
   }, [projects, selectedCategory]);
 
   const handleCategorySelect = (cat: string) => {
+    setSelectedCategory(cat);
     if (cat === "All") {
       router.replace("/projects", { scroll: false });
     } else {
@@ -135,6 +144,9 @@ export default function ProjectsArchiveClient({ projects }: { projects: ProjectM
 
   return (
     <LanguageProvider>
+      <Suspense fallback={null}>
+        <CategoryQuerySync onCategoryChange={setSelectedCategory} />
+      </Suspense>
       <main className="min-h-screen bg-zinc-950 text-white flex flex-col justify-between pt-24 md:pt-28">
         <div className="w-full h-full flex flex-col items-center justify-center flex-1">
           {/* Header + Top Bar Row */}
@@ -228,7 +240,7 @@ export default function ProjectsArchiveClient({ projects }: { projects: ProjectM
                     aria-label={`View details for ${project.title}`}
                   >
                     {isVideo ? (
-                      <ArchiveCardVideo src={cardVideoSrc} poster={posterSrc} />
+                      <ArchiveCardVideo src={cardVideoSrc} poster={posterSrc} title={project.title} />
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img

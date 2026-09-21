@@ -25,7 +25,7 @@ function useIsModalOpen() {
   return isOpen;
 }
 
-function CulledVideo({ src, className }: { src: string, className?: string }) {
+function CulledVideo({ src, className, title }: { src: string, className?: string, title?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const isInView = useInView(containerRef, { margin: "200px" });
@@ -59,7 +59,7 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
       >
         <img
           src={posterSrc}
-          alt=""
+          alt={title ? `${title} video preview poster` : "Project video preview poster"}
           className="w-full h-full object-cover scale-105"
         />
         <div className="absolute inset-0 flex items-center justify-center">
@@ -181,6 +181,7 @@ export default function ProjectCards({
                   <CulledVideo
                     src={project.thumbnail.replace(/\.(mp4|webm)$/i, '-sm.$1')}
                     className="w-full h-full"
+                    title={project.title}
                   />
                 ) : (
                   <Image

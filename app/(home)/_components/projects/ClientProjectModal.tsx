@@ -423,9 +423,9 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
                         )}
                       </div>
 
-                      <h1 className="text-[24px] sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 tracking-tight" style={{ color: project.accent }}>
+                      <h2 className="text-[24px] sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 tracking-tight" style={{ color: project.accent }}>
                         {project.title}
-                      </h1>
+                      </h2>
 
                       <p className="text-[13px] sm:text-base md:text-lg text-zinc-400 leading-relaxed mb-8 sm:mb-12">
                         {project.description}

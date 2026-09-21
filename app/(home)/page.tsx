@@ -9,17 +9,29 @@ export default async function Home() {
   const projectItemList = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "itemListElement": projects.map((project, index) => ({
+    name: "Featured Projects & Portfolio",
+    description: "Featured software engineering and product design projects by Gilang Muhamad Widiagung",
+    numberOfItems: projects.length,
+    itemListElement: projects.map((project, index) => ({
       "@type": "ListItem",
-      "position": index + 1,
-      "item": {
+      position: index + 1,
+      item: {
         "@type": "SoftwareApplication",
-        "name": project.title,
-        "description": project.description,
-        "applicationCategory": "DeveloperApplication",
-        "url": `https://www.gimiaw.web.id/#project=${project.slug}`
-      }
-    }))
+        name: project.title,
+        description: project.description,
+        applicationCategory: project.category || "DeveloperApplication",
+        operatingSystem: "Web",
+        image: project.thumbnail.startsWith("http")
+          ? project.thumbnail
+          : `https://www.gimiaw.web.id${project.thumbnail}`,
+        url: `https://www.gimiaw.web.id/#project=${project.slug}`,
+        author: {
+          "@type": "Person",
+          name: "Gilang Muhamad Widiagung",
+          url: "https://www.gimiaw.web.id",
+        },
+      },
+    })),
   };
 
   return (
