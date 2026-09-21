@@ -242,6 +242,45 @@ function useOrganicMovement(personality: CursorPersonality, startDelay: number) 
   return { x, y };
 }
 
+const MOBILE_COLLAB_CURSORS: CursorData[] = [
+  {
+    id: "m-gimiaw",
+    name: "Gimiaw",
+    message: "Love the ASCII clouds ☁️",
+    color: "#dc2626",
+    initialPos: { x: -80, y: 0 },
+    targetPos: { top: "54%", left: "20%" },
+    personality: {
+      range: 28,
+      minPause: 1.5,
+      maxPause: 4.0,
+      speedVariation: 0.3,
+      burstChance: 0.15,
+      inwardDir: { x: 0.7, y: 0.3 },
+      microCorrectionChance: 0.2,
+    },
+    delay: 0.25,
+  },
+  {
+    id: "m-bunga",
+    name: "Bunga",
+    message: "Lets goooo! 🚀",
+    color: "#db2777",
+    initialPos: { x: 80, y: 0 },
+    targetPos: { top: "60%", left: "52%" },
+    personality: {
+      range: 28,
+      minPause: 0.8,
+      maxPause: 2.8,
+      speedVariation: 0.5,
+      burstChance: 0.35,
+      inwardDir: { x: -0.6, y: -0.3 },
+      microCorrectionChance: 0.35,
+    },
+    delay: 0.5,
+  },
+];
+
 interface FigmaCollabCursorsProps {
   isReady?: boolean;
 }
@@ -252,17 +291,33 @@ export default function FigmaCollabCursors({ isReady = true }: FigmaCollabCursor
   if (!isReady) return null;
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden z-30 select-none hidden md:block">
-      {COLLAB_CURSORS.map((cursor) => (
-        <CollabCursorItem
-          key={cursor.id}
-          cursor={cursor}
-          isHovered={hoveredId === cursor.id}
-          onHover={() => setHoveredId(cursor.id)}
-          onLeave={() => setHoveredId((prev) => (prev === cursor.id ? null : prev))}
-        />
-      ))}
-    </div>
+    <>
+      {/* Desktop: all 5 cursors */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-30 select-none hidden md:block">
+        {COLLAB_CURSORS.map((cursor) => (
+          <CollabCursorItem
+            key={cursor.id}
+            cursor={cursor}
+            isHovered={hoveredId === cursor.id}
+            onHover={() => setHoveredId(cursor.id)}
+            onLeave={() => setHoveredId((prev) => (prev === cursor.id ? null : prev))}
+          />
+        ))}
+      </div>
+
+      {/* Mobile: Gimiaw and Bunga just under the CTA/logos */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-30 select-none block md:hidden">
+        {MOBILE_COLLAB_CURSORS.map((cursor) => (
+          <CollabCursorItem
+            key={cursor.id}
+            cursor={cursor}
+            isHovered={hoveredId === cursor.id}
+            onHover={() => setHoveredId(cursor.id)}
+            onLeave={() => setHoveredId((prev) => (prev === cursor.id ? null : prev))}
+          />
+        ))}
+      </div>
+    </>
   );
 }
 
