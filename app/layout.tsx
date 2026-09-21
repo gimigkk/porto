@@ -74,8 +74,17 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/munching-cat.gif",
-    apple: "/munching-cat.gif",
+    icon: [
+      {
+        url: "/favicon.svg",
+        type: "image/svg+xml",
+      },
+      {
+        url: "/favicon.ico",
+        sizes: "any",
+      },
+    ],
+    apple: "/apple-icon.png",
   },
   appleWebApp: {
     title: "Gilang Muhamad Widiagung Portfolio",

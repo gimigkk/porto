@@ -11,9 +11,19 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#141416',
     icons: [
       {
-        src: '/munching-cat.gif',
+        src: '/favicon.svg',
         sizes: 'any',
-        type: 'image/gif',
+        type: 'image/svg+xml',
+      },
+      {
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
       },
     ],
   };
