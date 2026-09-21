@@ -31,7 +31,7 @@ export default function CompanyLogoGrid({ className = "" }: CompanyLogoGridProps
             <img
               src={logo.src}
               alt={logo.name}
-              className="w-auto h-4 sm:h-6 md:h-8 lg:h-9 max-w-[24vw] md:max-w-none object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]"
+              className="w-auto h-[21px] sm:h-6 md:h-8 lg:h-9 max-w-[26vw] md:max-w-none object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]"
             />
           );
 
@@ -90,7 +90,7 @@ export default function CompanyLogoGrid({ className = "" }: CompanyLogoGridProps
               <img
                 src={logo.src}
                 alt={logo.name}
-                className="w-auto h-4 sm:h-6 md:h-8 lg:h-9 max-w-[24vw] md:max-w-none object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]"
+                className="w-auto h-[21px] sm:h-6 md:h-8 lg:h-9 max-w-[26vw] md:max-w-none object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]"
               />
             );
 
