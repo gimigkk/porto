@@ -249,9 +249,9 @@ const MOBILE_COLLAB_CURSORS: CursorData[] = [
     message: "Love the ASCII clouds ☁️",
     color: "#dc2626",
     initialPos: { x: -80, y: 0 },
-    targetPos: { top: "54%", left: "20%" },
+    targetPos: { top: "63%", left: "16%" },
     personality: {
-      range: 28,
+      range: 22,
       minPause: 1.5,
       maxPause: 4.0,
       speedVariation: 0.3,
@@ -267,9 +267,9 @@ const MOBILE_COLLAB_CURSORS: CursorData[] = [
     message: "Lets goooo! 🚀",
     color: "#db2777",
     initialPos: { x: 80, y: 0 },
-    targetPos: { top: "60%", left: "52%" },
+    targetPos: { top: "69%", left: "50%" },
     personality: {
-      range: 28,
+      range: 22,
       minPause: 0.8,
       maxPause: 2.8,
       speedVariation: 0.5,
@@ -305,7 +305,7 @@ export default function FigmaCollabCursors({ isReady = true }: FigmaCollabCursor
         ))}
       </div>
 
-      {/* Mobile: Gimiaw and Bunga just under the CTA/logos */}
+      {/* Mobile: Gimiaw and Bunga just under the CTA/logos, scaled down and lower */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-30 select-none block md:hidden">
         {MOBILE_COLLAB_CURSORS.map((cursor) => (
           <CollabCursorItem
@@ -314,6 +314,7 @@ export default function FigmaCollabCursors({ isReady = true }: FigmaCollabCursor
             isHovered={hoveredId === cursor.id}
             onHover={() => setHoveredId(cursor.id)}
             onLeave={() => setHoveredId((prev) => (prev === cursor.id ? null : prev))}
+            isMobile
           />
         ))}
       </div>
@@ -326,12 +327,13 @@ interface CollabCursorItemProps {
   isHovered: boolean;
   onHover: () => void;
   onLeave: () => void;
+  isMobile?: boolean;
 }
 
 // Horizontal padding inside the pill (px-3 = 12px each side)
 const PILL_PX = 24;
 
-function CollabCursorItem({ cursor, isHovered, onHover, onLeave }: CollabCursorItemProps) {
+function CollabCursorItem({ cursor, isHovered, onHover, onLeave, isMobile = false }: CollabCursorItemProps) {
   // Measure intrinsic widths of name and full message once on mount
   const nameGhostRef = useRef<HTMLSpanElement>(null);
   const msgGhostRef = useRef<HTMLSpanElement>(null);
@@ -370,15 +372,21 @@ function CollabCursorItem({ cursor, isHovered, onHover, onLeave }: CollabCursorI
   const { x: motionX, y: motionY } = useOrganicMovement(cursor.personality, cursor.delay);
 
   const targetWidth = isHovered ? (msgW ?? 140) : (nameW ?? 60);
+  const baseScale = isMobile ? 0.72 : 1;
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: cursor.initialPos.x, y: cursor.initialPos.y, scale: 0.8 }}
+      initial={{ opacity: 0, x: cursor.initialPos.x, y: cursor.initialPos.y, scale: 0.8 * baseScale }}
       animate={{
-        opacity: 1, x: 0, y: 0, scale: 1,
+        opacity: 1, x: 0, y: 0, scale: baseScale,
         transition: { type: "spring", stiffness: 75, damping: 15, mass: 0.9, delay: cursor.delay },
       }}
-      style={{ position: "absolute", top: cursor.targetPos.top, left: cursor.targetPos.left }}
+      style={{
+        position: "absolute",
+        top: cursor.targetPos.top,
+        left: cursor.targetPos.left,
+        transformOrigin: "top left",
+      }}
       className="pointer-events-none select-none"
     >
       {/* Organic procedural movement — driven by useMotionValue, independent of hover */}
