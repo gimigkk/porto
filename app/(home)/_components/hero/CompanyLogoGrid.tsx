@@ -24,14 +24,14 @@ export default function CompanyLogoGrid({ className = "" }: CompanyLogoGridProps
           const alignClass = isFirst
             ? "justify-start"
             : isLast
-            ? "justify-end"
-            : "justify-center";
+              ? "justify-end"
+              : "justify-center";
 
           const Content = (
             <img
               src={logo.src}
               alt={logo.name}
-              className="w-auto h-[21px] sm:h-6 md:h-8 lg:h-9 max-w-[26vw] md:max-w-none object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]"
+              className="w-auto h-[21px] sm:h-6 md:h-8 lg:h-9 max-w-[26vw] md:max-w-none object-contain opacity-70 hover:opacity-100 transition-opacity duration-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]"
             />
           );
 
@@ -67,11 +67,10 @@ export default function CompanyLogoGrid({ className = "" }: CompanyLogoGridProps
       {/* Row 2: Remaining logos centered */}
       {row2.length > 0 && (
         <div
-          className={`w-full flex items-center ${
-            row2.length >= 4
-              ? "justify-between"
-              : "justify-center gap-6 sm:gap-10 md:gap-14"
-          }`}
+          className={`w-full flex items-center ${row2.length >= 4
+            ? "justify-between"
+            : "justify-center gap-6 sm:gap-10 md:gap-14"
+            }`}
         >
           {row2.map((logo: CompanyLogoItem, index: number) => {
             const isFirst = index === 0;
@@ -82,15 +81,15 @@ export default function CompanyLogoGrid({ className = "" }: CompanyLogoGridProps
                 ? isFirst
                   ? "justify-start"
                   : isLast
-                  ? "justify-end"
-                  : "justify-center"
+                    ? "justify-end"
+                    : "justify-center"
                 : "justify-center";
 
             const Content = (
               <img
                 src={logo.src}
                 alt={logo.name}
-                className="w-auto h-[21px] sm:h-6 md:h-8 lg:h-9 max-w-[26vw] md:max-w-none object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]"
+                className="w-auto h-[21px] sm:h-6 md:h-8 lg:h-9 max-w-[26vw] md:max-w-none object-contain opacity-90 hover:opacity-100 transition-opacity duration-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]"
               />
             );
 
