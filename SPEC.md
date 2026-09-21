@@ -101,3 +101,4 @@ B16|2026-08-12|Project 50%-visibility video cull cut controlled Chromium cadence
 B17|2026-08-30|SessionStorage intro flag persisted across hard page reload (F5) → skipped loading & intro animation on refresh|switch to in-memory session flag
 B18|2026-08-30|Dynamic import latency + initial simTimeMs 0 reset caused slow cloud mount & low FPS on revisit|import AsciiClouds statically; preserve simTimeMs
 B19|2026-08-30|Duplicate popstate/hash effects in ClientProjectModal + onTransitionEnd poster state desync|unify modal effects; make poster overlay declarative
+B20|2026-09-21|WDYR trackHooks monkeypatches React.useState to call useRef; Router useActionQueue shifts hook 2 from useOptimistic to useRef → crash|remove WDYR provider & package; fix React 19 hook lint errors

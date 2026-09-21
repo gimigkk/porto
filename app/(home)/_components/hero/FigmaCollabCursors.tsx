@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { motion, useMotionValue, animate } from "framer-motion";
 
 /* ─── Personality traits that shape each cursor's movement character ─── */

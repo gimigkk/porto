@@ -26,6 +26,7 @@ export default function LoadingScreen({
 
   useEffect(() => {
     if (isReady && !fading) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFading(true);
       const t = setTimeout(() => {
         onComplete();

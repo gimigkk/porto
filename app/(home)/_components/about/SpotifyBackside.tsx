@@ -427,14 +427,14 @@ export default function SpotifyBackside() {
             <div
               ref={barRef}
               className="absolute top-0 left-0 h-full bg-white rounded-full transition-all duration-1000 ease-linear relative"
-              style={{ width: `${data.durationMs ? Math.min((progressRef.current / data.durationMs) * 100, 100) : 0}%` }}
+              style={{ width: `${data.durationMs ? Math.min(((data.progressMs ?? 0) / data.durationMs) * 100, 100) : 0}%` }}
             >
               {/* Progress Dot Handle */}
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full translate-x-1/2 shadow-[0_0_4px_rgba(0,0,0,0.5)]" />
             </div>
           </div>
           <div className="flex justify-between text-[10px] text-zinc-500 font-medium tracking-widest font-mono">
-            <span ref={timeRef}>{formatTime(progressRef.current)}</span>
+            <span ref={timeRef}>{formatTime(data.progressMs ?? 0)}</span>
             <span>{formatTime(data.durationMs || 0)}</span>
           </div>
         </div>

@@ -21,13 +21,11 @@ export function usePreloader(): {
   isReady: boolean;
   assets: PreloadedAssets | null;
 } {
-  const [isReady, setIsReady] = useState(false);
-  const [assets, setAssets] = useState<PreloadedAssets | null>(null);
+  const [isReady, setIsReady] = useState(() => Boolean(cachedAssets));
+  const [assets, setAssets] = useState<PreloadedAssets | null>(() => cachedAssets);
 
   useEffect(() => {
     if (cachedAssets) {
-      setIsReady(true);
-      setAssets(cachedAssets);
       return;
     }
 

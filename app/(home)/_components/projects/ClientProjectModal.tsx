@@ -190,6 +190,7 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
   useEffect(() => {
     if (!slug) {
       // Start exit animation
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAnimating(false);
       if (lenis) lenis.start();
       document.documentElement.style.overflow = "";

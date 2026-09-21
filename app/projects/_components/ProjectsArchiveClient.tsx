@@ -41,6 +41,7 @@ function ArchiveCardVideo({ src, poster }: { src: string; poster: string }) {
 
   useEffect(() => {
     if (!isInView) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoaded(false);
     }
   }, [isInView]);
@@ -93,16 +94,7 @@ function ArchiveCardVideo({ src, poster }: { src: string; poster: string }) {
 export default function ProjectsArchiveClient({ projects }: { projects: ProjectMeta[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
-
-  useEffect(() => {
-    const cat = searchParams?.get("category");
-    if (cat) {
-      setSelectedCategory(cat);
-    } else {
-      setSelectedCategory("All");
-    }
-  }, [searchParams]);
+  const selectedCategory = searchParams?.get("category") || "All";
 
   useEffect(() => {
     const el = document.getElementById("ssr-loading-screen");
@@ -127,7 +119,6 @@ export default function ProjectsArchiveClient({ projects }: { projects: ProjectM
   }, [projects, selectedCategory]);
 
   const handleCategorySelect = (cat: string) => {
-    setSelectedCategory(cat);
     if (cat === "All") {
       router.replace("/projects", { scroll: false });
     } else {

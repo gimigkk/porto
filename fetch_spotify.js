@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const urls = [
 "https://open.spotify.com/track/6wOazYrDGLhMAhwU6RArlg?si=815f9a89e47b44ca"
 ];

@@ -1,9 +1,9 @@
 "use client";
 
 import * as THREE from "three";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useFrame, extend } from "@react-three/fiber";
-import { useGLTF, useTexture, Text, Decal } from "@react-three/drei";
+import { useGLTF, useTexture, Decal } from "@react-three/drei";
 import {
   BallCollider,
   CuboidCollider,
@@ -18,8 +18,8 @@ extend({ MeshLineGeometry, MeshLineMaterial });
 
 declare module "@react-three/fiber" {
   interface ThreeElements {
-    meshLineGeometry: any;
-    meshLineMaterial: any;
+    meshLineGeometry: Record<string, unknown>;
+    meshLineMaterial: Record<string, unknown>;
   }
 }
 
@@ -42,27 +42,32 @@ export default function BadgeLanyard({ maxSpeed = 50, minSpeed = 10 }) {
   const j3 = useRef<RapierRigidBody>(null!);
 
   const card = useRef<RapierRigidBody>(null!);
-  const vec = new THREE.Vector3();
   const ang = new THREE.Vector3();
   const rot = new THREE.Vector3();
-  const dir = new THREE.Vector3();
-  const [dragged, drag] = useState<THREE.Vector3 | false>(false);
-  const [hovered, hover] = useState(false);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { nodes, materials } = useGLTF("/assets/3d/card.glb") as any;
-  const texture = useTexture("/assets/images/tag_texture.png");
-  const profileTexture = useTexture("/mukagw.JPG");
-  profileTexture.colorSpace = THREE.SRGBColorSpace;
+  const texture = useTexture("/assets/images/tag_texture.png", (tex) => {
+    if (tex instanceof THREE.Texture) {
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    }
+  });
+  const profileTexture = useTexture("/mukagw.JPG", (tex) => {
+    if (tex instanceof THREE.Texture) {
+      tex.colorSpace = THREE.SRGBColorSpace;
+    }
+  });
 
-  const [curve] = useState(
-    () =>
-      new THREE.CatmullRomCurve3([
-        new THREE.Vector3(),
-        new THREE.Vector3(),
-        new THREE.Vector3(),
-        new THREE.Vector3(),
-      ])
-  );
+  const [curve] = useState(() => {
+    const c = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(),
+      new THREE.Vector3(),
+      new THREE.Vector3(),
+      new THREE.Vector3(),
+    ]);
+    c.curveType = "chordal";
+    return c;
+  });
 
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1.5]);
   useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1.5]);
@@ -116,9 +121,6 @@ export default function BadgeLanyard({ maxSpeed = 50, minSpeed = 10 }) {
 
     }
   });
-
-  curve.curveType = "chordal";
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 
   return (
     <>

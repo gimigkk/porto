@@ -70,25 +70,23 @@ export function getHasCompletedHomeIntro() {
 
 export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   const { isReady, assets } = usePreloader();
-  const [loadingComplete, setLoadingComplete] = useState(false);
-  const [introComplete, setIntroComplete] = useState(false);
-  const [foldersReady, setFoldersReady] = useState(false);
-  const [ctaReady, setCtaReady] = useState(false);
-  const [firstFrameRendered, setFirstFrameRendered] = useState(false);
-  const [isRevisit, setIsRevisit] = useState(false);
+  const [loadingComplete, setLoadingComplete] = useState(() => hasCompletedHomeIntroSession);
+  const [introComplete, setIntroComplete] = useState(() => hasCompletedHomeIntroSession);
+  const [foldersReady, setFoldersReady] = useState(() => hasCompletedHomeIntroSession);
+  const [ctaReady, setCtaReady] = useState(() => hasCompletedHomeIntroSession);
+  const [firstFrameRendered, setFirstFrameRendered] = useState(() => hasCompletedHomeIntroSession);
+  const [isRevisit] = useState(() => hasCompletedHomeIntroSession);
+  const [heroHeight, setHeroHeight] = useState(() => {
+    if (typeof window !== "undefined" && hasCompletedHomeIntroSession) {
+      return window.matchMedia(MOBILE_MEDIA_QUERY).matches ? "70svh" : "95svh";
+    }
+    return "100svh";
+  });
   const lenis = useLenis();
 
   // Handle revisit within same SPA session (not on page reload/F5)
   useEffect(() => {
     if (hasCompletedHomeIntroSession) {
-      const mobileMatch = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
-      setIsRevisit(true);
-      setLoadingComplete(true);
-      setIntroComplete(true);
-      setFoldersReady(true);
-      setCtaReady(true);
-      setFirstFrameRendered(true);
-      setHeroHeight(mobileMatch ? "70svh" : "95svh");
       const el = document.getElementById("ssr-loading-screen");
       if (el) el.style.display = "none";
       window.dispatchEvent(new Event("hero-phase2"));
@@ -139,8 +137,6 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
     hasCompletedHomeIntroSession = true;
 
     if (isRevisit) {
-      setFoldersReady(true);
-      setCtaReady(true);
       const el = document.getElementById("ssr-loading-screen");
       if (el) el.style.display = "none";
       window.dispatchEvent(new Event("hero-phase2"));
@@ -167,16 +163,10 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   }, [foldersReady]);
 
   // Transition hero height: 100svh → 95svh when folders appear (80svh on mobile)
-  const [heroHeight, setHeroHeight] = useState("100svh");
-
   useEffect(() => {
     if (foldersReady) {
-      if (isRevisit) {
-        setHeroHeight(isMobile ? "70svh" : "95svh");
-        return;
-      }
-      // Slight delay so CSS transition kicks after layout
-      requestAnimationFrame(() => setHeroHeight(isMobile ? "70svh" : "95svh"));
+      const targetHeight = isMobile ? "70svh" : "95svh";
+      requestAnimationFrame(() => setHeroHeight(targetHeight));
     }
   }, [foldersReady, isMobile, isRevisit]);
 

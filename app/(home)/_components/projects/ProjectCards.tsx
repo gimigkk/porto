@@ -31,14 +31,13 @@ function CulledVideo({ src, className }: { src: string, className?: string }) {
   const isInView = useInView(containerRef, { margin: "200px" });
   const isModalOpen = useIsModalOpen();
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showPoster, setShowPoster] = useState(true);
   const posterSrc = src.replace('-sm', '').replace(/\.(mp4|webm)$/, '-poster.jpg');
 
   // Aggressive culling: reset state when out of view
   useEffect(() => {
     if (!isInView) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoaded(false);
-      setShowPoster(true);
     }
   }, [isInView]);
 
@@ -135,7 +134,7 @@ export default function ProjectCards({
             variants={cardVariants}
             key={project.slug}
             className="group relative w-full h-full transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] md:hover:z-50"
-            style={{ ...cardStyle, willChange: wc as any }}
+            style={{ ...cardStyle, willChange: wc }}
           >
             {/* Background Documents (Pop-up effect) — hidden on mobile */}
             <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">

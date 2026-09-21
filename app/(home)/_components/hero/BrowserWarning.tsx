@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { motion, useAnimationControls } from "framer-motion";
+import { motion } from "framer-motion";
 import { AlertTriangle } from "lucide-react";
 import SkipIntroButton from "@/app/(home)/_components/SkipIntroButton";
 
@@ -20,7 +20,6 @@ interface BrowserWarningProps {
 
 export default function BrowserWarning({ isReady, isMobile, isChromium, onComplete }: BrowserWarningProps) {
   const [isSpaceDown, setIsSpaceDown] = useState(false);
-  const containerControl = useAnimationControls();
   const [hasStartedOutro, setHasStartedOutro] = useState(false);
 
   const getMessage = () => {
