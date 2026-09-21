@@ -7,6 +7,7 @@ import { usePreloader } from "@/hooks/usePreloader";
 import LoadingScreen from "@/app/(home)/_components/LoadingScreen";
 import SkyBackground from "@/components/layout/SkyBackground";
 import HeroContent from "@/app/(home)/_components/hero/HeroContent";
+import FigmaCollabCursors from "@/app/(home)/_components/hero/FigmaCollabCursors";
 import HeroIntroText from "@/app/(home)/_components/hero/HeroIntroText";
 import BrowserWarning from "@/app/(home)/_components/hero/BrowserWarning";
 import { LanguageProvider } from "@/components/providers/LanguageProvider";
@@ -300,6 +301,9 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
               ctaReady={ctaReady}
               skipIntroAnimation={isRevisit}
             />
+
+            {/* Fake Figma-style collaboration cursors */}
+            <FigmaCollabCursors isReady={ctaReady || isRevisit} />
           </section>
 
           {/* Loading screen — waits for fonts AND first canvas frame to finish */}
