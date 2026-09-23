@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { motion, useAnimationControls } from "framer-motion";
+import { motion } from "framer-motion";
 import CompanyLogoGrid from "./CompanyLogoGrid";
 
 const ANIM_INITIAL = { opacity: 0, y: 80, scale: 0.96, filter: "blur(10px)" };
@@ -27,22 +26,6 @@ export default function HeroContent({
   ctaReady = false,
   skipIntroAnimation = false,
 }: HeroContentProps) {
-  const logoControls = useAnimationControls();
-
-  useEffect(() => {
-    if (!ctaReady) return;
-
-    if (skipIntroAnimation) {
-      logoControls.set(ANIM_ANIMATE);
-      return;
-    }
-
-    logoControls.start({
-      ...ANIM_ANIMATE,
-      transition: ANIM_TRANSITION,
-    });
-  }, [ctaReady, skipIntroAnimation, logoControls]);
-
   const initialAnim = skipIntroAnimation ? ANIM_ANIMATE : ANIM_INITIAL;
   const animTransition = skipIntroAnimation ? { duration: 0 } : ANIM_TRANSITION;
 
@@ -66,13 +49,12 @@ export default function HeroContent({
         )}
 
         {/* Straight-up Company Logos Grid aligned flush with SVG edges */}
-        <motion.div
-          initial={initialAnim}
-          animate={logoControls}
-          className="w-full"
-        >
-          <CompanyLogoGrid />
-        </motion.div>
+        <div className="w-full">
+          <CompanyLogoGrid
+            ctaReady={ctaReady}
+            skipIntroAnimation={skipIntroAnimation}
+          />
+        </div>
       </div>
 
       {/* --- MOBILE VERSION --- */}
@@ -91,13 +73,12 @@ export default function HeroContent({
         )}
 
         {/* Straight-up Company Logos Grid aligned flush with SVG edges */}
-        <motion.div
-          initial={initialAnim}
-          animate={logoControls}
-          className="w-full"
-        >
-          <CompanyLogoGrid />
-        </motion.div>
+        <div className="w-full">
+          <CompanyLogoGrid
+            ctaReady={ctaReady}
+            skipIntroAnimation={skipIntroAnimation}
+          />
+        </div>
       </div>
     </>
   );
