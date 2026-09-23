@@ -15,13 +15,11 @@ const logoVariants: Variants = {
     opacity: 0,
     y: 30,
     scale: 0.95,
-    filter: "blur(8px)",
   },
   visible: ({ index, skip }: { index: number; skip: boolean }) => ({
     opacity: 1,
     y: 0,
     scale: 1,
-    filter: "blur(0px)",
     transition: skip
       ? { duration: 0 }
       : {

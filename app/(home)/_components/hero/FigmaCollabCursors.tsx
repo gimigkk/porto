@@ -119,11 +119,13 @@ const COLLAB_CURSORS: CursorData[] = [
 ];
 
 /* ─── Procedural organic movement hook ─── */
-function useOrganicMovement(personality: CursorPersonality, startDelay: number) {
+function useOrganicMovement(personality: CursorPersonality, startDelay: number, isActive: boolean = true) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+  const hasStartedRef = useRef(false);
 
   useEffect(() => {
+    if (!isActive) return;
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout>;
     let activeControls: Array<{ stop: () => void }> = [];
@@ -229,15 +231,17 @@ function useOrganicMovement(personality: CursorPersonality, startDelay: number) 
       }, pause * 1000);
     };
 
-    // Stagger start per cursor
-    timeoutId = setTimeout(moveToNext, startDelay * 1000 + Math.random() * 800);
+    // Stagger start per cursor on first mount, shorter random resume after unpause
+    const initialDelay = hasStartedRef.current ? Math.random() * 400 : (startDelay * 1000 + Math.random() * 800);
+    hasStartedRef.current = true;
+    timeoutId = setTimeout(moveToNext, initialDelay);
 
     return () => {
       cancelled = true;
       clearTimeout(timeoutId);
       activeControls.forEach((c) => c.stop());
     };
-  }, [personality, startDelay, x, y]);
+  }, [personality, startDelay, x, y, isActive]);
 
   return { x, y };
 }
@@ -287,13 +291,49 @@ interface FigmaCollabCursorsProps {
 
 export default function FigmaCollabCursors({ isReady = true }: FigmaCollabCursorsProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(true);
+  const [isMobileScreen, setIsMobileScreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsMobileScreen(window.matchMedia("(max-width: 767px)").matches);
+    const onResize = () => setIsMobileScreen(window.matchMedia("(max-width: 767px)").matches);
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+    observer.observe(containerRef.current);
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        setIsVisible(false);
+      } else if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setIsVisible(rect.bottom > 0 && rect.top < window.innerHeight);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [isReady]);
 
   if (!isReady) return null;
 
   return (
-    <>
+    <div ref={containerRef} className="absolute inset-0 pointer-events-none z-30 select-none">
       {/* Desktop: all 5 cursors */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-30 select-none hidden md:block">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block">
         {COLLAB_CURSORS.map((cursor) => (
           <CollabCursorItem
             key={cursor.id}
@@ -301,12 +341,13 @@ export default function FigmaCollabCursors({ isReady = true }: FigmaCollabCursor
             isHovered={hoveredId === cursor.id}
             onHover={() => setHoveredId(cursor.id)}
             onLeave={() => setHoveredId((prev) => (prev === cursor.id ? null : prev))}
+            isActive={isVisible && !isMobileScreen}
           />
         ))}
       </div>
 
       {/* Mobile: Gimiaw and Bunga just under the CTA/logos, scaled down and lower */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-30 select-none block md:hidden">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden block md:hidden">
         {MOBILE_COLLAB_CURSORS.map((cursor) => (
           <CollabCursorItem
             key={cursor.id}
@@ -315,10 +356,11 @@ export default function FigmaCollabCursors({ isReady = true }: FigmaCollabCursor
             onHover={() => setHoveredId(cursor.id)}
             onLeave={() => setHoveredId((prev) => (prev === cursor.id ? null : prev))}
             isMobile
+            isActive={isVisible && isMobileScreen}
           />
         ))}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -328,12 +370,13 @@ interface CollabCursorItemProps {
   onHover: () => void;
   onLeave: () => void;
   isMobile?: boolean;
+  isActive?: boolean;
 }
 
 // Horizontal padding inside the pill (px-3 = 12px each side)
 const PILL_PX = 24;
 
-function CollabCursorItem({ cursor, isHovered, onHover, onLeave, isMobile = false }: CollabCursorItemProps) {
+const CollabCursorItem = React.memo(function CollabCursorItem({ cursor, isHovered, onHover, onLeave, isMobile = false, isActive = true }: CollabCursorItemProps) {
   // Measure intrinsic widths of name and full message once on mount
   const nameGhostRef = useRef<HTMLSpanElement>(null);
   const msgGhostRef = useRef<HTMLSpanElement>(null);
@@ -369,7 +412,7 @@ function CollabCursorItem({ cursor, isHovered, onHover, onLeave, isMobile = fals
   }, []);
 
   // Procedural organic movement — never repeats, never resets
-  const { x: motionX, y: motionY } = useOrganicMovement(cursor.personality, cursor.delay);
+  const { x: motionX, y: motionY } = useOrganicMovement(cursor.personality, cursor.delay, isActive);
 
   const targetWidth = isHovered ? (msgW ?? 140) : (nameW ?? 60);
   const baseScale = isMobile ? 0.72 : 1;
@@ -463,4 +506,4 @@ function CollabCursorItem({ cursor, isHovered, onHover, onLeave, isMobile = fals
       </motion.div>
     </motion.div>
   );
-}
+});

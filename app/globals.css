@@ -6,8 +6,13 @@
 @theme inline {
   --color-background: #09090b;
   --color-foreground: #171717;
-  --font-sans: "Plus Jakarta Sans", var(--font-plus-jakarta-sans), sans-serif;
-  --font-mono: "Plus Jakarta Sans", var(--font-plus-jakarta-sans), monospace;
+  --font-sans: var(--font-plus-jakarta-sans), sans-serif;
+  --font-mono: var(--font-plus-jakarta-sans), monospace;
+  --font-serif: var(--font-ibm-plex-serif), Georgia, serif;
+}
+
+.font-serif {
+  font-family: var(--font-ibm-plex-serif), Georgia, serif;
 }
 
 body {

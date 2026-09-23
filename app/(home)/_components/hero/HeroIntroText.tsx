@@ -1,20 +1,8 @@
 "use client";
 
 import { useRef, useEffect, useCallback, useState } from "react";
-import { IBM_Plex_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import { motion, useAnimationControls } from "framer-motion";
 import SkipIntroButton from "@/app/(home)/_components/SkipIntroButton";
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-const ibmPlexSerif = IBM_Plex_Serif({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  style: ["normal", "italic"],
-});
 
 // Hoisted static animation states to prevent garbage collection thrashing during render
 const INITIAL_TEXT_STATE = { opacity: 0, rotateX: -90, originY: 0 };
@@ -49,23 +37,29 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
 
   // Width matching: scale contact text font-size to match headline width
   useEffect(() => {
+    let rafId: number | null = null;
     const matchWidths = () => {
-      const h = headlineRef.current;
-      const c = contactRef.current;
-      if (!h || !c) return;
-      c.style.fontSize = '';
-      void c.offsetWidth;
-      const hW = h.scrollWidth;
-      const cW = c.scrollWidth;
-      if (cW > 0) {
-        const base = parseFloat(getComputedStyle(c).fontSize);
-        c.style.fontSize = `${base * (hW / cW)}px`;
-      }
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const h = headlineRef.current;
+        const c = contactRef.current;
+        if (!h || !c) return;
+        c.style.fontSize = '';
+        const hW = h.scrollWidth;
+        const cW = c.scrollWidth;
+        if (cW > 0) {
+          const base = parseFloat(getComputedStyle(c).fontSize);
+          c.style.fontSize = `${base * (hW / cW)}px`;
+        }
+      });
     };
 
     document.fonts.ready.then(matchWidths);
-    window.addEventListener('resize', matchWidths);
-    return () => window.removeEventListener('resize', matchWidths);
+    window.addEventListener('resize', matchWidths, { passive: true });
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', matchWidths);
+    };
   }, []);
 
   const triggerOutro = useCallback(async () => {
@@ -186,7 +180,7 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
       {/* Headline */}
       <p
         ref={headlineRef}
-        className={`${plusJakartaSans.className} text-5xl md:text-5xl text-[7vw] font-[700] tracking-tight mb-2 drop-shadow-xs flex flex-nowrap justify-center gap-x-2.5 md:gap-x-2.5 gap-1 whitespace-nowrap leading-none`}
+        className="font-sans text-5xl md:text-5xl text-[7vw] font-[700] tracking-tight mb-2 drop-shadow-xs flex flex-nowrap justify-center gap-x-2.5 md:gap-x-2.5 gap-1 whitespace-nowrap leading-none"
       >
         {words.map((word, i) => (
           <span key={i} className="inline-block" style={{ perspective: "1000px" }}>
@@ -204,7 +198,7 @@ export default function HeroIntroText({ isReady, sequenced = false, onComplete }
       {/* Contact text */}
       <p
         ref={contactRef}
-        className={`${ibmPlexSerif.className} font-[400] text-4xl md:text-4xl text-[5vw] opacity-90 whitespace-nowrap leading-none`}
+        className="font-serif font-[400] text-4xl md:text-4xl text-[5vw] opacity-90 whitespace-nowrap leading-none"
       >
         <span className="inline-block" style={{ perspective: "1000px" }}>
           <motion.span initial={INITIAL_TEXT_STATE} animate={contactControls[0]} className="italic inline-block origin-top will-change-transform">

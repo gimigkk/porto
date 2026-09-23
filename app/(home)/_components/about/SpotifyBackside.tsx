@@ -241,7 +241,7 @@ const MOCK_TRACKS: SpotifyData[] = [
   }
 ];
 
-export default function SpotifyBackside() {
+export default function SpotifyBackside({ isFlipped = false }: { isFlipped?: boolean }) {
   const [data, setData] = useState<SpotifyData | null>(null);
   const [loading, setLoading] = useState(true);
   const { showTooltip, hideTooltip } = useTooltip();
@@ -250,6 +250,11 @@ export default function SpotifyBackside() {
   const timeRef = useRef<HTMLSpanElement>(null);
   const progressRef = useRef<number>(0);
   const trackRef = useRef<SpotifyData | null>(null);
+  const isFlippedRef = useRef(isFlipped);
+
+  useEffect(() => {
+    isFlippedRef.current = isFlipped;
+  }, [isFlipped]);
 
 
 
@@ -305,8 +310,8 @@ export default function SpotifyBackside() {
     setLoading(false);
 
     const interval = setInterval(() => {
-      // Proper performance optimization: skip DOM updates when tab is hidden
-      if (document.hidden) return;
+      // Proper performance optimization: skip DOM updates when tab is hidden or card is facing front
+      if (document.hidden || !isFlippedRef.current) return;
 
       const currentTrack = trackRef.current;
       if (!currentTrack || !currentTrack.isPlaying || currentTrack.durationMs === undefined) return;

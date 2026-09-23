@@ -1,15 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Plus_Jakarta_Sans } from "next/font/google";
 import { motion } from "framer-motion";
 import { AlertTriangle } from "lucide-react";
 import SkipIntroButton from "@/app/(home)/_components/SkipIntroButton";
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
 
 interface BrowserWarningProps {
   isReady: boolean;
@@ -71,7 +65,7 @@ export default function BrowserWarning({ isReady, isMobile, isChromium, onComple
         <AlertTriangle strokeWidth={1.5} size={32} />
       </div>
 
-      <h2 className={`${plusJakartaSans.className} text-base md:text-2xl font-[500] max-w-4xl w-[90vw] md:w-auto opacity-90 drop-shadow-sm text-balance leading-relaxed mx-auto`}>
+      <h2 className="font-sans text-base md:text-2xl font-[500] max-w-4xl w-[90vw] md:w-auto opacity-90 drop-shadow-sm text-balance leading-relaxed mx-auto">
         {getMessage()}
       </h2>
 

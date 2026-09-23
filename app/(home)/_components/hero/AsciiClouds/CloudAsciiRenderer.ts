@@ -7,6 +7,11 @@
  */
 import { CONFIG, CloudState, CHARS, ALPHA_STEPS, buildGlyphAtlas, NOISE, NOISE_H, NOISE_W } from "./CloudAsciiCore";
 
+const ALPHA_LUT = new Float32Array(256);
+for (let i = 0; i < 256; i++) {
+  ALPHA_LUT[i] = i / 255;
+}
+
 export class AsciiRenderer {
   cvs: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -16,6 +21,7 @@ export class AsciiRenderer {
   ro: ResizeObserver;
 
   imgData: Uint8ClampedArray | null = null;
+  imgAlphaData: Uint8Array | null = null;
   imgW = 0;
   imgH = 0;
 
@@ -51,6 +57,7 @@ export class AsciiRenderer {
   noiseDispCache = new Float32Array(NOISE_W * NOISE_H);
   noiseWaveCache = new Float32Array(NOISE_W * NOISE_H);
   wasIntro = true;
+  prevHadBloom = false;
 
   lastPW = 0;
   lastPH = 0;
@@ -90,6 +97,12 @@ export class AsciiRenderer {
     this.imgData = data;
     this.imgW = w;
     this.imgH = h;
+    const len = w * h;
+    const alpha = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      alpha[i] = data[i * 4 + 3];
+    }
+    this.imgAlphaData = alpha;
   }
 
   setGlyphAtlas(atlas: Uint8Array[][], tileSize: number) {
@@ -99,15 +112,7 @@ export class AsciiRenderer {
   }
 
   getEffectiveDpr(): number {
-    // Cap DPR at 2.0 — at cellSize=8, 2x renders 16px glyphs
-    // vs 12px at 1.5x. 2x is enough for retina crispness without
-    // paying 3x+ fill rate cost.
-    // NOTE: Do NOT include visualViewport.scale here. The browser compositor
-    // already handles pinch-zoom scaling. Multiplying it in causes canvas
-    // resolution to explode (e.g. 4x pixels on 2x display at 2x zoom),
-    // triggering massive buffer reallocs and permanent lag.
-    const maxDpr = 2.0;
-    return Math.min(window.devicePixelRatio || 1, maxDpr);
+    return Math.min(window.devicePixelRatio || 1, 1.5);
   }
 
   buildGustMap(state: CloudState, rows: number, cols: number, t: number, maxRows: number, maxCols: number): Float32Array {
@@ -163,12 +168,13 @@ export class AsciiRenderer {
         const rowBase = row * cols;
 
         for (let col = colMin; col < colMax; col++) {
-          const cn  = g.edgeNoise[col] * 2.1;
-          const cn2 = g.edgeNoise[col] * 3.9;
-          const cn3 = g.edgeNoise[col] * 1.3;
-          const sinCn  = Math.sin(cn),  cosCn  = Math.cos(cn);
-          const sinCn2 = Math.sin(cn2), cosCn2 = Math.cos(cn2);
-          const sinCn3 = Math.sin(cn3), cosCn3 = Math.cos(cn3);
+          const cnBase = col * 6;
+          const sinCn  = g.cnSinCos[cnBase];
+          const cosCn  = g.cnSinCos[cnBase + 1];
+          const sinCn2 = g.cnSinCos[cnBase + 2];
+          const cosCn2 = g.cnSinCos[cnBase + 3];
+          const sinCn3 = g.cnSinCos[cnBase + 4];
+          const cosCn3 = g.cnSinCos[cnBase + 5];
           const no1 = (sin1_r        * cosCn  + cos1_r * sinCn);
           const no2 = (sin2_unscaled * cosCn2 + cos2_r * sinCn2) * 0.45;
           const no3 = (sin3_r        * cosCn3 + cos3_r * sinCn3) * 0.25;
@@ -415,7 +421,7 @@ export class AsciiRenderer {
     }
 
     let gustMap: Float32Array | null = null;
-    if (!isIntro) {
+    if (!isIntro && state.gusts.length > 0) {
       gustMap = this.buildGustMap(state, rows, cols, t, maxRows, maxCols);
     }
 
@@ -423,13 +429,10 @@ export class AsciiRenderer {
     const gridPW = Math.max(1, (cols * activeTileSize) | 0);
     const gridPH = Math.max(1, (rows * activeTileSize) | 0);
 
-    // Allocate at the MAXIMUM possible grid size (steady-state post-intro).
-    const maxGridPW = Math.max(1, (maxCols * activeTileSize) | 0);
-    const maxGridPH = Math.max(1, (maxRows * activeTileSize) | 0);
-
-    if (maxGridPW > this.lastPW || maxGridPH > this.lastPH || dpr !== this.lastDpr) {
-      const allocW = Math.max(maxGridPW, this.lastPW);
-      const allocH = Math.max(maxGridPH, this.lastPH);
+    // Allocate at the active grid size (steady-state post-intro).
+    if (gridPW > this.lastPW || gridPH > this.lastPH || dpr !== this.lastDpr) {
+      const allocW = Math.max(gridPW, this.lastPW);
+      const allocH = Math.max(gridPH, this.lastPH);
       
       this.offOut.width  = allocW;
       this.offOut.height = allocH;
@@ -448,6 +451,11 @@ export class AsciiRenderer {
       this.lastPW = allocW; this.lastPH = allocH; this.lastDpr = dpr;
     }
 
+    if (this.cvs.width !== gridPW || this.cvs.height !== gridPH) {
+      this.cvs.width  = gridPW;
+      this.cvs.height = gridPH;
+    }
+
     const buf   = this.outBuf!;
     const buf32 = this.outBuf32!;
     const bloomBuf = this.bloomBuf!;
@@ -458,14 +466,15 @@ export class AsciiRenderer {
     const { threshold, ceiling } = CONFIG;
     const thresholdD2 = threshold * 0.5 + 0.05;
     const ceilMinThr  = ceiling - threshold;
+    const invCeilMinThr = 1 / ceilMinThr;
+    const invThresholdD2 = 1 / thresholdD2;
 
     // Precompute noise for grid region actually rendered.
-    // Old: all 45K entries (NOISE_W×NOISE_H). New: only rows×cols entries.
-    // noiseIdx = (row % NOISE_H)*NOISE_W + (col % NOISE_W). rows ≤ NOISE_H, cols ≤ NOISE_W.
+    // noiseIdx = (row % NOISE_H)*NOISE_W + (col & 255). rows ≤ NOISE_H, cols ≤ NOISE_W.
     for (let r = 0; r < rows; r++) {
       const rowBase = (r % NOISE_H) * NOISE_W;
       for (let c = 0; c < cols; c++) {
-        const i = rowBase + (c % NOISE_W);
+        const i = rowBase + (c & 255);
         const ni = i * 5;
         const bPhase = NOISE[ni], bSpeed = NOISE[ni + 1];
         const dPhase = NOISE[ni + 2], dDir = NOISE[ni + 3], dSpeed = NOISE[ni + 4];
@@ -475,22 +484,50 @@ export class AsciiRenderer {
       }
     }
 
-    buf32.fill(0x00FFFFFF);
+    const bufStride = this.lastPW; // allocated width, not grid width
+    const activePixelCount = gridPH * bufStride;
+    buf32.fill(0x00FFFFFF, 0, activePixelCount);
     if (CONFIG.bloom.enabled) {
-      bloomBuf32.fill(0x00FFFFFF);
+      bloomBuf32.fill(0x00FFFFFF, 0, activePixelCount);
+    }
+    let hasBrightGlyphs = false;
+
+    const numDisruptions = state.disruptions.length;
+    let minDCol = 99999, maxDCol = -1, minDRow = 99999, maxDRow = -1;
+    if (numDisruptions > 0) {
+      for (let i = 0; i < numDisruptions; i++) {
+        const d = state.disruptions[i];
+        const r = Math.ceil(d.radius) + 1;
+        const c0 = Math.max(0, Math.floor(d.cx - r));
+        const c1 = Math.min(cols - 1, Math.ceil(d.cx + r));
+        const r0 = Math.max(0, Math.floor(d.cy - r));
+        const r1 = Math.min(rows - 1, Math.ceil(d.cy + r));
+        if (c0 < minDCol) minDCol = c0;
+        if (c1 > maxDCol) maxDCol = c1;
+        if (r0 < minDRow) minDRow = r0;
+        if (r1 > maxDRow) maxDRow = r1;
+      }
     }
 
-    const bufStride = this.lastPW; // allocated width, not grid width
+    const maxWarp = CONFIG.cursorDisruptor.maxWarpDisplacement;
+    const charsLenMinus1 = CHARS.length - 1;
+    const bloomThresholdIdx = CHARS.length - CONFIG.bloom.topGlyphs;
+    const bloomFadeRow = rows * 0.85;
+    const bloomFadeHeight = rows * 0.15;
+    const rowStride = bufStride * 4;
 
     for (let row = 0; row < rows; row++) {
       const rowBase = row * cols;
+      const noiseRowBase = (row % NOISE_H) * NOISE_W;
+      const bloomMask = row < bloomFadeRow ? 1.0 : Math.max(0, 1.0 - ((row - bloomFadeRow) / bloomFadeHeight));
+      const rowInDisruption = numDisruptions > 0 && row >= minDRow && row <= maxDRow;
 
       for (let col = 0; col < cols; col++) {
         let dispCol = 0;
         let dispRow = 0;
 
-        if (state.disruptions.length > 0) {
-          for (let i = 0; i < state.disruptions.length; i++) {
+        if (rowInDisruption && col >= minDCol && col <= maxDCol) {
+          for (let i = 0; i < numDisruptions; i++) {
             const d = state.disruptions[i];
             const dx = col - d.cx;
             const dy = row - d.cy;
@@ -507,88 +544,81 @@ export class AsciiRenderer {
               dispRow += d.vy * force;
             }
           }
+          if (dispCol > maxWarp) dispCol = maxWarp;
+          else if (dispCol < -maxWarp) dispCol = -maxWarp;
+          if (dispRow > maxWarp) dispRow = maxWarp;
+          else if (dispRow < -maxWarp) dispRow = -maxWarp;
         }
 
-        const maxWarp = CONFIG.cursorDisruptor.maxWarpDisplacement;
-        if (dispCol > maxWarp) dispCol = maxWarp;
-        else if (dispCol < -maxWarp) dispCol = -maxWarp;
-        if (dispRow > maxWarp) dispRow = maxWarp;
-        else if (dispRow < -maxWarp) dispRow = -maxWarp;
-
-        const noiseIdx = (row % NOISE_H) * NOISE_W + (col % NOISE_W);
+        const noiseIdx = noiseRowBase + (col & 255);
         const disp = this.noiseDispCache[noiseIdx];
         
         const srcCol = (col - dispCol + 0.5) | 0;
         const srcRow = (row - dispRow + disp + 0.5) | 0;
 
+        if (srcCol < 0 || srcCol >= cols || srcRow < 0 || srcRow >= rows) continue;
+
         let imgMaskAlpha = 0;
-        let blobVal = 0;
         let imgAlpha = 0;
-
-        const isInside = srcCol >= 0 && srcCol < cols && srcRow >= 0 && srcRow < rows;
-
-        if (isInside) {
-          const pyMap = this.pxRows[srcRow];
-          if (pyMap >= 0) {
-            const alphaVal = this.imgData[(pyMap * this.imgW + this.pxCols[srcCol]) * 4 + 3];
-            imgMaskAlpha = alphaVal;
-            imgAlpha = alphaVal / 255;
-          }
-
-          blobVal = blobAlphaGrid ? blobAlphaGrid[srcRow * cols + srcCol] : 0;
+        const pyMap = this.pxRows[srcRow];
+        if (pyMap >= 0) {
+          const alphaVal = this.imgAlphaData ? this.imgAlphaData[pyMap * this.imgW + this.pxCols[srcCol]] : this.imgData![(pyMap * this.imgW + this.pxCols[srcCol]) * 4 + 3];
+          imgMaskAlpha = alphaVal;
+          imgAlpha = ALPHA_LUT[alphaVal];
         }
 
-        const blobAlpha255 = Math.floor(blobVal * 255);
+        const blobVal = blobAlphaGrid ? blobAlphaGrid[srcRow * cols + srcCol] : 0;
+        const blobAlpha255 = (blobVal * 255) | 0;
 
         const disruption = disruptionGrid ? disruptionGrid[rowBase + col] : 0;
         const disruptionFactor = Math.min(2.0, Math.max(0.0, 1.0 + disruption));
 
-        let combinedMaskAlpha = Math.max(imgMaskAlpha, blobAlpha255);
+        let combinedMaskAlpha = imgMaskAlpha > blobAlpha255 ? imgMaskAlpha : blobAlpha255;
         if (combinedMaskAlpha === 0) continue;
-        combinedMaskAlpha = Math.min(255, Math.floor(combinedMaskAlpha * disruptionFactor));
+        combinedMaskAlpha = (combinedMaskAlpha * disruptionFactor) | 0;
         if (combinedMaskAlpha === 0) continue;
+        if (combinedMaskAlpha > 255) combinedMaskAlpha = 255;
 
-        let combinedAlpha = Math.max(imgAlpha, blobVal);
-        combinedAlpha = Math.min(1.0, combinedAlpha * disruptionFactor);
+        let combinedAlpha = imgAlpha > blobVal ? imgAlpha : blobVal;
+        combinedAlpha = combinedAlpha * disruptionFactor;
+        if (combinedAlpha > 1.0) combinedAlpha = 1.0;
         if (combinedAlpha < threshold) continue;
 
         const wave = this.noiseWaveCache[noiseIdx];
         
         const gVal = gustMap ? gustMap[rowBase + col] : 0;
-        const modulated = Math.min(1, Math.max(0.05, (combinedAlpha - threshold) / ceilMinThr + wave + gVal));
-        const charIdx  = Math.floor(modulated * (CHARS.length - 1));
-        const alphaIdx = Math.min(ALPHA_STEPS - 1, Math.floor(Math.min(1, combinedAlpha / thresholdD2) * ALPHA_STEPS));
+        const modulated = Math.min(1, Math.max(0.05, (combinedAlpha - threshold) * invCeilMinThr + wave + gVal));
+        const charIdx  = (modulated * charsLenMinus1) | 0;
+        if (charIdx === 0) continue;
+        const alphaIdx = Math.min(ALPHA_STEPS - 1, (Math.min(1, combinedAlpha * invThresholdD2) * ALPHA_STEPS) | 0);
         const tile = this.glyphAtlas[charIdx][alphaIdx];
 
-        const rowStride = bufStride * 4;
-        const dstBase   = (row * activeTileSize * bufStride + col * activeTileSize) * 4;
-        
-        const isBright = CONFIG.bloom.enabled && charIdx >= (CHARS.length - CONFIG.bloom.topGlyphs);
+        const dstBase32 = row * activeTileSize * bufStride + col * activeTileSize;
+        const isBright = CONFIG.bloom.enabled && charIdx >= bloomThresholdIdx;
 
         if (isBright) {
-          const halfRows = rows / 2;
-          const bloomMask = row < halfRows ? 1.0 : Math.max(0, 1.0 - ((row - halfRows) / halfRows));
-          
+          hasBrightGlyphs = true;
           for (let ty = 0; ty < activeTileSize; ty++) {
-            const tileRowOff = ty * activeTileSize;
-            const dstRowOff  = dstBase + ty * rowStride;
-            for (let tx = 0; tx < activeTileSize; tx++) {
-              const glyphA = tile[tileRowOff + tx];
+            let srcIdx = ty * activeTileSize;
+            let dstIdx32 = dstBase32 + ty * bufStride;
+            for (let tx = 0; tx < activeTileSize; tx++, dstIdx32++, srcIdx++) {
+              const glyphA = tile[srcIdx];
               if (glyphA !== 0) {
                 const alpha = (glyphA * combinedMaskAlpha) >> 8;
-                buf[dstRowOff + tx * 4 + 3] = alpha;
-                bloomBuf[dstRowOff + tx * 4 + 3] = (alpha * bloomMask) | 0;
+                buf32[dstIdx32] = (alpha << 24) | 0x00FFFFFF;
+                bloomBuf32[dstIdx32] = (((Math.min(255, (alpha * bloomMask * 1.5) | 0)) << 24) | 0x00FFFFFF);
               }
             }
           }
         } else {
           for (let ty = 0; ty < activeTileSize; ty++) {
-            const tileRowOff = ty * activeTileSize;
-            const dstRowOff  = dstBase + ty * rowStride;
-            for (let tx = 0; tx < activeTileSize; tx++) {
-              const glyphA = tile[tileRowOff + tx];
+            let srcIdx = ty * activeTileSize;
+            let dstIdx32 = dstBase32 + ty * bufStride;
+            for (let tx = 0; tx < activeTileSize; tx++, dstIdx32++, srcIdx++) {
+              const glyphA = tile[srcIdx];
               if (glyphA !== 0) {
-                buf[dstRowOff + tx * 4 + 3] = (glyphA * combinedMaskAlpha) >> 8;
+                const alpha = (glyphA * combinedMaskAlpha) >> 8;
+                buf32[dstIdx32] = (alpha << 24) | 0x00FFFFFF;
               }
             }
           }
@@ -596,30 +626,29 @@ export class AsciiRenderer {
       }
     }
 
-    this.offOutCtx.putImageData(this.outImageData!, 0, 0);
-    if (CONFIG.bloom.enabled) {
-      this.bloomOffOutCtx.putImageData(this.bloomImageData!, 0, 0);
-    }
+    this.offOutCtx.putImageData(this.outImageData!, 0, 0, 0, 0, gridPW, gridPH);
 
     if (this.cvs.width !== PW || this.cvs.height !== PH) {
       this.cvs.width  = PW;
       this.cvs.height = PH;
     }
-    
+
     this.ctx.clearRect(0, 0, PW, PH);
     this.ctx.imageSmoothingEnabled = false;
-    // Source rect: only the used portion. Dest: full screen. GPU scales.
     this.ctx.drawImage(this.offOut, 0, 0, gridPW, gridPH, 0, 0, PW, PH);
     
-    if (CONFIG.bloom.enabled) {
+    if (CONFIG.bloom.enabled && hasBrightGlyphs) {
+      this.bloomOffOutCtx.putImageData(this.bloomImageData!, 0, 0, 0, 0, gridPW, gridPH);
       this.ctx.globalCompositeOperation = "lighter";
-      this.ctx.filter = `blur(${CONFIG.bloom.blurSize * dpr}px)`;
-      this.ctx.globalAlpha = CONFIG.bloom.opacity;
+
+      // Radiant glow: 6px blur with 1.0 alpha
+      this.ctx.filter = `blur(${Math.max(3, Math.round(5.5 * dpr))}px)`;
+      this.ctx.globalAlpha = 1.0;
       this.ctx.drawImage(this.bloomOffOut, 0, 0, gridPW, gridPH, 0, 0, PW, PH);
       
       this.ctx.filter = "none";
-      this.ctx.globalAlpha = 1.0;
       this.ctx.globalCompositeOperation = "source-over";
     }
+    this.prevHadBloom = hasBrightGlyphs;
   }
 }

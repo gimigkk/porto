@@ -1,14 +1,14 @@
 "use client";
 
 import type { GithubGraphDay } from "@/lib/github";
-import { useRef, useMemo } from "react";
+import React, { useRef, useMemo } from "react";
 import { useInView } from "framer-motion";
 import { useTooltip } from "@/components/providers/TooltipProvider";
 import { GithubTooltipContent } from "./tooltips/GithubTooltipContent";
 
-export default function GithubCommitGraph({ data, delayBase = 0, trigger }: { data: GithubGraphDay[][], delayBase?: number, trigger?: boolean }) {
+export default React.memo(function GithubCommitGraph({ data, delayBase = 0, trigger }: { data: GithubGraphDay[][], delayBase?: number, trigger?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
-  const internalInView = useInView(ref, { once: true, margin: "-50px" });
+  const internalInView = useInView(ref, { once: true, amount: 0.2 });
   const isInView = trigger !== undefined ? trigger : internalInView;
   const { showTooltip, hideTooltip } = useTooltip();
   
@@ -71,7 +71,7 @@ export default function GithubCommitGraph({ data, delayBase = 0, trigger }: { da
             style={{
               left: `calc(${(m.colIndex / data.length) * 100}%)`,
               opacity: isInView ? 1 : 0,
-              transition: `opacity 0.5s ease-out ${delayBase + 0.4}s`
+              transition: isInView ? `opacity 0.5s ease-out ${delayBase + 0.4}s` : "none"
             }}
           >
             {m.name}
@@ -88,7 +88,7 @@ export default function GithubCommitGraph({ data, delayBase = 0, trigger }: { da
                 style={{
                   ...getDayStyle(day.count),
                   transform: isInView ? "scale(1)" : "scale(0)",
-                  transition: `transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${delayBase + ((data.length - 1 - wIndex) * 0.015) + ((6 - dIndex) * 0.015)}s`
+                  transition: isInView ? `transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${delayBase + ((data.length - 1 - wIndex) * 0.015) + ((6 - dIndex) * 0.015)}s` : "none"
                 }}
                 onMouseEnter={() => showTooltip(<GithubTooltipContent text={day.text} />)}
                 onMouseLeave={hideTooltip}
@@ -99,4 +99,4 @@ export default function GithubCommitGraph({ data, delayBase = 0, trigger }: { da
       </div>
     </div>
   );
-}
+});

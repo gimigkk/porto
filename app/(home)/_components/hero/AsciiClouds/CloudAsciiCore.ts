@@ -88,6 +88,7 @@ export interface Gust {
   yCenter: number; // Vertical center of the gust (0.0 to 1.0)
   yHeight: number; // Vertical thickness/span of the gust (0.0 to 1.0)
   edgeNoise: Float32Array;
+  cnSinCos: Float32Array;
   born: number;
   fadeIn: number;
   fadeOut: number;
@@ -222,11 +223,26 @@ export function spawnGust(t: number, cols: number): Gust {
     edgeNoise[c] = ctrlPts[lo] * (1 - sm) + ctrlPts[hi] * sm;
   }
 
+  const cnSinCos = new Float32Array(cols * 6);
+  for (let c = 0; c < cols; c++) {
+    const en = edgeNoise[c];
+    const cn  = en * 2.1;
+    const cn2 = en * 3.9;
+    const cn3 = en * 1.3;
+    const base = c * 6;
+    cnSinCos[base]     = Math.sin(cn);
+    cnSinCos[base + 1] = Math.cos(cn);
+    cnSinCos[base + 2] = Math.sin(cn2);
+    cnSinCos[base + 3] = Math.cos(cn2);
+    cnSinCos[base + 4] = Math.sin(cn3);
+    cnSinCos[base + 5] = Math.cos(cn3);
+  }
+
   return {
     id: ++gustIdCounter, center: startCenter, speed, halfWidthFrac, tilt,
     yCenter, yHeight,
     boost: 0.08 + r() * 0.14, wobble: 0.05 + r() * 0.25,
     wobbleFreq: 1.5 + r() * 3.0, wobblePhase: r() * Math.PI * 2,
-    edgeNoise, born: t, fadeIn, fadeOut, life
+    edgeNoise, cnSinCos, born: t, fadeIn, fadeOut, life
   };
 }

@@ -38,7 +38,7 @@ export function usePreloader(): {
       // 2. Cloud texture
       const imageReady = new Promise<{ data: Uint8ClampedArray; w: number; h: number }>((resolve, reject) => {
         const img = new Image();
-        img.src = "/assets/clouds.png";
+        img.src = "/assets/clouds.webp";
         img.onload = () => {
           // Extract pixel data immediately
           const cvs = document.createElement("canvas");
@@ -62,8 +62,7 @@ export function usePreloader(): {
         if (!cancelled) {
           // 3. Build glyph atlas now (behind loading screen) so first render frame is free
           const { CONFIG, buildGlyphAtlas } = await import("@/app/(home)/_components/hero/AsciiClouds/CloudAsciiCore");
-          const maxDpr = 2.0;
-          const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+          const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
           const activeCellSize = window.innerWidth < 768 ? 5 : CONFIG.cellSize;
           const tileSize = Math.ceil(activeCellSize * dpr);
           const atlas = buildGlyphAtlas(tileSize);

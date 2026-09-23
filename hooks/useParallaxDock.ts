@@ -59,7 +59,8 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
   // ── Apply transform directly (no React re-render) ──────────
   function applyTransform(y: number) {
     if (parallaxRef.current) {
-      parallaxRef.current.style.transform = `translateY(${y}px)`;
+      const rounded = Math.round(y * 10) / 10;
+      parallaxRef.current.style.transform = `translate3d(0, ${rounded}px, 0)`;
     }
   }
 

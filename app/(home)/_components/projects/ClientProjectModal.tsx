@@ -5,19 +5,22 @@ import { useLenis } from "lenis/react";
 import NProgress from "nprogress";
 import Image from "next/image";
 import { useInView } from "framer-motion";
-import { Gamepad2, ExternalLink } from "lucide-react";
+import { Gamepad2, ExternalLink, Video } from "lucide-react";
 import type { ProjectMeta } from "@/lib/projects";
 import BackToTop from "@/components/shared/BackToTop";
 import TechIcon from "@/components/shared/TechIcon";
 import LangToggle from "@/components/shared/LangToggle";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 const subscribeToProjectSlug = (callback: () => void) => {
   if (typeof window === "undefined") return () => {};
   window.addEventListener("popstate", callback);
   window.addEventListener("project-modal-changed", callback);
+  window.addEventListener("hashchange", callback);
   return () => {
     window.removeEventListener("popstate", callback);
     window.removeEventListener("project-modal-changed", callback);
+    window.removeEventListener("hashchange", callback);
   };
 };
 
@@ -70,78 +73,152 @@ function CulledVideo({ src, className }: { src: string; className?: string }) {
   );
 }
 
-function TableOfContents({ accent, slug }: { accent: string; slug: string }) {
+function ReadingProgressBar({ scrollRef, accent }: { scrollRef: React.RefObject<HTMLDivElement | null>; accent: string }) {
+  const barRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    let ticking = false;
+
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const max = el.scrollHeight - el.clientHeight;
+          const pct = max > 0 ? Math.min(100, Math.max(0, Math.round((el.scrollTop / max) * 100))) : 0;
+          if (barRef.current) barRef.current.style.width = `${pct}%`;
+          if (textRef.current) textRef.current.textContent = `${pct}%`;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [scrollRef]);
+
+  return (
+    <div className="flex flex-col gap-2 p-3.5 rounded-md bg-zinc-900/50 border border-zinc-800">
+      <div className="flex items-center justify-between text-[11px] font-mono">
+        <span className="text-zinc-500 uppercase tracking-wider">Progress</span>
+        <span ref={textRef} className="text-zinc-300 font-medium">0%</span>
+      </div>
+      <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+        <div
+          ref={barRef}
+          className="h-full rounded-full transition-all duration-75"
+          style={{ width: "0%", backgroundColor: accent }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function TableOfContents({
+  accent,
+  slug,
+  scrollRef,
+}: {
+  accent: string;
+  slug: string;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  const { lang } = useLanguage();
   const [activeId, setActiveId] = useState<string>("");
   const [headings, setHeadings] = useState<TocItem[]>([]);
 
   useEffect(() => {
-    // Wait a tick for MDX to finish rendering
     const timeout = setTimeout(() => {
-      const elements = Array.from(document.querySelectorAll(".prose h2, .prose h3"));
-      const items = elements.map((elem) => ({
-        id: elem.id,
-        text: elem.textContent || "",
-        level: Number(elem.tagName.substring(1)),
-      })).filter(item => item.id);
+      const container = scrollRef.current;
+      if (!container) return;
+      const elements = Array.from(container.querySelectorAll(".prose h2, .prose h3"));
+      const items = elements
+        .filter((elem) => (elem as HTMLElement).offsetParent !== null)
+        .map((elem) => ({
+          id: elem.id,
+          text: elem.textContent?.trim() || "",
+          level: Number(elem.tagName.substring(1)),
+        }))
+        .filter((item) => item.id && item.text);
 
       setHeadings(items);
 
       if (items.length === 0) return;
 
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              setActiveId(entry.target.id);
+      let ticking = false;
+      const onScroll = () => {
+        if (!ticking) {
+          requestAnimationFrame(() => {
+            const containerTop = container.getBoundingClientRect().top;
+            let current = items[0]?.id || "";
+            for (const item of items) {
+              const el = document.getElementById(item.id);
+              if (el) {
+                const elTop = el.getBoundingClientRect().top - containerTop;
+                if (elTop <= 120) {
+                  current = item.id;
+                } else {
+                  break;
+                }
+              }
             }
+            setActiveId((prev) => (prev !== current ? current : prev));
+            ticking = false;
           });
-        },
-        { rootMargin: "0% 0px -80% 0px" }
-      );
+          ticking = true;
+        }
+      };
 
-      elements.forEach((elem) => observer.observe(elem));
-      return () => observer.disconnect();
+      container.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+
+      return () => container.removeEventListener("scroll", onScroll);
     }, 150);
 
     return () => clearTimeout(timeout);
-  }, [slug]);
+  }, [slug, scrollRef, lang]);
 
   if (headings.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-4 p-5 rounded-lg bg-zinc-800/20">
-      <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Contents</h3>
-      <nav className="flex flex-col gap-3">
-        {headings.map((heading) => (
-          <a
-            key={heading.id}
-            href={`#${heading.id}`}
-            onClick={(e) => {
-              e.preventDefault();
-              const target = document.getElementById(heading.id);
-              if (target) {
-                // Find scroll container and scroll it
-                const scrollContainer = document.querySelector('[data-lenis-prevent="true"]');
-                if (scrollContainer) {
-                  const top = target.getBoundingClientRect().top + scrollContainer.scrollTop - 80;
-                  scrollContainer.scrollTo({ top, behavior: "smooth" });
-                } else {
-                  target.scrollIntoView({ behavior: "smooth" });
+    <div className="flex flex-col gap-3 py-1">
+      <h3 className="text-[11px] font-mono font-semibold text-zinc-500 uppercase tracking-widest">Contents</h3>
+      <nav className="flex flex-col border-l border-zinc-800">
+        {headings.map((heading) => {
+          const isActive = activeId === heading.id;
+          return (
+            <a
+              key={heading.id}
+              href={`#${heading.id}`}
+              title={heading.text}
+              onClick={(e) => {
+                e.preventDefault();
+                const target = document.getElementById(heading.id);
+                const container = scrollRef.current;
+                if (target && container) {
+                  const targetRect = target.getBoundingClientRect();
+                  const containerRect = container.getBoundingClientRect();
+                  const top = targetRect.top - containerRect.top + container.scrollTop - 40;
+                  container.scrollTo({ top, behavior: "smooth" });
                 }
-              }
-            }}
-            className={`text-[13px] transition-colors line-clamp-1 ${activeId === heading.id
-              ? "font-medium"
-              : "text-zinc-500 hover:text-zinc-300"
+              }}
+              className={`block truncate text-xs leading-5 py-1.5 transition-colors border-l-2 -ml-[1px] ${
+                isActive
+                  ? "text-zinc-100 font-medium"
+                  : "text-zinc-500 hover:text-zinc-300 border-transparent"
               }`}
-            style={{
-              paddingLeft: heading.level === 3 ? "1rem" : "0",
-              color: activeId === heading.id ? accent : undefined
-            }}
-          >
-            {heading.text}
-          </a>
-        ))}
+              style={{
+                paddingLeft: heading.level === 3 ? "1.25rem" : "0.75rem",
+                borderColor: isActive ? accent : "transparent",
+              }}
+            >
+              {heading.text}
+            </a>
+          );
+        })}
       </nav>
     </div>
   );
@@ -189,20 +266,25 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
   // Load MDX content when slug changes
   useEffect(() => {
     if (!slug) {
-      // Start exit animation
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsAnimating(false);
-      if (lenis) lenis.start();
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
+      if (isOpen || isAnimating) {
+        setIsAnimating(false);
+        if (lenis) lenis.start();
+        document.documentElement.style.overflow = "";
+        document.body.style.overflow = "";
 
-      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = setTimeout(() => {
-        setIsOpen(false);
-        setPost(null);
-        setProject(null);
-      }, 400);
+        if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = setTimeout(() => {
+          setIsOpen(false);
+          setPost(null);
+          setProject(null);
+        }, 400);
+      }
       return;
+    }
+
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
     }
 
     const proj = allProjects.find((p) => p.slug === slug);
@@ -225,7 +307,14 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
         NProgress.done();
       });
     }
-  }, [slug, lenis, allProjects]);
+
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = null;
+      }
+    };
+  }, [slug, allProjects]);
 
   // Lock/unlock body scroll (when modal is actively open and animating)
   useEffect(() => {
@@ -248,6 +337,7 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
       url.hash = "";
       window.history.pushState(null, "", url.toString());
       window.dispatchEvent(new Event("project-modal-changed"));
+      window.dispatchEvent(new Event("hashchange"));
     }
   }, []);
 
@@ -273,6 +363,7 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
     const newUrl = (typeof window !== "undefined" ? window.location.pathname : "/") + "#project=" + nextSlug;
     window.history.pushState(null, "", newUrl);
     window.dispatchEvent(new Event("project-modal-changed"));
+    window.dispatchEvent(new Event("hashchange"));
   };
 
   const prevProject = (e: React.MouseEvent) => {
@@ -283,6 +374,7 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
     const newUrl = (typeof window !== "undefined" ? window.location.pathname : "/") + "#project=" + prevSlug;
     window.history.pushState(null, "", newUrl);
     window.dispatchEvent(new Event("project-modal-changed"));
+    window.dispatchEvent(new Event("hashchange"));
   };
 
   return (
@@ -299,11 +391,23 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
           animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         figure[data-rehype-pretty-code-figure] {
-          margin: 1.5rem 0;
-          border-radius: 0.75rem;
+          margin: 1.75rem 0;
+          border-radius: 0.375rem;
           border: 1px solid rgba(255,255,255,0.08);
           overflow: hidden;
-          background: #0d1117;
+          background: #09090b;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+        figure[data-rehype-pretty-code-figure]::before {
+          content: "";
+          display: block;
+          height: 28px;
+          background: #111114;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          background-image: radial-gradient(circle at 14px 14px, #ef4444 3.5px, transparent 4px),
+                            radial-gradient(circle at 26px 14px, #eab308 3.5px, transparent 4px),
+                            radial-gradient(circle at 38px 14px, #22c55e 3.5px, transparent 4px);
+          background-repeat: no-repeat;
         }
         figure[data-rehype-pretty-code-figure] pre {
           padding: 1.25rem 1.5rem !important;
@@ -323,6 +427,21 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
         }
         figure[data-rehype-pretty-code-figure] code > span {
           display: block;
+        }
+        .prose h2 {
+          position: relative;
+          padding-top: 1.5rem;
+          padding-bottom: 0.5rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          letter-spacing: -0.02em;
+        }
+        .prose blockquote {
+          border-left: 2px solid var(--theme-color) !important;
+          background: rgba(255, 255, 255, 0.02);
+          padding: 0.75rem 1.25rem !important;
+          border-radius: 0 0.5rem 0.5rem 0;
+          font-style: normal !important;
+          color: #d4d4d8 !important;
         }
       `}</style>
       {/* Backdrop */}
@@ -405,31 +524,115 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
                 <div ref={scrollBodyRef} className="w-full h-full overflow-y-auto no-scrollbar" data-lenis-prevent="true">
                   <article key={project.slug} className="min-h-full bg-zinc-950 text-zinc-200 px-4 sm:px-8 md:px-12 py-12 sm:py-16">
                     <div className="w-full max-w-3xl mx-auto animate-slide-up-fade" style={{ opacity: 0 }}>
-                      {/* Project Thumbnail / Video */}
-                      <div className="w-full aspect-video rounded-xl overflow-hidden mb-8 sm:mb-10 border border-zinc-800 bg-zinc-900/50 relative shadow-2xl">
-                        {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
-                          <CulledVideo
-                            src={project.thumbnail}
-                            className="w-full h-full"
-                          />
-                        ) : (
-                          <Image
-                            src={project.thumbnail}
-                            alt={`${project.title} preview`}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 1024px) 100vw, 800px"
-                          />
-                        )}
-                      </div>
-
-                      <h2 className="text-[24px] sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 tracking-tight" style={{ color: project.accent }}>
+                      
+                      {/* Project Title */}
+                      <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-zinc-100 tracking-tight leading-[1.12] mb-4">
                         {project.title}
-                      </h2>
+                      </h1>
 
-                      <p className="text-[13px] sm:text-base md:text-lg text-zinc-400 leading-relaxed mb-8 sm:mb-12">
+                      {/* Project Description */}
+                      <p className="text-sm sm:text-base md:text-lg text-zinc-400 leading-relaxed mb-6">
                         {project.description}
                       </p>
+
+                      {/* Quick Action Links Row (Clean — No Pulsing Slop) */}
+                      {((project.links && project.links.length > 0) || project.github) && (
+                        <div className="flex flex-wrap items-center gap-3 mb-8">
+                          {project.links?.map((link, idx) => (
+                            <a
+                              key={idx}
+                              href={link.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-semibold text-white transition-all shadow-md hover:brightness-110 active:scale-95"
+                              style={{
+                                backgroundColor: project.accent,
+                                boxShadow: `0 4px 14px ${project.accent}30`,
+                              }}
+                            >
+                              {link.icon === "gamepad" ? (
+                                <Gamepad2 className="w-3.5 h-3.5" />
+                              ) : link.icon === "video" || link.icon === "youtube" ? (
+                                <Video className="w-3.5 h-3.5" />
+                              ) : (
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              )}
+                              {link.label}
+                            </a>
+                          ))}
+                          {project.github && (
+                            <a
+                              href={project.github}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-semibold text-zinc-300 bg-zinc-900/90 hover:bg-zinc-800 hover:text-white border border-zinc-700/80 transition-all shadow-sm active:scale-95"
+                            >
+                              <TechIcon tech="github" size={14} className="text-zinc-400 group-hover:text-white transition-colors" />
+                              View Source
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Mac Window Media Container */}
+                      <div
+                        className="w-full rounded-lg overflow-hidden mb-8 border border-zinc-800 bg-zinc-900/60 relative shadow-2xl transition-all"
+                        style={{ boxShadow: `0 25px 50px -12px rgba(0,0,0,0.8), 0 0 35px -10px ${project.accent}20` }}
+                      >
+                        {/* Chrome Header */}
+                        <div className="w-full h-8 bg-zinc-900/90 border-b border-zinc-800/80 px-4 flex items-center justify-between select-none">
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]/90 border border-[#e0443e]/40" />
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]/90 border border-[#dea123]/40" />
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]/90 border border-[#1aab29]/40" />
+                          </div>
+                          <div className="text-[11px] font-mono text-zinc-500 tracking-wider">
+                            porto://projects/{project.slug}
+                          </div>
+                          <div className="w-10" />
+                        </div>
+
+                        {/* Media canvas */}
+                        <div className="w-full aspect-video relative bg-black/40">
+                          {(project.thumbnail.endsWith('.mp4') || project.thumbnail.endsWith('.webm')) ? (
+                            <CulledVideo
+                              src={project.thumbnail}
+                              className="w-full h-full"
+                            />
+                          ) : (
+                            <Image
+                              src={project.thumbnail}
+                              alt={`${project.title} preview`}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 1024px) 100vw, 800px"
+                            />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Engineering Specs Strip */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 px-5 my-8 rounded-md bg-zinc-900/40 border border-zinc-800/80">
+                        <div>
+                          <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Domain</div>
+                          <div className="text-xs sm:text-sm font-semibold text-zinc-200">{project.category}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Timeline</div>
+                          <div className="text-xs sm:text-sm font-mono text-zinc-300">{project.year}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Core Tech</div>
+                          <div className="text-xs sm:text-sm font-semibold text-zinc-200 truncate">{project.stack.slice(0, 3).join(", ")}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Status</div>
+                          <div className="text-xs sm:text-sm font-medium flex items-center gap-1.5 text-emerald-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            Completed
+                          </div>
+                        </div>
+                      </div>
 
                       <div
                         className="w-full prose max-sm:!text-[11px] prose-sm md:prose-base prose-invert prose-zinc max-w-none prose-headings:text-zinc-100 prose-h1:max-sm:text-xl prose-h2:max-sm:text-[17px] prose-h3:max-sm:text-[14px] prose-p:text-zinc-400 prose-strong:text-zinc-200 prose-li:text-zinc-400 prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:bg-transparent hover:prose-a:opacity-80 min-h-[50vh]"
@@ -453,74 +656,40 @@ export default function ClientProjectModal({ projects: allProjects }: { projects
 
               {/* Right: Fixed Sidebar (Scrolls independently if content overflows) */}
               <aside className="w-full lg:w-72 xl:w-80 h-auto lg:h-full shrink-0 bg-zinc-950 overflow-y-auto no-scrollbar mr-12" data-lenis-prevent="true">
-                <div className="p-6 sm:p-8 pt-12 sm:pt-16 flex flex-col gap-3 pb-12 animate-slide-up-fade" style={{ opacity: 0 }}>
+                <div className="p-6 sm:p-8 pt-12 sm:pt-16 flex flex-col gap-4 pb-12 animate-slide-up-fade" style={{ opacity: 0 }}>
                   <LangToggle />
+
+                  {/* Reading Progress Indicator */}
+                  <ReadingProgressBar scrollRef={scrollBodyRef} accent={project.accent} />
+
                   {/* Metadata Section */}
-                  <div className="flex flex-col gap-5 p-5 rounded-lg bg-zinc-800/20">
+                  <div className="flex flex-col gap-4 p-4 rounded-md bg-zinc-900/40 border border-zinc-800/80">
                     <div>
-                      <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-2">Category</h3>
-                      <p className="text-sm font-medium text-zinc-200">{project.category}</p>
+                      <h3 className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-1.5">Category</h3>
+                      <p className="text-xs font-semibold text-zinc-200">{project.category}</p>
                     </div>
                     <div>
-                      <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-2">Year</h3>
-                      <p className="text-sm font-mono text-zinc-400">{project.year}</p>
+                      <h3 className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-1.5">Year</h3>
+                      <p className="text-xs font-mono text-zinc-400">{project.year}</p>
                     </div>
                     <div>
-                      <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">Technologies</h3>
-                      <div className="flex flex-wrap items-center gap-3">
+                      <h3 className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-2">Technologies</h3>
+                      <div className="flex flex-wrap items-center gap-2.5">
                         {project.stack.map((tech: string) => (
                           <div key={tech} className="group relative flex items-center justify-center cursor-default">
-                            <TechIcon tech={tech} size={18} className="text-zinc-400 group-hover:text-white transition-colors" />
+                            <TechIcon tech={tech} size={17} className="text-zinc-400 group-hover:text-white transition-colors" />
                             {/* Tooltip */}
-                            <div className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-out px-2 py-1 bg-zinc-900 border border-zinc-700 text-zinc-200 text-[11px] rounded shadow-xl whitespace-nowrap z-50">
+                            <div className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-out px-2 py-1 bg-zinc-900 border border-zinc-700 text-zinc-200 text-[11px] rounded-sm shadow-xl whitespace-nowrap z-50">
                               {tech}
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
-                    
-                    {/* External Links */}
-                    {(project.github || (project.links && project.links.length > 0)) && (
-                      <div>
-                        <h3 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">Links</h3>
-                        <div className="flex flex-wrap items-center gap-3">
-                          {project.github && (!project.links || project.links.length === 0) && (
-                            <a
-                              href={project.github}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="group flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800/50 transition-colors text-xs text-zinc-300 hover:text-white"
-                            >
-                              <TechIcon tech="github" size={14} className="text-zinc-400 group-hover:text-white transition-colors" />
-                              Source Code
-                            </a>
-                          )}
-                          {project.links?.map((link, idx) => (
-                            <a
-                              key={idx}
-                              href={link.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="group flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800/50 transition-colors text-xs text-zinc-300 hover:text-white"
-                            >
-                              {link.icon === "gamepad" ? (
-                                <Gamepad2 className="w-3.5 h-3.5" style={{ color: project.accent }} />
-                              ) : link.icon === "github" ? (
-                                <TechIcon tech="github" size={14} className="text-zinc-400 group-hover:text-white transition-colors" />
-                              ) : (
-                                <ExternalLink className="w-3.5 h-3.5" style={{ color: project.accent }} />
-                              )}
-                              {link.label}
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Table of Contents */}
-                  {Post && <TableOfContents accent={project.accent} slug={project.slug} />}
+                  {Post && <TableOfContents accent={project.accent} slug={project.slug} scrollRef={scrollBodyRef} />}
                 </div>
               </aside>
             </div>

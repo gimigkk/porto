@@ -19,7 +19,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
             loop
             muted
             playsInline
-            className="w-full rounded-xl border border-zinc-800/50 my-8 shadow-2xl bg-zinc-900/50"
+            className="w-full rounded-md border border-zinc-800/50 my-8 shadow-2xl bg-zinc-900/50"
             {...(props as React.VideoHTMLAttributes<HTMLVideoElement>)}
           />
         );
@@ -29,7 +29,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
           src={src}
           alt={alt}
           loading="lazy"
-          className="w-full rounded-xl border border-zinc-800/50 my-8 shadow-2xl bg-zinc-900/50"
+          className="w-full rounded-md border border-zinc-800/50 my-8 shadow-2xl bg-zinc-900/50"
           {...props}
         />
       );

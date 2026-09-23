@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { useLenis } from "lenis/react";
 import { usePreloader } from "@/hooks/usePreloader";
 import LoadingScreen from "@/app/(home)/_components/LoadingScreen";
@@ -19,41 +19,6 @@ import ClientProjectModal from "@/app/(home)/_components/projects/ClientProjectM
 import { MOBILE_MEDIA_QUERY } from "@/components/layout/stackGeometry";
 
 // IMPORT: Loading Cormorant Garamond for the stylish accent
-
-
-/** Firefox CPU-backend backdrop-filter — remove from DOM entirely */
-function BlurStack() {
-  const [isFirefox, setIsFirefox] = useState<boolean | null>(null);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsFirefox(navigator.userAgent.includes("Firefox"));
-  }, []);
-  // Hydration: SSR renders blur, first client paint shows it.
-  // After mount: Firefox gets null (no blur DOM at all).
-  if (isFirefox) return null;
-  return (
-    <div className="hidden md:block absolute bottom-0 left-0 right-0 h-24 pointer-events-none select-none z-15 overflow-hidden">
-      <div
-        className="absolute inset-0"
-        style={{
-          backdropFilter: 'blur(2px)',
-          WebkitBackdropFilter: 'blur(2px)',
-          WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 75%)',
-          maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 75%)',
-        }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
-          WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
-          maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%)',
-        }}
-      />
-    </div>
-  );
-}
 
 
 interface HomeClientProps {
@@ -123,9 +88,6 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  const { scrollY } = useScroll();
-  const scrollOpacity = useTransform(scrollY, [0, 500], [1, 0.5]);
 
   // Phase 1: words + contact text animate ONLY AFTER loading screen finishes fading out
   const heroAnimationReady = isReady && loadingComplete;
@@ -239,29 +201,14 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
               isMobile={isMobile}
               isRevisit={isRevisit}
             />
-            {/* dark gradient overlay — fades in with folders and fades out on scroll */}
-            <motion.div
-              className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none"
-              style={{ opacity: scrollOpacity }}
-            >
-              <div
-                className="absolute bottom-0 left-0 right-0 h-60 bg-linear-to-t from-[#00000081] to-transparent"
-                style={{
-                  opacity: foldersReady ? 1 : 0,
-                  transition: "opacity 600ms cubic-bezier(0.22,1,0.36,1)",
-                }}
-              />
-              <div
-                className="absolute bottom-0 left-0 right-0 h-40 bg-linear-to-t from-[#000000b2] to-transparent z-11"
-                style={{
-                  opacity: foldersReady ? 1 : 0,
-                  transition: "opacity 600ms cubic-bezier(0.22,1,0.36,1)",
-                }}
-              />
-            </motion.div>
-
-            {/* PROGRESSIVE BLUR STACK — hidden on mobile & Firefox to avoid compositing jank */}
-            <BlurStack />
+            {/* Subtle bottom gradient — invisible during intro, fades in synced with entry animation */}
+            <div
+              className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none select-none z-10 bg-linear-to-t from-[#141416] via-[#141416]/40 to-transparent"
+              style={{
+                opacity: foldersReady ? 1 : 0,
+                transition: isRevisit ? "none" : "opacity 600ms cubic-bezier(0.22, 1, 0.36, 1)",
+              }}
+            />
 
             {/* Warning Screen - intercepts before intro text if needed */}
             {needsWarning && !warningResolved && (

@@ -17,9 +17,11 @@ function useIsModalOpen() {
     check();
     window.addEventListener("popstate", check);
     window.addEventListener("project-modal-changed", check);
+    window.addEventListener("hashchange", check);
     return () => {
       window.removeEventListener("popstate", check);
       window.removeEventListener("project-modal-changed", check);
+      window.removeEventListener("hashchange", check);
     };
   }, []);
   return isOpen;
@@ -115,8 +117,9 @@ export default function ProjectCards({
   const featured = projects.slice(0, MAX_FEATURED);
   const hasMore = projects.length >= MAX_FEATURED;
 
+  const [isInView, setIsInView] = useState(false);
   const [isAnimationSettled, setIsAnimationSettled] = useState(false);
-  const wc = isAnimationSettled ? "auto" : "transform, opacity, filter";
+  const wc = isInView && !isAnimationSettled ? "transform, opacity, filter" : "auto";
 
   return (
     <div className="relative w-full max-w-350 mx-auto pb-20">
@@ -124,6 +127,7 @@ export default function ProjectCards({
       <motion.div
         initial="hidden"
         whileInView="visible"
+        onViewportEnter={() => setIsInView(true)}
         onAnimationComplete={() => setIsAnimationSettled(true)}
         viewport={{ once: true, margin: "-50px" }}
         variants={gridVariants}
@@ -171,6 +175,7 @@ export default function ProjectCards({
                 const url = window.location.pathname + "#project=" + project.slug;
                 window.history.pushState(null, "", url);
                 window.dispatchEvent(new Event("project-modal-changed"));
+                window.dispatchEvent(new Event("hashchange"));
               }}
               className="relative z-10 flex w-full flex-col overflow-hidden md:overflow-visible no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)]"
               style={{ willChange: isAnimationSettled ? "auto" : "transform" }}

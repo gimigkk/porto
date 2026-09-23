@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, MouseEvent } from "react";
 import Image from "next/image";
-import { motion, useSpring, useTransform } from "framer-motion";
+import { motion, useSpring, useTransform, useInView } from "framer-motion";
 import SpotifyBackside from "./SpotifyBackside";
 
 interface ProfileFlipCardProps {
@@ -21,8 +21,19 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
   const [isMobile, setIsMobile] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const isInView = useInView(wrapperRef, { margin: "200px" });
   const pendingTiltRef = useRef({ x: 0, y: 0, sx: 0, sy: 0 });
   const rafPending = useRef(false);
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+    if (isHovered && isInView) {
+      videoRef.current.play().catch(() => {});
+    } else {
+      videoRef.current.pause();
+    }
+  }, [isHovered, isInView]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -187,7 +198,7 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
         >
           {/* Inner clip wrapper keeps the blurred photo and overlays clipped */}
           <div className="absolute inset-0 rounded-lg overflow-hidden">
-            <SpotifyBackside />
+            <SpotifyBackside isFlipped={isHovered} />
             {/* Top-down light reflection */}
             <motion.div
               className="absolute inset-0 bg-white pointer-events-none mix-blend-overlay"
@@ -214,8 +225,9 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
           >
             {/* Raw GIF without any CSS filters or blooms for maximum performance */}
             <video
-              src="/goyang2.webm"
-              autoPlay
+              ref={videoRef}
+              src={isInView ? "/goyang2.webm" : undefined}
+              preload="none"
               loop
               muted
               playsInline

@@ -29,7 +29,7 @@ export const ExperienceNode = React.memo(function ExperienceNode({ item, index, 
     }
   }, [isInView]);
 
-  const wc = isAnimationSettled ? "auto" : "transform";
+  const wc = isInView && !isAnimationSettled ? "transform" : "auto";
 
   // Dot size ranges from 8px to 40px based on impressiveness (1-10)
   const dotSize = 8 + ((item.impressiveness - 1) / 9) * 32;

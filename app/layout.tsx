@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, IBM_Plex_Serif } from "next/font/google";
 import "./globals.css";
 import LenisProvider from "@/components/providers/LenisProvider";
 import Navbar from "@/components/layout/Navbar";
@@ -7,10 +7,17 @@ import NextTopLoader from 'nextjs-toploader';
 import { TooltipProvider } from "@/components/providers/TooltipProvider";
 import { TooltipRenderer } from "@/components/ui/tooltip/TooltipRenderer";
 
-
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const ibmPlexSerif = IBM_Plex_Serif({
+  variable: "--font-ibm-plex-serif",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
 });
 
 const siteUrl = "https://www.gimiaw.web.id";
@@ -79,15 +86,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakartaSans.variable} h-full antialiased dark`}
+      className={`${plusJakartaSans.variable} ${ibmPlexSerif.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
-        {/* Clear stale #project= hash BEFORE React hydrates */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var h=location.hash;if(h&&h.indexOf("#project=")===0){history.replaceState(null,"",location.pathname+location.search)}})`
-          }}
-        />
         <NextTopLoader
           color="var(--top-loader-color, #000000)"
           initialPosition={0.08}

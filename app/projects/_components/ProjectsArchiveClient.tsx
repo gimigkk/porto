@@ -140,6 +140,7 @@ export default function ProjectsArchiveClient({ projects }: { projects: ProjectM
     const url = window.location.pathname + window.location.search + "#project=" + slug;
     window.history.pushState(null, "", url);
     window.dispatchEvent(new Event("project-modal-changed"));
+    window.dispatchEvent(new Event("hashchange"));
   };
 
   return (

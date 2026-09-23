@@ -2,87 +2,195 @@ export const metadata = {
   title: "Insectropy",
   slug: "insectropy",
   description:
-    "A tactical isometric turn-based roguelike built for the GameSeed game jam. We served as the primary Programmers, VFX Artists, and UI/UX Designers, crafting the core tactical gameplay and AI.",
-  stack: ["godot"],
+    "A tactical isometric turn-based roguelike built in Godot 4 for GameSeed 2026. Top 20 National Finalist awaiting Top 3 results. Engineered with 2,300+ commits across a 10-person studio, featuring local co-op, 3D physics dice, and custom GLSL shaders.",
+  stack: ["godot", "git"],
   year: "2026",
   category: "Game Development",
   accent: "#e11d48",
   thumbnail: "/projects/insectropy/trailer.mp4",
   links: [
-    { url: "https://hamgarian.itch.io/insectropy", label: "Play Game", icon: "gamepad" }
+    { url: "https://hamgarian.itch.io/insectropy", label: "Play on Itch.io", icon: "gamepad" },
+    { url: "https://youtu.be/CAam4aXN3Jg", label: "Watch Trailer", icon: "video" }
   ],
   weight: 3,
 };
 
 <Trans lang="en">
 
-## GameSeed Jam Submission
+## National Finalist: GameSeed 2026 (Top 20 Nationals)
 
-*Insectropy* is a **local splitscreen tactical turn-based roguelike** developed under rigorous time constraints for the **GameSeed 2026** game jam. You control two ants (a Fighter and a Wizard) battling through a grid arena to slay the Seven Deadly Sins (reimagined as apocalyptic backyard bugs). 
+*Insectropy* is a **local co-op tactical isometric turn-based roguelike** engineered in **Godot 4** for **GameSeed 2026**, Indonesia's premier national game development accelerator and competition. 
 
-We served as the core gameplay engineers, UI/UX designers, and VFX artists. Our mandate was to ensure the split-screen tactical layer felt tight and responsive while building robust systems that could scale despite the short development window.
+Out of hundreds of competitive submissions nationwide, *Insectropy* secured a spot as a **Top 20 National Finalist**, and our team is currently eagerly awaiting the upcoming announcement for the **Top 3 National Podium**.
+
+Players take command of an unlikely pair of ant champions (a frontline Fighter and an arcane Wizard) battling through a dangerous isometric grid to vanquish the Seven Deadly Sins, reimagined as apocalyptic insect warlords.
 
 ![Development Timeline](/projects/insectropy/timeline.jpg)
 
 ---
 
-### 1. Tactical Grid & Architecture
+### The Engineering Feat: 2,300+ Commits & 6 Months of Production
 
-Building a split-screen turn-based tactical system in a game jam is notoriously prone to edge-case bugs. We engineered a strict, state-driven combat core to handle grid logic, dice rolls, and prevent soft-locks.
+Far beyond a weekend hackathon demo, <em>Insectropy</em> represents over **6 months of continuous agile sprints** and **2,377+ Git commits**. What started as an ambitious prototype evolved into a modular, production-grade indie title built with strict code-review standards, unit test bridges, and automated deployment pipelines.
 
-- **Isometric Tactical Combat**: Implemented grid-based positioning and telegraphing logic. Enemies display orange danger tiles before movement and red attack tiles before striking, allowing both players to plan their turns strategically.
-- **Dice-Roll Mechanics**: Built the core logic for the "Roll Dice to Hit or Miss" mechanic, ensuring fair RNG distribution and snappy visual feedback during attacks.
-- **Asynchronous State Management**: Engineered rigid animation barriers and phase transitions for the turn-based action queue. This prevented catastrophic edge cases, like targets dying mid-attack or inputs soft-locking during overlapping turn resolutions.
-- **Data-Driven Abilities**: Using Godot's `.tres` data structures, we authored **over 30 unique abilities** (e.g., *Kitin Bomb*, *Pollen Gust*, *Divine Departure*) to allow for rapid iteration without touching core logic.
+<div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-6 not-prose">
+  <div className="p-3 rounded-md bg-zinc-900/50 border border-zinc-800">
+    <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Total Commits</div>
+    <div className="text-xs sm:text-sm font-bold font-mono text-rose-400">2,377 commits</div>
+  </div>
+  <div className="p-3 rounded-md bg-zinc-900/50 border border-zinc-800">
+    <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Timeline</div>
+    <div className="text-xs sm:text-sm font-medium text-zinc-200">Mar - Sep 2026</div>
+  </div>
+  <div className="p-3 rounded-md bg-zinc-900/50 border border-zinc-800">
+    <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Tech Stack</div>
+    <div className="text-xs sm:text-sm font-medium text-zinc-200">Godot 4 & GLSL</div>
+  </div>
+  <div className="p-3 rounded-md bg-zinc-900/50 border border-zinc-800">
+    <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Team Size</div>
+    <div className="text-xs sm:text-sm font-medium text-zinc-200">10 Members</div>
+  </div>
+  <div className="col-span-2 sm:col-span-4 p-3 rounded-md bg-zinc-900/50 border border-zinc-800 flex items-center justify-between flex-wrap gap-2">
+    <div>
+      <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500">National Standing</div>
+      <div className="text-xs sm:text-sm font-semibold text-rose-300 mt-0.5">Top 20 Nationals (Awaiting Top 3 Announcement)</div>
+    </div>
+    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">GameSeed 2026</span>
+  </div>
+</div>
 
-### 2. Roguelike Progression
+---
 
-To make each run unique, we implemented a robust roguelike progression system managed by a central `RunManager`.
+### 1. 3D Physics Dice Simulation in a 2D Viewport
 
-- **Dynamic Depth Scaling**: Added depth-based encounter profiles and light AC/Resist scaling to ensure battles remain challenging and less repetitive as the player progresses.
-- **Milestone Unlocks**: Built staged skill unlocks, offering players 1-of-4 ability choices after completed nodes, alongside milestone perk choices (such as *Iron Vow* and *Lucky Charm*) that integrate into a persistent modifier pipeline.
+One of our standout technical contributions was designing and programming the hybrid **3D Physics-Driven D20 Combat Resolver**:
 
-### 3. Artificial Intelligence
+- **Real-Time 3D Physics in 2D**: Rather than settling for pseudorandom UI counters, we embedded a real-time Godot 3D physics sub-viewport (`Dice3DPhysicsSandbox.gd` & `CombatDice3D.gd`) directly on top of the 2D isometric combat plane.
+- **Physical Dice Throw**: Dice are spawned with randomized torque and impulse vectors, colliding with invisible collision boundaries before resting. An orientation matrix checker reads the upward-facing face normal to determine the actual roll outcome (1-20), feeding back into the turn-based action calculator.
+- **D&D Combat Math & Modifiers**: Attack actions query target Armor Class (AC), player dexterity, and luck modifiers (`D20 + floor(LCK / 5)`). Critical rolls (natural 20) trigger dramatic screen-shake, chromatic aberration, and bonus damage multipliers.
 
-A tactical game relies entirely on its enemies. Rather than relying on simple state machines, we developed 4 distinct, modular AI profiles:
+### 2. Tactical Grid Engine & Hazard Mechanics
 
-- **Custom Enemy Brains**: Implemented the `SimpleMeleeBrain`, `SimpleRangedBrain`, `DungslayerBrain`, and the complex `BossButterflyBrain`.
-- **Dynamic Pathfinding**: Enemy units don't just blindly move towards the player. For example, the melee brain features pathfinding logic that attempts to move as close as possible when its primary path is blocked.
+Tactical combat requires pixel-perfect predictability. We engineered a robust isometric tile interaction matrix:
 
-### 4. User Experience (UI/UX) & Polish
+- **State-Driven Turn Core**: Built around an asynchronous queue (`TurnManager.gd` & `CombatActionResolver.gd`) that prevents race conditions, soft-locks, and animation desyncs when both players queue simultaneous abilities.
+- **Environmental Hazards & Elemental Reactions**:
+  - **Fire Spread & Heat Distortion**: Implemented interactive fire tiles with custom GLSL shaders featuring screen-space heat refraction. Flammable wooden crates and foliage catch fire dynamically.
+  - **Ice Momentum & Sliding**: Units pushed or stepped onto frozen tiles slide continuously across unobstructed lines via `ForcedMovementResolver.gd`.
+  - **Water Drowning**: Knocking enemies or players into deep water tiles triggers an immediate drowning state machine, sinking their sprites below the waterline with custom vertex shaders.
+- **Dynamic Telegraphing & Occlusion**: Custom tile shaders render multi-tier threat borders (orange for patrol pathways, crimson red for pending lethals) while providing 50% alpha ghosting when tall environmental props occlude heroes.
 
-A major challenge for split-screen tactical games is communicating complex mechanics clearly without cluttering half a screen. We completely overhauled the UI to create a snappy, guided experience.
+### 3. Modular Enemy AI & Boss Behavior Trees
 
-- **Split-Screen HUD & Action Wheels**: Built responsive `BattleActionWheelController`s and dynamic status overlays that visually indicate when a unit is restricted (e.g., *Stunned* or *Frozen*) for each player independently.
-- **Guided Feedback**: Implemented a tutorial overlay with arrow indicators, gacha-style relic reveal animations in the Loot Screen, and contextual cancel actions.
-- **Ability VFX**: Our VFX work was strictly focused on combat abilities. We integrated custom shaders (dithered fire, god rays, teleport effects) directly into the ability execution pipeline to give every attack a satisfying punch, while the rest of the environmental effects were handled elsewhere.
+Combat depth hinges on reactive adversary brains:
+
+- **Modular AI Architecture**: Decoupled AI profiles inheriting from `AIBrain.gd`, including `SimpleMeleeBrain`, `SimpleRangedBrain`, `DungslayerBrain`, and the multi-phase `BossButterflyBrain`.
+- **Heuristic Pathfinding**: Rather than raw Dijkstra spam, enemies calculate proximity weights, hazard avoidance, and flanking angles. If a primary path is blocked by ice or fire, the AI chooses tactical secondary staging tiles.
+- **Airborne Boss Phases**: The butterfly boss hovers above ground-level hazard tiles, ignoring floor traps while commanding directional wind shields and aerial gale sweeps.
+
+### 4. Custom Shaders & Graphics Optimization
+
+- **Custom GLSL Shaders**: Authored custom shaders for dithered flame effects, atmospheric god rays (`Juicy Fruit Upon The Hill`), procedural celestial halos on the escape boat, and backdrop Gaussian blurs for UI modals.
+- **VRAM & Performance Optimization**: Enforced texture compression pipelines and culled inactive card viewports, ensuring buttery 60 FPS performance on low-spec integrated GPUs as well as desktop graphics cards.
+
+---
+
+### Inside the Team: The Git History Breakdown
+
+A project of this scale requires seamless multidisciplinary collaboration. Git commit history reveals how our 5 core engineers specialized and complemented each other:
+
+<div className="space-y-6 my-8">
+
+<div className="p-4 rounded-md bg-zinc-900/60 border border-zinc-800">
+  <div className="flex items-center justify-between mb-2">
+    <h4 className="font-bold text-white text-base m-0">Ahmad Rafif Ilmany (@viPipar) | Lead Programmer</h4>
+    <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">896 commits</span>
+  </div>
+  <div className="text-sm text-zinc-300 m-0">
+    Systems architect who orchestrated the primary game loop (<code className="text-xs bg-zinc-800 px-1 py-0.5 rounded">main.gd</code>), procedural 15-node roguelike map generator, turn state machine, audio bus integration, and the dual-input co-op coordinator.
+  </div>
+</div>
+
+<div className="p-4 rounded-md bg-zinc-900/60 border border-zinc-800">
+  <div className="flex items-center justify-between mb-2">
+    <h4 className="font-bold text-white text-base m-0">Gilang Muhammad W (@gimigkk) | Core Gameplay & VFX Engineer</h4>
+    <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">441 commits</span>
+  </div>
+  <div className="text-sm text-zinc-300 m-0">
+    Engineered the 3D physics dice sandbox (<code className="text-xs bg-zinc-800 px-1 py-0.5 rounded">Dice3D.gd</code>), combat action resolver pipeline, player/enemy lifecycle management, boss AI brains, custom GLSL visual shaders (heat distortion, fire, water drowning), and VRAM/render optimizations.
+  </div>
+</div>
+
+<div className="p-4 rounded-md bg-zinc-900/60 border border-zinc-800">
+  <div className="flex items-center justify-between mb-2">
+    <h4 className="font-bold text-white text-base m-0">Ilham Edgar Maulana (@gamer) | Audio & DevOps Engineer</h4>
+    <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">362 commits</span>
+  </div>
+  <div className="text-sm text-zinc-300 m-0">
+    Built automated GitHub Actions CI/CD to Itch.io, Cloudflare R2 asset offloading, dual desktop Forward+ vs. web GL Compatibility rendering, and losslessly compressed audio/textures, shrinking the web package from 1.54 GB down to 172 MB.
+  </div>
+</div>
+
+<div className="p-4 rounded-md bg-zinc-900/60 border border-zinc-800">
+  <div className="flex items-center justify-between mb-2">
+    <h4 className="font-bold text-white text-base m-0">Rafid Harsyah S (@RaftFeed) | UI/UX & Motion Engineer</h4>
+    <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">364 commits</span>
+  </div>
+  <div className="text-sm text-zinc-300 m-0">
+    Designed the gothic UI design system, battle celebration overlays with real-time backdrop blur shaders, procedural character speech bubble system, interactive node inspection tooltips, and card presentation juice.
+  </div>
+</div>
+
+<div className="p-4 rounded-md bg-zinc-900/60 border border-zinc-800">
+  <div className="flex items-center justify-between mb-2">
+    <h4 className="font-bold text-white text-base m-0">Candra Agung Alief P (@candraalief) | Single-Player & Progression Engineer</h4>
+    <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">314 commits</span>
+  </div>
+  <div className="text-sm text-zinc-300 m-0">
+    Implemented single-player mouse/keyboard adapters with 3-tier hover priority ranking, isometric sprite occlusion ghosting, foreground Y-sorting, contested loot pick mechanics, and developer debug spawner tooling.
+  </div>
+</div>
+
+</div>
 
 ---
 
 ![Our Team](/projects/insectropy/team.jpg)
 
-### A Collaborative Effort
+### The Creative Studio: Visuals & Narrative
 
-Game development is a massive collaborative undertaking. While we handled the core mechanical engineering and systems design, the final, crucial step of **game balancing** (fine-tuning damage numbers, health pools, and ability cooldowns) was executed by our talented teammates following rigorous playtesting sessions.
+An evocative dark fantasy world requires exceptional visual storytelling. Our 5 talented illustrators brought the apocalyptic insect realm to life with hundreds of custom hand-drawn assets:
 
-<div className="flex flex-row gap-4 sm:gap-8 w-full mt-8">
-  <div className="flex-1">
-    <h4 className="font-bold tracking-wider uppercase mt-0 mb-4 text-zinc-100">Programmer</h4>
-    
-    Ilham Edgar Maulana<br/>
-    Ahmad Rafif Ilmany<br/>
-    Gilang Muhammad W<br/>
-    Candra Agung Alief P<br/>
-    Rafid Harsyah S
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
+  <div className="p-4 rounded-md bg-zinc-900/40 border border-zinc-800/80">
+    <h5 className="font-bold text-zinc-200 text-sm mb-1 uppercase tracking-wider">Art & Character Direction</h5>
+    <div className="text-xs text-zinc-400 m-0 leading-relaxed">
+      <strong>M Rehan Firmansyah</strong>: Lead Character Artist (Ant Fighter & Wizard heroes, the Seven Deadly Sins apocalyptic boss monstrosities, and enemy spritesheets).
+    </div>
   </div>
-  <div className="flex-1">
-    <h4 className="font-bold tracking-wider uppercase mt-0 mb-4 text-zinc-100">Illustrator</h4>
-    
-    M Rehan Firmansyah<br/>
-    Adzkia Muftia Rahman<br/>
-    Zivanka Aurelia<br/>
-    Naurah Mudawwinah<br/>
-    Angelina Yogaswara
+  <div className="p-4 rounded-md bg-zinc-900/40 border border-zinc-800/80">
+    <h5 className="font-bold text-zinc-200 text-sm mb-1 uppercase tracking-wider">Environment & World Tiles</h5>
+    <div className="text-xs text-zinc-400 m-0 leading-relaxed">
+      <strong>Adzkia Muftia Rahman</strong>: Handcrafted isometric terrain tilesets, elevation cliffs, fractured stone blocks, and decaying backyard wilderness structures.
+    </div>
+  </div>
+  <div className="p-4 rounded-md bg-zinc-900/40 border border-zinc-800/80">
+    <h5 className="font-bold text-zinc-200 text-sm mb-1 uppercase tracking-wider">UI, Cards & Relic Design</h5>
+    <div className="text-xs text-zinc-400 m-0 leading-relaxed">
+      <strong>Zivanka Aurelia</strong>: Gothic UI flourishes, ornate ability cards, relic icons, radial action wheel graphics, and item inventory assets.
+    </div>
+  </div>
+  <div className="p-4 rounded-md bg-zinc-900/40 border border-zinc-800/80">
+    <h5 className="font-bold text-zinc-200 text-sm mb-1 uppercase tracking-wider">Storyboards & Narrative Lore</h5>
+    <div className="text-xs text-zinc-400 m-0 leading-relaxed">
+      <strong>Naurah Mudawwinah</strong>: Prologue scene illustrations, mythological lore backdrops (God of Time), and narrative cutscenes.
+    </div>
+  </div>
+  <div className="p-4 rounded-md bg-zinc-900/40 border border-zinc-800/80 sm:col-span-2">
+    <h5 className="font-bold text-zinc-200 text-sm mb-1 uppercase tracking-wider">Props, VFX Sprites & Special Assets</h5>
+    <div className="text-xs text-zinc-400 m-0 leading-relaxed">
+      <strong>Angelina Yogaswara</strong>: Interactive props (tnt barrels, treasure chests, campfire sanctuaries, celestial escape boat) and particle sprite frames.
+    </div>
   </div>
 </div>
 
@@ -90,73 +198,178 @@ Game development is a massive collaborative undertaking. While we handled the co
 
 <Trans lang="id">
 
-## Submit GameSeed Jam
+## Finalis Nasional: GameSeed 2026 (Top 20 Nasional)
 
-*Insectropy* adalah **game roguelike tactical turn-based splitscreen lokal** yang dikembangin di bawah batasan waktu yang super ketat buat *game jam* **GameSeed 2026**. Kamu bakal ngendaliin dua semut (Fighter dan Wizard) buat bertarung di arena kotak-kotak (grid) ngelawan Tujuh Dosa Mematikan (yang dibikin ulang jadi serangga halaman belakang ala kiamat).
+*Insectropy* adalah game **tactical isometric turn-based roguelike dengan mode co-op lokal** yang dikembangkan menggunakan engine **Godot 4** untuk kompetisi dan akselerator game bergengsi skala nasional, **GameSeed 2026**.
 
-Kita di sini bertugas sebagai *core gameplay engineer*, *UI/UX designer*, dan *VFX artist*. Tugas kita mastiin *tactical layer* di mode *split-screen* terasa responsif dan mantap sambil ngebangun sistem solid yang bisa *scale up* walaupun waktu *development*-nya singkat banget.
+Dari ratusan submission game se-Indonesia, *Insectropy* berhasil tembus dan terpilih sebagai **Top 20 Finalis Nasional**, dan tim kami sekarang sedang menantikan pengumuman penting berikutnya untuk **Juara Top 3 Nasional**.
+
+Di game ini, pemain mengendalikan duet semut pejuang (Fighter) dan penyihir (Wizard) yang bertualang di atas arena grid isometrik untuk menaklukkan wujud Tujuh Dosa Mematikan (Seven Deadly Sins) yang bangkit sebagai monster serangga apokaliptik.
 
 ![Development Timeline](/projects/insectropy/timeline.jpg)
 
 ---
 
-### 1. Tactical Grid & Arsitektur
+### Karya Paling Masif: 2.300+ Commit & 6 Bulan Masa Produksi
 
-Bikin sistem taktikal *turn-based* mode *split-screen* pas *game jam* itu rawan banget sama *bug edge-case*. Makanya, kita ngebangun *combat core* yang sangat kaku dan berbasis status (*state-driven*) buat ngurusin logika grid, lemparan dadu, dan nyegah *soft-lock*.
+Jauh melampaui sekadar game jam kilat, <em>Insectropy</em> adalah bukti kerja keras selama **lebih dari 6 bulan sprint agile** dengan total **2.377+ Git commit**. Proyek ini berevolusi dari ide ambisius menjadi judul game indie yang matang, modular, teruji, dan memiliki pipeline engineering standar industri.
 
-- **Isometric Tactical Combat**: Kita nge-implementasiin penempatan berbasis grid dan logika telegraf. Musuh bakal nampilin kotak oranye (bahaya) sebelum gerak dan kotak merah sebelum nyerang, jadi kedua pemain bisa ngerencanain giliran mereka dengan strategis.
-- **Mekanik Lempar Dadu**: Ngebangun logika inti buat mekanik "Lempar Dadu buat Hit atau Miss", buat mastiin distribusi RNG-nya adil dan *visual feedback*-nya terasa asik pas nyerang.
-- **Manajemen Status Asynchronous**: Kita nge-desain batasan animasi dan transisi fase yang kaku buat antrean *action* berbasis giliran. Ini buat nyegah hal-hal fatal, kayak target mati pas lagi diserang atau *input* malah bikin *soft-lock* pas lagi ada resolusi giliran yang tabrakan.
-- **Data-Driven Abilities**: Pake struktur data `.tres` bawaan Godot, kita bikin **lebih dari 30 *ability* unik** (misalnya *Kitin Bomb*, *Pollen Gust*, *Divine Departure*) biar iterasi pas proses *development* bisa ngebut tanpa harus ngutak-ngatik logika utamanya.
+<div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-6 not-prose">
+  <div className="p-3 rounded-md bg-zinc-900/50 border border-zinc-800">
+    <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Total Commit</div>
+    <div className="text-xs sm:text-sm font-bold font-mono text-rose-400">2.377 commit</div>
+  </div>
+  <div className="p-3 rounded-md bg-zinc-900/50 border border-zinc-800">
+    <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Linimasa</div>
+    <div className="text-xs sm:text-sm font-medium text-zinc-200">Mar - Sep 2026</div>
+  </div>
+  <div className="p-3 rounded-md bg-zinc-900/50 border border-zinc-800">
+    <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Tech Stack</div>
+    <div className="text-xs sm:text-sm font-medium text-zinc-200">Godot 4 & GLSL</div>
+  </div>
+  <div className="p-3 rounded-md bg-zinc-900/50 border border-zinc-800">
+    <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 mb-1">Ukuran Tim</div>
+    <div className="text-xs sm:text-sm font-medium text-zinc-200">10 Anggota</div>
+  </div>
+  <div className="col-span-2 sm:col-span-4 p-3 rounded-md bg-zinc-900/50 border border-zinc-800 flex items-center justify-between flex-wrap gap-2">
+    <div>
+      <div className="text-[10px] uppercase font-mono tracking-wider text-zinc-500">Pencapaian Nasional</div>
+      <div className="text-xs sm:text-sm font-semibold text-rose-300 mt-0.5">Top 20 Finalis Nasional (Menunggu Pengumuman Top 3)</div>
+    </div>
+    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">GameSeed 2026</span>
+  </div>
+</div>
 
-### 2. Progresi Roguelike
+---
 
-Biar setiap sesi main (run) terasa unik, kita nerapin sistem progresi roguelike yang solid dan diatur dari satu `RunManager` pusat.
+### 1. Simulasi Dadu Fisika 3D di Dalam Viewport 2D
 
-- **Dynamic Depth Scaling**: Nambahin profil musuh yang *scaling* berdasar kedalaman (level) dan dikit penyesuaian di *Armor/Resist* buat mastiin pertarungannya tetep menantang dan nggak gampang ngebosenin pas pemain makin jauh.
-- **Milestone Unlocks**: Bikin sistem buka *skill* bertahap, ngasih pilihan 1 dari 4 *ability* setelah beres ngelarin satu *node*, plus pilihan *perk milestone* (kayak *Iron Vow* dan *Lucky Charm*) yang nyambung ke *pipeline modifier* secara permanen.
+Salah satu inovasi teknis paling menonjol yang kami rancang dan implementasikan adalah sistem **Combat Resolver Dadu D20 Berbasis Fisika 3D Nyata**:
 
-### 3. Kecerdasan Buatan (AI)
+- **Fisika 3D Real-Time di Dunia 2D**: Daripada memakai hitungan RNG angka acak UI biasa, kami mengintegrasikan sub-viewport fisika 3D Godot langsung (`Dice3DPhysicsSandbox.gd` & `CombatDice3D.gd`) di atas layar pertarungan isometrik 2D.
+- **Lemparan Dadu Fisik Realistis**: Dadu dilempar dengan impuls dan torsi putar acak, memantul di dinding collider tak terlihat sebelum mendarat. Matrix orientasi menghitung vektor normal sisi atas dadu untuk menentukan angka hasil lemparan (1-20).
+- **Matematika D&D & Critical Hit**: Angka dadu dihitung bersama Armor Class (AC) musuh, stat Dexterity pemain, serta formula keberuntungan (`D20 + floor(LCK / 5)`). Critical roll (angka 20 alami) langsung memicu screen-shake dramatis, chromatic aberration, dan damage ekstra.
 
-Game taktikal itu bergantung penuh sama musuhnya. Daripada cuma ngandelin *state machine* biasa, kita ngembangin 4 profil AI beda yang modular:
+### 2. Engine Grid Taktikal & Sistem Bahaya Lingkungan
 
-- **Otak Musuh Custom**: Bikin *brain* buat `SimpleMeleeBrain`, `SimpleRangedBrain`, `DungslayerBrain`, sampe yang kompleks kayak `BossButterflyBrain`.
-- **Pathfinding Dinamis**: Unit musuh nggak cuma asal jalan buta ke arah pemain. Contohnya, *melee brain* punya logika *pathfinding* yang bakal berusaha sedeket mungkin sama pemain kalau jalur utamanya keblokir.
+Game taktikal butuh kepastian mekanisme pergerakan yang presisi. Kami membangun matriks interaksi ubin (*tile*) yang sangat solid:
 
-### 4. User Experience (UI/UX) & Polish
+- **Asynchronous Turn Queue**: Menggunakan antrean state-driven (`TurnManager.gd` & `CombatActionResolver.gd`) guna mencegah konflik input, soft-lock, atau tabrakan giliran saat kedua pemain memilih ability di waktu bersamaan.
+- **Bahaya Lingkungan & Reaksi Elemen**:
+  - **Penyebaran Api & Pembiasan Panas**: Ubin api interaktif memakai custom shader GLSL dengan efek pembiasan gelombang panas (screen-space heat refraction). Objek kayu dan semak dapat terbakar secara dinamis.
+  - **Momentum Meluncur di Es**: Unit yang didorong ke ubin beku akan meluncur lurus tanpa henti hingga menabrak rintangan lewat `ForcedMovementResolver.gd`.
+  - **Mekanik Tenggelam (Drowning)**: Musuh atau pemain yang terpental ke air dalam akan langsung masuk ke state tenggelam dan tenggelam perlahan ke bawah ubin air.
+- **Telegraphing & Occlusion Ghosting**: Shader ubin menampilkan kotak peringatan bahaya (oranye untuk jalur musuh, merah untuk area serangan mematikan) dan memberikan transparansi 50% otomatis saat objek lingkungan menutupi karakter pemain.
 
-Tantangan gede bikin game taktikal *split-screen* itu gimana cara nyampein mekanik ribet secara jelas tanpa bikin setengah layar keliatan penuh. Kita rombak total UI-nya biar lebih rapi dan gampang dimengerti.
+### 3. AI Musuh Modular & Perilaku Boss
 
-- **Split-Screen HUD & Action Wheels**: Bikin `BattleActionWheelController` yang responsif dan *overlay* status dinamis buat ngasih tau secara visual kalau satu unit lagi kena efek CC (misalnya *Stunned* atau *Frozen*) di masing-masing layar pemain secara independen.
-- **Guided Feedback**: Nambahin *tutorial overlay* pake panah indikator, animasi dapet relik pas *Loot Screen* yang mirip buka gacha, dan tombol *cancel* kontekstual.
-- **VFX Ability**: Fokus utama kita ngerjain VFX itu di animasi serangan (*ability*). Kita masukin *custom shader* (api yang di-dither, efek cahaya *god rays*, efek teleportasi) langsung ke *pipeline eksekusi ability* biar tiap serangan terasa *impactful*, sementara efek lingkungan (environment) diurus di bagian terpisah.
+- **Arsitektur AI Berbasis Profil**: Memisahkan profil AI secara modular mewarisi `AIBrain.gd`, termasuk `SimpleMeleeBrain`, `SimpleRangedBrain`, `DungslayerBrain`, dan `BossButterflyBrain` multi-fase.
+- **Pathfinding Cerdas**: Musuh tidak sekadar mengejar garis lurus; mereka memperhitungkan bobot ubin bahaya dan taktik mengepung. Jika jalur terhalang api atau duri, AI mencari rute alternatif yang paling optimal.
+- **Mekanik Boss Melayang**: Boss kupu-kupu memiliki status melayang (airborne) sehingga kebal terhadap jebakan ubin lantai sembari melepaskan badai angin dan tameng proyektil.
+
+### 4. Custom Shader & Optimasi Rendering
+
+- **Shader GLSL Khusus**: Membuat shader api ber-dither, god rays atmosferik pada event naratif (`Juicy Fruit Upon The Hill`), lingkaran cahaya suci pada perahu penyelamat, dan background blur Gaussian di modal UI.
+- **Optimasi Performa**: Menggunakan kompresi tekstur VRAM efisien serta culling viewport kartu non-aktif, menjaga game berjalan mulus di 60 FPS bahkan pada laptop dengan grafis terintegrasi (iGPU).
+
+---
+
+### Profil Tim & Analisis Mendalam Git History
+
+Skala proyek yang besar ini berhasil tercapai berkat kerja sama tim yang solid dan terkoordinasi rapi. Catatan riwayat commit Git memperlihatkan peran spesifik masing-masing programmer:
+
+<div className="space-y-6 my-8">
+
+<div className="p-4 rounded-md bg-zinc-900/60 border border-zinc-800">
+  <div className="flex items-center justify-between mb-2">
+    <h4 className="font-bold text-white text-base m-0">Ahmad Rafif Ilmany (@viPipar) | Lead Programmer</h4>
+    <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">896 commit</span>
+  </div>
+  <div className="text-sm text-zinc-300 m-0">
+    Arsitek sistem utama yang merancang game loop inti (<code className="text-xs bg-zinc-800 px-1 py-0.5 rounded">main.gd</code>), generator peta prosedural 15 node roguelike, mesin giliran (turn state machine), integrasi audio SFX, dan koordinator co-op dual-input.
+  </div>
+</div>
+
+<div className="p-4 rounded-md bg-zinc-900/60 border border-zinc-800">
+  <div className="flex items-center justify-between mb-2">
+    <h4 className="font-bold text-white text-base m-0">Gilang Muhammad W (@gimigkk) | Core Gameplay & VFX Engineer</h4>
+    <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">441 commit</span>
+  </div>
+  <div className="text-sm text-zinc-300 m-0">
+    Membangun sandbox simulasi dadu 3D (<code className="text-xs bg-zinc-800 px-1 py-0.5 rounded">Dice3D.gd</code>), pipeline resolusi aksi pertarungan, manajemen entitas hero dan musuh, otak kecerdasan buatan boss, custom shader GLSL (distorsi panas, api, air tenggelam), serta optimasi rendering/VRAM.
+  </div>
+</div>
+
+<div className="p-4 rounded-md bg-zinc-900/60 border border-zinc-800">
+  <div className="flex items-center justify-between mb-2">
+    <h4 className="font-bold text-white text-base m-0">Ilham Edgar Maulana (@gamer) | Audio & DevOps Engineer</h4>
+    <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">362 commit</span>
+  </div>
+  <div className="text-sm text-zinc-300 m-0">
+    Merancang pipeline otomatisasi CI/CD GitHub Actions ke Itch.io, offloading aset via Cloudflare R2, dual renderer (Forward+ untuk desktop vs. GL Compatibility untuk Web), serta kompresi lossless tekstur dan audio foley, memangkas ukuran build web dari 1,54 GB menjadi 172 MB.
+  </div>
+</div>
+
+<div className="p-4 rounded-md bg-zinc-900/60 border border-zinc-800">
+  <div className="flex items-center justify-between mb-2">
+    <h4 className="font-bold text-white text-base m-0">Rafid Harsyah S (@RaftFeed) | UI/UX & Motion Engineer</h4>
+    <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">364 commit</span>
+  </div>
+  <div className="text-sm text-zinc-300 m-0">
+    Mengembangkan sistem antarmuka bertema gothic, overlay selebrasi kemenangan dengan shader background blur real-time, balon dialog prosedural, tooltip inspeksi node peta interaktif, dan animasi feedback aksi kartu.
+  </div>
+</div>
+
+<div className="p-4 rounded-md bg-zinc-900/60 border border-zinc-800">
+  <div className="flex items-center justify-between mb-2">
+    <h4 className="font-bold text-white text-base m-0">Candra Agung Alief P (@candraalief) | Single-Player & Progression Engineer</h4>
+    <span className="text-xs font-mono px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">314 commit</span>
+  </div>
+  <div className="text-sm text-zinc-300 m-0">
+    Mengimplementasikan adapter mouse dan keyboard untuk mode single-player dengan prioritas hover 3-tier, transparansi oklusi sprite isometrik, Y-sorting latar depan, mekanik perebutan loot (contested pick), dan tool spawner debug.
+  </div>
+</div>
+
+</div>
 
 ---
 
 ![Our Team](/projects/insectropy/team.jpg)
 
-### Kolaborasi Tim
+### Tim Artist & Visual Studio
 
-Bikin game itu butuh kolaborasi gede-gedean. Meskipun kita nanganin *core mechanics* dan desain sistemnya, ada satu tahapan terakhir yang paling krusial, yaitu **game balancing**. Tugas ini (mulai dari ngatur *damage*, *health pool*, sampai *cooldown* tiap *ability*) dikerjain secara telaten sama temen-temen tim lewat *playtesting* berulang kali.
+Dunia gelap fantasi serangga apokaliptik terwujud nyata berkat dedikasi 5 ilustrator berbakat kami:
 
-<div className="flex flex-row gap-4 sm:gap-8 w-full mt-8">
-  <div className="flex-1">
-    <h4 className="font-bold tracking-wider uppercase mt-0 mb-4 text-zinc-100">Programmer</h4>
-    
-    Ilham Edgar Maulana<br/>
-    Ahmad Rafif Ilmany<br/>
-    Gilang Muhammad W<br/>
-    Candra Agung Alief P<br/>
-    Rafid Harsyah S
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
+  <div className="p-4 rounded-md bg-zinc-900/40 border border-zinc-800/80">
+    <h5 className="font-bold text-zinc-200 text-sm mb-1 uppercase tracking-wider">Art & Desain Karakter</h5>
+    <div className="text-xs text-zinc-400 m-0 leading-relaxed">
+      <strong>M Rehan Firmansyah</strong>: Lead Character Artist (desain semut petarung & penyihir, bos-bos representasi 7 Dosa Mematikan, serta spritesheet animasi lengkap).
+    </div>
   </div>
-  <div className="flex-1">
-    <h4 className="font-bold tracking-wider uppercase mt-0 mb-4 text-zinc-100">Illustrator</h4>
-    
-    M Rehan Firmansyah<br/>
-    Adzkia Muftia Rahman<br/>
-    Zivanka Aurelia<br/>
-    Naurah Mudawwinah<br/>
-    Angelina Yogaswara
+  <div className="p-4 rounded-md bg-zinc-900/40 border border-zinc-800/80">
+    <h5 className="font-bold text-zinc-200 text-sm mb-1 uppercase tracking-wider">Lingkungan & Tileset Isometrik</h5>
+    <div className="text-xs text-zinc-400 m-0 leading-relaxed">
+      <strong>Adzkia Muftia Rahman</strong>: Melukis ubin isometrik, formasi tebing bertingkat, reruntuhan batu kuno, dan ekosistem tanah liar.
+    </div>
+  </div>
+  <div className="p-4 rounded-md bg-zinc-900/40 border border-zinc-800/80">
+    <h5 className="font-bold text-zinc-200 text-sm mb-1 uppercase tracking-wider">Aset UI, Kartu & Relik</h5>
+    <div className="text-xs text-zinc-400 m-0 leading-relaxed">
+      <strong>Zivanka Aurelia</strong>: Bingkai gothic elegan, ilustrasi kartu skill dan relik, ornamen radial wheel, dan indikator status pertempuran.
+    </div>
+  </div>
+  <div className="p-4 rounded-md bg-zinc-900/40 border border-zinc-800/80">
+    <h5 className="font-bold text-zinc-200 text-sm mb-1 uppercase tracking-wider">Ilustrasi Naratif & Prolog</h5>
+    <div className="text-xs text-zinc-400 m-0 leading-relaxed">
+      <strong>Naurah Mudawwinah</strong>: Artwork pembuka prolog cerita, ilustrasi pertemuan dewa (God of Time), dan latar belakang narasi sinematik.
+    </div>
+  </div>
+  <div className="p-4 rounded-md bg-zinc-900/40 border border-zinc-800/80 sm:col-span-2">
+    <h5 className="font-bold text-zinc-200 text-sm mb-1 uppercase tracking-wider">Props Interaktif & Frame VFX</h5>
+    <div className="text-xs text-zinc-400 m-0 leading-relaxed">
+      <strong>Angelina Yogaswara</strong>: Desain props interaktif (peti harta, barel TNT, tenda istirahat, perahu suci) serta frame partikel efek visual.
+    </div>
   </div>
 </div>
 

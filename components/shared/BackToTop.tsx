@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, RefObject } from "react";
+import { useEffect, useState, useRef, RefObject } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useLenis } from "lenis/react";
 import "./BackToTop.css";
 
 interface BackToTopProps {
@@ -11,20 +12,52 @@ interface BackToTopProps {
 
 export default function BackToTop({ scrollRef, threshold = 200 }: BackToTopProps) {
   const [visible, setVisible] = useState(false);
+  const lenis = useLenis();
+  const visibleRef = useRef(false);
 
   useEffect(() => {
-    // If scrollRef given, listen on that element. Otherwise, listen on window.
+    let ticking = false;
+    const checkScroll = (currentScroll: number) => {
+      const nextVisible = currentScroll > threshold;
+      if (nextVisible !== visibleRef.current) {
+        visibleRef.current = nextVisible;
+        setVisible(nextVisible);
+      }
+    };
+
     if (scrollRef?.current) {
       const el = scrollRef.current;
-      const handleScroll = () => setVisible(el.scrollTop > threshold);
+      const handleScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          ticking = false;
+          checkScroll(el.scrollTop);
+        });
+      };
       el.addEventListener("scroll", handleScroll, { passive: true });
       return () => el.removeEventListener("scroll", handleScroll);
+    } else if (lenis) {
+      const onLenisScroll = (inst: { scroll: number }) => {
+        checkScroll(inst.scroll);
+      };
+      lenis.on("scroll", onLenisScroll);
+      return () => {
+        lenis.off("scroll", onLenisScroll);
+      };
     } else {
-      const handleScroll = () => setVisible(window.scrollY > threshold);
+      const handleScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          ticking = false;
+          checkScroll(window.scrollY);
+        });
+      };
       window.addEventListener("scroll", handleScroll, { passive: true });
       return () => window.removeEventListener("scroll", handleScroll);
     }
-  }, [scrollRef, threshold]);
+  }, [scrollRef, threshold, lenis]);
 
   const scrollToTop = () => {
     if (scrollRef?.current) {

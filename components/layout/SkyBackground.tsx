@@ -45,7 +45,7 @@ export default function SkyBackground({
       <div
         ref={parallaxRef}
         className="absolute inset-0"
-        style={{ willChange: "transform" }}
+        style={{ willChange: "transform", transform: "translateZ(0)" }}
       >
         {/* Sky gradient */}
         <div className="absolute inset-0 bg-linear-to-b from-[#0c3888] to-[#50aaff]" />

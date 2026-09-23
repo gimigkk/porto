@@ -3,8 +3,8 @@
 import { motion } from "framer-motion";
 import CompanyLogoGrid from "./CompanyLogoGrid";
 
-const ANIM_INITIAL = { opacity: 0, y: 80, scale: 0.96, filter: "blur(10px)" };
-const ANIM_ANIMATE = { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" };
+const ANIM_INITIAL = { opacity: 0, y: 80, scale: 0.96 };
+const ANIM_ANIMATE = { opacity: 1, y: 0, scale: 1 };
 const ANIM_TRANSITION = {
   type: "spring" as const,
   stiffness: 100,
@@ -43,7 +43,7 @@ export default function HeroContent({
               animate={ANIM_ANIMATE}
               transition={animTransition}
             >
-              <img src="/gimigkk.svg" alt="Gilang's Portfolio Title" className="w-full h-auto" fetchPriority="high" />
+              <img src="/gimigkk.svg" alt="Gilang's Portfolio Title" width={693} height={222} className="w-full h-auto" fetchPriority="high" />
             </motion.div>
           </div>
         )}
@@ -67,7 +67,7 @@ export default function HeroContent({
               animate={ANIM_ANIMATE}
               transition={animTransition}
             >
-              <img src="/gimigkk.svg" alt="Gilang's Portfolio Title" className="w-full h-auto" fetchPriority="high" />
+              <img src="/gimigkk.svg" alt="Gilang's Portfolio Title" width={693} height={222} className="w-full h-auto" fetchPriority="high" />
             </motion.div>
           </div>
         )}

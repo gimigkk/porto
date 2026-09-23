@@ -122,9 +122,11 @@ const subscribeToProjectModal = (callback: () => void) => {
   if (typeof window === "undefined") return () => {};
   window.addEventListener("popstate", callback);
   window.addEventListener("project-modal-changed", callback);
+  window.addEventListener("hashchange", callback);
   return () => {
     window.removeEventListener("popstate", callback);
     window.removeEventListener("project-modal-changed", callback);
+    window.removeEventListener("hashchange", callback);
   };
 };
 
@@ -204,39 +206,58 @@ export default function Navbar() {
   useEffect(() => {
     const THRESHOLD = 10;
     const TOP_THRESHOLD = 50;
-    let rafId = 0;
+    let ticking = false;
 
-    function onScroll() {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        const current = window.scrollY || window.pageYOffset || 0;
-        const last = lastScrollYRef.current;
+    let isNavVisible = true;
 
-        if (Math.abs(current - last) < THRESHOLD) return;
+    function onScroll(instance?: { scroll: number }) {
+      const current = instance?.scroll ?? (window.scrollY || window.pageYOffset || 0);
+      const last = lastScrollYRef.current;
+      if (Math.abs(current - last) < THRESHOLD) return;
+
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const freshCurrent = lastScrollYRef.current;
+        const freshLast = last;
 
         const { mobileMenuOpen: mmo, gimigkkPanelOpen: gpo, hoveredIndex: hi } = menuStateRef.current;
         const isExpanded = hi !== null;
 
-        if (current <= TOP_THRESHOLD) {
-          setNavVisible(true);
+        let nextVisible = true;
+        if (freshCurrent <= TOP_THRESHOLD) {
+          nextVisible = true;
         } else if (mmo || gpo || isExpanded) {
-          setNavVisible(true);
-        } else if (current > last) {
-          setNavVisible(false);
+          nextVisible = true;
+        } else if (freshCurrent > freshLast) {
+          nextVisible = false;
         } else {
-          setNavVisible(true);
+          nextVisible = true;
         }
 
-        lastScrollYRef.current = current;
+        if (nextVisible !== isNavVisible) {
+          isNavVisible = nextVisible;
+          setNavVisible(nextVisible);
+        }
       });
+      lastScrollYRef.current = current;
     }
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(rafId);
-    };
-  }, []); // no deps — menu state read from ref
+    const onNativeScroll = () => onScroll();
+
+    if (lenis) {
+      lenis.on("scroll", onScroll);
+      return () => {
+        lenis.off("scroll", onScroll);
+      };
+    } else {
+      window.addEventListener("scroll", onNativeScroll, { passive: true });
+      return () => {
+        window.removeEventListener("scroll", onNativeScroll);
+      };
+    }
+  }, [lenis]); // lenis as dep
 
   const closeAll = useCallback(() => {
     setHoveredIndex(null);
@@ -520,15 +541,16 @@ export default function Navbar() {
       </nav>
 
       {/* @gimigkk mobile panel */}
-      <>
-        <div
-          className={`md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm ${gimigkkPanelOpen ? "block" : "hidden"}`}
-          onClick={closeGimigkkPanel}
-        />
+      {gimigkkPanelOpen && (
+        <>
+          <div
+            className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={closeGimigkkPanel}
+          />
 
-        <div
-          className={`md:hidden fixed top-11.75 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl ${gimigkkPanelOpen ? "block" : "hidden"}`}
-        >
+          <div
+            className="md:hidden fixed top-11.75 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl"
+          >
           <div className="px-4 py-4 flex flex-col gap-1">
             {/* @gimigkk accordion */}
             <div>
@@ -575,17 +597,19 @@ export default function Navbar() {
           </div>
         </div>
       </>
+    )}
 
       {/* Hamburger mobile panel */}
-      <>
-        <div
-          className={`md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm ${mobileMenuOpen ? "block" : "hidden"}`}
-          onClick={closeMobileMenu}
-        />
+      {mobileMenuOpen && (
+        <>
+          <div
+            className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={closeMobileMenu}
+          />
 
-        <div
-          className={`md:hidden fixed top-11.75 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1 ${mobileMenuOpen ? "block" : "hidden"}`}
-        >
+          <div
+            className="md:hidden fixed top-11.75 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1"
+          >
           {/* Home + Project Archive + CV accordions */}
           {NAV_ITEMS.slice(1).map((item, idx) => {
             const i = idx + 1;
@@ -647,6 +671,7 @@ export default function Navbar() {
           })}
         </div>
       </>
+    )}
     </>
   );
 }

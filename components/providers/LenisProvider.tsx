@@ -50,8 +50,7 @@ export default function LenisProvider({ children }: { children: ReactNode }) {
       ref={lenisRef}
       root
       options={{
-        lerp: 0.15,
-        duration: 0.7,
+        lerp: 0.1,
         smoothWheel: true,
         virtualScroll: handleVirtualScroll,
       }}

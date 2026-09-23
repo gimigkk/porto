@@ -85,10 +85,11 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     };
 
     // Pause sources — unified flag check
-    const pauseFlags = { ascii: false, visible: true, tab: false, scroll: false };
+    const pauseFlags = { ascii: false, visible: true, tab: false, scrolling: false };
+    let scrollPauseTimer: NodeJS.Timeout | null = null;
 
     function checkShouldPause() {
-      const shouldPause = !pauseFlags.visible || pauseFlags.tab || pauseFlags.ascii || pauseFlags.scroll;
+      const shouldPause = !pauseFlags.visible || pauseFlags.tab || pauseFlags.ascii || pauseFlags.scrolling;
       if (shouldPause && !pausedRef.current) {
         pausedRef.current = true;
         cancelAnimationFrame(rafRef.current);
@@ -102,23 +103,21 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     const handlePause = () => { pauseFlags.ascii = true; checkShouldPause(); };
     const handleResume = () => { pauseFlags.ascii = false; checkShouldPause(); };
 
-    let scrollTimeout: NodeJS.Timeout;
     const handleScroll = () => {
       mouse.active = false;
       mouse.hasMoved = false;
       mouse.vx = 0;
       mouse.vy = 0;
 
-      // Pause rendering while scrolling to ensure smooth parallax
-      if (!pauseFlags.scroll) {
-        pauseFlags.scroll = true;
+      // Pause clouds during active scrolling to free 100% main thread & GPU for smooth scroll
+      pauseFlags.scrolling = true;
+      checkShouldPause();
+
+      if (scrollPauseTimer) clearTimeout(scrollPauseTimer);
+      scrollPauseTimer = setTimeout(() => {
+        pauseFlags.scrolling = false;
         checkShouldPause();
-      }
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        pauseFlags.scroll = false;
-        checkShouldPause();
-      }, 100);
+      }, 150);
     };
 
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
@@ -131,17 +130,23 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     const heroEl = document.getElementById("home");
     if (heroEl) heroHeight = heroEl.getBoundingClientRect().height;
 
+    let scrollCheckScheduled = false;
     const onScrollVisibility = () => {
-      const wasVisible = pauseFlags.visible;
-      // If progressRef is provided, pause when progress === 1 (fully docked/covered)
-      // Otherwise fallback to the old heroHeight check
-      if (progressRef) {
-        pauseFlags.visible = progressRef.current < 1;
-      } else {
-        const scrollY = window.scrollY || 0;
-        pauseFlags.visible = scrollY < heroHeight + 100;
-      }
-      if (wasVisible !== pauseFlags.visible) checkShouldPause();
+      if (scrollCheckScheduled) return;
+      scrollCheckScheduled = true;
+      requestAnimationFrame(() => {
+        scrollCheckScheduled = false;
+        const wasVisible = pauseFlags.visible;
+        // If progressRef is provided, pause when progress === 1 (fully docked/covered)
+        // Otherwise fallback to the old heroHeight check
+        if (progressRef) {
+          pauseFlags.visible = progressRef.current < 1;
+        } else {
+          const scrollY = window.scrollY || 0;
+          pauseFlags.visible = scrollY < heroHeight + 100;
+        }
+        if (wasVisible !== pauseFlags.visible) checkShouldPause();
+      });
     };
     window.addEventListener("scroll", onScrollVisibility, { passive: true });
     onScrollVisibility(); // set initial state
@@ -210,23 +215,11 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
         }
       }
 
-      // Render FPS: Firefox 30, desktop 60, mobile intro lower
-      const isFirefox = navigator.userAgent.includes("Firefox");
-      const isLowEnd = (navigator.hardwareConcurrency || 4) <= 4;
-      let targetFps = isFirefox || isLowEnd ? 30 : CONFIG.fps;
-      if (isIntro && W < 768) {
-        targetFps = 30;
-      }
+      renderer.render(state, simTimeMs, 0, isIntro, introOffsetNorm, cols, rows);
 
-      const renderInterval = 1000 / targetFps;
-      if (simTimeMs - lastRenderTime >= renderInterval) {
-        lastRenderTime = simTimeMs - ((simTimeMs - lastRenderTime) % renderInterval);
-        renderer.render(state, simTimeMs, 0, isIntro, introOffsetNorm, cols, rows);
-
-        if (!firstFrameRef.current) {
-          firstFrameRef.current = true;
-          onFirstFrameRendered?.();
-        }
+      if (!firstFrameRef.current) {
+        firstFrameRef.current = true;
+        onFirstFrameRendered?.();
       }
     }
 
@@ -235,7 +228,7 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       simTimeMs = isRevisit ? CONFIG.introDuration * 1000 : 0;
       // Offset so physics + render fire on first frame
       lastPhysicsTime = isRevisit ? simTimeMs - (1000 / 30) : -(1000 / 30);
-      lastRenderTime = isRevisit ? simTimeMs - (1000 / 60) : -(1000 / 60);
+      lastRenderTime = 0;
       rafRef.current = requestAnimationFrame(loop);
     }
 
@@ -254,7 +247,7 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     } else {
       // Fallback: load image ourselves
       const img = new Image();
-      img.src = "/assets/clouds.png";
+      img.src = "/assets/clouds.webp";
       img.onload = () => {
         const tempCvs = document.createElement("canvas");
         tempCvs.width = img.naturalWidth;
@@ -268,6 +261,7 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     }
 
     return () => {
+      if (scrollPauseTimer) clearTimeout(scrollPauseTimer);
       renderer.destroy();
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("pointermove", handlePointerMove);

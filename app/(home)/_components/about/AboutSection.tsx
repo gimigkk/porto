@@ -1,11 +1,10 @@
 "use client";
 
-import { IBM_Plex_Serif } from "next/font/google";
+import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
 import GithubCommitGraph from "@/app/(home)/_components/about/GithubCommitGraph";
 import TechMarquee from "@/app/(home)/_components/about/TechMarquee";
 import ProfileFlipCard from "@/app/(home)/_components/about/ProfileFlipCard";
-import BadgeLanyardCanvas from "@/app/(home)/_components/about/BadgeLanyardCanvas";
 import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
 import type { GithubGraphDay } from "@/lib/github";
 import { useRef, useState, useEffect, type CSSProperties } from "react";
@@ -14,11 +13,10 @@ import { useTooltip } from "@/components/providers/TooltipProvider";
 import { NameTooltipContent } from "./tooltips/NameTooltipContent";
 import { CampusTooltipContent } from "./tooltips/CampusTooltipContent";
 
-const ibmPlexSerif = IBM_Plex_Serif({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  style: ["normal"],
-});
+const BadgeLanyardCanvas = dynamic(
+  () => import("@/app/(home)/_components/about/BadgeLanyardCanvas"),
+  { ssr: false }
+);
 
 export default function AboutSection({ githubGraph }: { githubGraph: GithubGraphDay[][] }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -26,6 +24,11 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
   const { showTooltip, hideTooltip } = useTooltip();
 
   const [isAnimationSettled, setIsAnimationSettled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.matchMedia("(max-width: 767px)").matches);
+  }, []);
 
   useEffect(() => {
     if (isInView) {
@@ -35,22 +38,21 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
   }, [isInView]);
 
   const getTransition = (index: number) => ({
-    transform: isInView ? "translateY(0%)" : "translateY(150%)",
+    transform: isInView ? "translate3d(0, 0%, 0)" : "translate3d(0, 150%, 0)",
     transition: `transform 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${index * 0.1}s`
   });
 
   const getButtonTransition = (index: number) => ({
-    transform: isInView ? "translateY(0%)" : "translateY(50%)",
+    transform: isInView ? "translate3d(0, 0%, 0)" : "translate3d(0, 50%, 0)",
     opacity: isInView ? 1 : 0,
     transition: `transform 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${index * 0.1}s, opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${index * 0.1}s`
   });
 
   const getCardTransition = (delay: number): CSSProperties => ({
-    transform: isInView ? "translateY(0px)" : "translateY(-30px)",
+    transform: isInView ? "translate3d(0, 0px, 0)" : "translate3d(0, -30px, 0)",
     opacity: isInView ? 1 : 0,
-    filter: isInView ? "blur(0px)" : "blur(6px)",
-    transition: `transform 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s, opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s, filter 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s`,
-    willChange: isAnimationSettled ? "auto" : "transform, opacity, filter"
+    transition: `transform 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s, opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s`,
+    willChange: isAnimationSettled ? "auto" : "transform, opacity"
   });
 
   return (
@@ -67,7 +69,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
           <div className="flex flex-col flex-1 justify-between items-start">
             <div>
               <div className="overflow-hidden pb-3 -mb-3">
-                <h2 style={getTransition(0)} className={`${ibmPlexSerif.className} text-3xl font-bold mb-1 tracking-tight leading-none text-zinc-100`}>
+                <h2 style={getTransition(0)} className={`font-serif text-3xl font-bold mb-1 tracking-tight leading-none text-zinc-100`}>
                   <span
                     className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
@@ -78,7 +80,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
                 </h2>
               </div>
               <div className="overflow-hidden pb-3 mb-3">
-                <p style={getTransition(1)} className={`${ibmPlexSerif.className} text-sm leading-none text-zinc-300`}>
+                <p style={getTransition(1)} className={`font-serif text-sm leading-none text-zinc-300`}>
                   <span
                     className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
@@ -121,7 +123,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
             <div className="flex flex-col items-start gap-0.5 text-[11px] leading-none text-zinc-400">
               {["Fullstack Platform", "Company Website", "Event Website", "Internal Tools"].map((cat, i) => (
                 <div key={cat} className="overflow-hidden pb-1 -mb-1">
-                  <span style={getTransition(4 + i)} className={`${ibmPlexSerif.className} block`}>
+                  <span style={getTransition(4 + i)} className={`font-serif block`}>
                     {cat}
                   </span>
                 </div>
@@ -134,7 +136,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
               className="relative w-full max-w-[160px] aspect-[4/5]"
               style={getCardTransition(0.3)}
             >
-              <BadgeLanyardCanvas trigger={isInView} />
+              {isMobile && isInView && <BadgeLanyardCanvas trigger={isInView} />}
             </div>
           </div>
         </div>
@@ -163,7 +165,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
           <div className="flex flex-col items-start h-full w-[360px]">
             <div>
               <div className="overflow-hidden pb-4 -mb-4">
-                <h2 style={getTransition(0)} className={`${ibmPlexSerif.className} text-6xl lg:text-7xl font-bold mb-1 tracking-tight text-zinc-100`}>
+                <h2 style={getTransition(0)} className={`font-serif text-6xl lg:text-7xl font-bold mb-1 tracking-tight text-zinc-100`}>
                   <span
                     className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
@@ -174,7 +176,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
                 </h2>
               </div>
               <div className="overflow-hidden pb-4 -mb-4">
-                <p style={getTransition(1)} className={`${ibmPlexSerif.className} text-2xl lg:text-3xl text-zinc-300`}>
+                <p style={getTransition(1)} className={`font-serif text-2xl lg:text-3xl text-zinc-300`}>
                   <span
                     className="cursor-default"
                     onMouseEnter={() => showTooltip(<NameTooltipContent />)}
@@ -230,7 +232,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
             <div className="flex flex-col items-end text-lg text-zinc-200">
               {["Fullstack Platform", "Company Website", "Event Website", "Internal Tools"].map((cat, i) => (
                 <div key={cat} className="overflow-hidden pb-2 -mb-2">
-                  <span style={getTransition(4 + i)} className={`${ibmPlexSerif.className} block`}>
+                  <span style={getTransition(4 + i)} className={`font-serif block`}>
                     {cat}
                   </span>
                 </div>
