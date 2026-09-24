@@ -220,10 +220,10 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
           {/* Middle Column */}
           <div className="flex-1 flex justify-center px-4 lg:px-8 h-full overflow-visible">
             <div
-              className="relative h-full w-full max-w-[340px] overflow-visible"
+              className="relative h-full aspect-[1300/2232] max-w-[340px] overflow-visible"
               style={getCardTransition(0.3)}
             >
-              <ProfileFlipCard src="/mukagw.JPG" alt="Gilang" sizes="(max-width: 768px) 160px, 340px" priority />
+              <ProfileFlipCard src="/ktm.png" alt="Gilang" sizes="(max-width: 768px) 160px, 340px" priority />
             </div>
           </div>
 

@@ -9,7 +9,7 @@ import { Physics } from "@react-three/rapier";
 import { useTexture } from "@react-three/drei";
 import BadgeLanyard from "./BadgeLanyard";
 
-useTexture.preload("/mukagw.JPG");
+useTexture.preload("/ktm.png");
 
 export default function BadgeLanyardCanvas({ trigger = true }: { trigger?: boolean }) {
   return (

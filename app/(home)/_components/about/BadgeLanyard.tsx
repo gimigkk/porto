@@ -52,7 +52,7 @@ export default function BadgeLanyard({ maxSpeed = 50, minSpeed = 10 }) {
       tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
     }
   });
-  const profileTexture = useTexture("/mukagw.JPG", (tex) => {
+  const profileTexture = useTexture("/ktm.png", (tex) => {
     if (tex instanceof THREE.Texture) {
       tex.colorSpace = THREE.SRGBColorSpace;
     }
@@ -157,7 +157,7 @@ export default function BadgeLanyard({ maxSpeed = 50, minSpeed = 10 }) {
               <Decal
                 position={[0, 0.52, 0.1]}
                 rotation={[0, 0, 0]}
-                scale={[0.8, 1.125, 1]}
+                scale={[0.655, 1.125, 1]}
               >
                 <meshPhysicalMaterial
                   map={profileTexture}
