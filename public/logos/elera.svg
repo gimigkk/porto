@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 126 36" fill="none">
+  <!-- Butterfly Icon: height 25, y=5.5 (centered vertically on 36 height) -->
+  <g transform="translate(1, 5.5) scale(0.234)">
+    <path
+      d="M25 79.4998V20.4998C59.5 20.4998 80 34.4998 91.5 44.4998V55C74.5 39.5002 45.5 34.4998 45.5 34.4998V44.4998C45.5 44.4998 64 48 75.5 56.9998V68.4998C65 61 45.5 56.9998 45.5 56.9998V68.4998C45.5 68.4998 79 78.5 91.5 90.5V100C72 86.0002 43.5 79.4998 25 79.4998Z"
+      fill="#FFFFFF"
+      stroke="#FFFFFF"
+    />
+    <path
+      d="M22 16V0C58.1667 0 79.1667 13.7143 92 40C62.8333 13.7143 38.3333 16 22 16Z"
+      fill="#FFFFFF"
+    />
+    <path
+      d="M2 106.5L23 87C59.1667 87 76.5 96 92 106.5C32.5 96.9997 16.5 103.5 2 106.5Z"
+      fill="#FFFFFF"
+    />
+    <path
+      d="M0 20.5L18 4V86L0 102.5V20.5Z"
+      fill="#FFFFFF"
+    />
+    <path
+      d="M163 79.4998V20.4998C128.5 20.4998 108 34.4998 96.5 44.4998V55C113.5 39.5002 142.5 34.4998 142.5 34.4998V44.4998C142.5 44.4998 124 48 112.5 56.9998V68.4998C123 61 142.5 56.9998 142.5 56.9998V68.4998C142.5 68.4998 109 78.5 96.5 90.5V100C116 86.0002 144.5 79.4998 163 79.4998Z"
+      fill="#FFFFFF"
+      stroke="#FFFFFF"
+    />
+    <path
+      d="M166 16V0C129.833 0 108.833 13.7143 96 40C125.167 13.7143 149.667 16 166 16Z"
+      fill="#FFFFFF"
+    />
+    <path
+      d="M186 106.5L165 87C128.833 87 111.5 96 96 106.5C155.5 96.9997 171.5 103.5 186 106.5Z"
+      fill="#FFFFFF"
+    />
+    <path
+      d="M188 20.5L170 4V86L188 102.5V20.5Z"
+      fill="#FFFFFF"
+    />
+  </g>
+  <!-- Typography -->
+  <text x="50" y="16.5" fill="#FFFFFF" font-family="'Space Grotesk', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-weight="800" font-size="14.5" letter-spacing="-0.3">Elera Edu</text>
+  <text x="50.5" y="27.5" fill="#FFFFFF" font-family="'Space Grotesk', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-weight="600" font-size="9" letter-spacing="-0.1" opacity="0.8">Yogyakarta</text>
+</svg>

@@ -40,4 +40,9 @@ export const COMPANY_LOGOS: CompanyLogoItem[] = [
     name: "Clyora",
     src: "/logos/clyora.svg",
   },
+  {
+    id: "elera",
+    name: "Elera Edu",
+    src: "/logos/elera.svg",
+  },
 ];
