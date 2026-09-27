@@ -6,7 +6,7 @@ import {
   siRust, siSupabase, siRedis, siGraphql, siMongodb, siExpress, siVite,
   siSvelte, siVuedotjs, siAstro, siGo, siWhatsapp, siGooglegemini,
   siSocketdotio, siVercel, siGithub, siLinux, siNginx, siGodotengine,
-  siUnity, siBlender, siAndroid
+  siUnity, siBlender, siAndroid, siCloudflare, siDrizzle
 } from "simple-icons";
 import { Maildeveloper, Playwright } from "@dev.icons/react/mono";
 
@@ -50,6 +50,8 @@ const iconMap: Record<string, { title: string; svg: string }> = {
   unity:      siUnity,
   blender:    siBlender,
   android:    siAndroid,
+  cloudflare: siCloudflare,
+  drizzle:    siDrizzle,
 };
 
 /** Extract inner SVG path string from a simple-icons SVG string */

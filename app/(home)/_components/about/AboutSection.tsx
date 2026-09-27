@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
 import GithubCommitGraph from "@/app/(home)/_components/about/GithubCommitGraph";
-import TechMarquee from "@/app/(home)/_components/about/TechMarquee";
+import TechOdometer from "@/app/(home)/_components/about/TechOdometer";
 import ProfileFlipCard from "@/app/(home)/_components/about/ProfileFlipCard";
 import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
 import type { GithubGraphDay } from "@/lib/github";
@@ -25,6 +25,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
   const [isAnimationSettled, setIsAnimationSettled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const advanceTechRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     setIsMobile(window.matchMedia("(max-width: 767px)").matches);
@@ -103,9 +104,13 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
                 </p>
               </div>
 
-              <div className="mb-10">
+              <div className="mb-6">
                 <div style={getButtonTransition(6)}>
-                  <button className={`${styles.pushable} group shrink-0`} aria-label="Technology">
+                  <button
+                    className={`${styles.pushable} group shrink-0 cursor-pointer`}
+                    aria-label="Technology"
+                    onClick={() => advanceTechRef.current?.()}
+                  >
                     <span className={styles.shadow}></span>
                     <span className={styles.edge}></span>
                     <span
@@ -120,14 +125,8 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
               </div>
             </div>
 
-            <div className="flex flex-col items-start gap-0.5 text-[11px] leading-none text-zinc-400">
-              {["Fullstack Platform", "Company Website", "Event Website", "Internal Tools"].map((cat, i) => (
-                <div key={cat} className="overflow-hidden pb-1 -mb-1">
-                  <span style={getTransition(4 + i)} className={`font-serif block`}>
-                    {cat}
-                  </span>
-                </div>
-              ))}
+            <div className="w-full" style={getTransition(4)}>
+              <TechOdometer align="left" isMobile trigger={isInView} onAdvanceRef={advanceTechRef} />
             </div>
           </div>
 
@@ -144,16 +143,10 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
         {/* Mobile Divider */}
         <hr className="md:hidden border-zinc-800 my-6" />
 
-        {/* Sub-section 2: GitHub Graph + Marquee */}
+        {/* Sub-section 2: GitHub Graph */}
         <div className="flex md:hidden flex-col gap-2 w-full overflow-hidden">
           <div className="flex justify-end w-full">
             <GithubCommitGraph data={githubGraph} delayBase={0.8} trigger={isInView} />
-          </div>
-          <div
-            className="overflow-hidden w-full"
-            style={{ maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}
-          >
-            <TechMarquee trigger={isInView} />
           </div>
         </div>
 
@@ -202,7 +195,11 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
             <div className="mt-12">
               <div style={getButtonTransition(6)}>
-                <button className={`${styles.pushable} group shrink-0`} aria-label="Technology">
+                <button
+                  className={`${styles.pushable} group shrink-0 cursor-pointer`}
+                  aria-label="Technology"
+                  onClick={() => advanceTechRef.current?.()}
+                >
                   <span className={styles.shadow}></span>
                   <span className={styles.edge}></span>
                   <span
@@ -229,27 +226,12 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
           {/* Right Column */}
           <div className="flex flex-col items-end h-full text-right w-[360px]">
-            <div className="flex flex-col items-end text-lg text-zinc-200">
-              {["Fullstack Platform", "Company Website", "Event Website", "Internal Tools"].map((cat, i) => (
-                <div key={cat} className="overflow-hidden pb-2 -mb-2">
-                  <span style={getTransition(4 + i)} className={`font-serif block`}>
-                    {cat}
-                  </span>
-                </div>
-              ))}
+            <div style={getTransition(4)}>
+              <TechOdometer align="right" trigger={isInView} onAdvanceRef={advanceTechRef} />
             </div>
 
-            <div className="flex justify-end w-full mt-28">
+            <div className="flex justify-end w-full mt-[176px]">
               <GithubCommitGraph data={githubGraph.slice(-26)} delayBase={0.6} trigger={isInView} />
-            </div>
-
-            <div className="overflow-hidden mt-12 w-full">
-              <div
-                className="flex justify-end w-full overflow-hidden"
-                style={{ maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}
-              >
-                <TechMarquee trigger={isInView} />
-              </div>
             </div>
           </div>
 
