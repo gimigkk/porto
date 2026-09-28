@@ -6,7 +6,7 @@ import {
   siRust, siSupabase, siRedis, siGraphql, siMongodb, siExpress, siVite,
   siSvelte, siVuedotjs, siAstro, siGo, siWhatsapp, siGooglegemini,
   siSocketdotio, siVercel, siGithub, siLinux, siNginx, siGodotengine,
-  siUnity, siBlender, siAndroid, siCloudflare, siDrizzle
+  siUnity, siBlender, siAndroid, siCloudflare, siDrizzle, siInstagram
 } from "simple-icons";
 import { Maildeveloper, Playwright } from "@dev.icons/react/mono";
 
@@ -41,6 +41,7 @@ const iconMap: Record<string, { title: string; svg: string }> = {
   socketio:   siSocketdotio,
   vercel:     siVercel,
   github:     siGithub,
+  instagram:  siInstagram,
   linux:      siLinux,
   nginx:      siNginx,
   axum:       siRust,

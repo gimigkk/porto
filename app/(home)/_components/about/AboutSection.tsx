@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import GithubCommitGraph from "@/app/(home)/_components/about/GithubCommitGraph";
 import TechOdometer from "@/app/(home)/_components/about/TechOdometer";
 import ProfileFlipCard from "@/app/(home)/_components/about/ProfileFlipCard";
+import TechIcon from "@/components/shared/TechIcon";
 import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
 import type { GithubGraphDay } from "@/lib/github";
 import { useRef, useState, useEffect, type CSSProperties } from "react";
@@ -106,21 +107,20 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
               <div className="mb-6">
                 <div style={getButtonTransition(6)}>
-                  <button
-                    className={`${styles.pushable} group shrink-0 cursor-pointer`}
-                    aria-label="Technology"
-                    onClick={() => advanceTechRef.current?.()}
+                  <a
+                    href="mailto:gimi.gkk@gmail.com"
+                    className={`${styles.pushable} group shrink-0 inline-block`}
+                    aria-label="Contact me"
                   >
                     <span className={styles.shadow}></span>
                     <span className={styles.edge}></span>
                     <span
-                      className={`${styles.front} !flex items-center justify-center gap-1 whitespace-nowrap`}
-                      style={{ padding: "6px 12px", fontSize: "11px" }}
+                      className={`${styles.front} !flex items-center justify-center whitespace-nowrap`}
+                      style={{ padding: "6px 14px", fontSize: "11px" }}
                     >
-                      <span>Technology</span>
-                      <ArrowRight className="w-3 h-3 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
+                      <span>Contact me</span>
                     </span>
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
@@ -195,21 +195,20 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
             <div className="mt-12">
               <div style={getButtonTransition(6)}>
-                <button
-                  className={`${styles.pushable} group shrink-0 cursor-pointer`}
-                  aria-label="Technology"
-                  onClick={() => advanceTechRef.current?.()}
+                <a
+                  href="mailto:gimi.gkk@gmail.com"
+                  className={`${styles.pushable} group shrink-0 inline-block`}
+                  aria-label="Contact me"
                 >
                   <span className={styles.shadow}></span>
                   <span className={styles.edge}></span>
                   <span
-                    className={`${styles.front} !flex items-center justify-center gap-1 whitespace-nowrap`}
-                    style={{ padding: "8px 16px", fontSize: "0.85rem" }}
+                    className={`${styles.front} !flex items-center justify-center whitespace-nowrap`}
+                    style={{ padding: "8px 18px", fontSize: "0.85rem" }}
                   >
-                    <span>Technology</span>
-                    <ArrowRight className="w-3.5 h-3.5 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
+                    <span>Contact me</span>
                   </span>
-                </button>
+                </a>
               </div>
             </div>
           </div>
@@ -232,6 +231,46 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
             <div className="flex justify-end w-full mt-[176px]">
               <GithubCommitGraph data={githubGraph.slice(-26)} delayBase={0.6} trigger={isInView} />
+            </div>
+
+            <div className="mt-12 flex items-center justify-end gap-3 w-full">
+              <div style={getButtonTransition(6)}>
+                <a
+                  href="https://instagram.com/gimigkk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${styles.pushable} group shrink-0 inline-block`}
+                  aria-label="Instagram"
+                >
+                  <span className={styles.shadow}></span>
+                  <span className={styles.edge}></span>
+                  <span
+                    className={`${styles.front} !flex items-center justify-center`}
+                    style={{ padding: "9px 12px" }}
+                  >
+                    <TechIcon tech="instagram" size={17} className="text-zinc-900 group-hover:scale-110 transition-transform" />
+                  </span>
+                </a>
+              </div>
+
+              <div style={getButtonTransition(6)}>
+                <a
+                  href="https://github.com/gimigkk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${styles.pushable} group shrink-0 inline-block`}
+                  aria-label="GitHub"
+                >
+                  <span className={styles.shadow}></span>
+                  <span className={styles.edge}></span>
+                  <span
+                    className={`${styles.front} !flex items-center justify-center`}
+                    style={{ padding: "9px 12px" }}
+                  >
+                    <TechIcon tech="github" size={17} className="text-zinc-900 group-hover:scale-110 transition-transform" />
+                  </span>
+                </a>
+              </div>
             </div>
           </div>
 
