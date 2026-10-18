@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, animate } from "framer-motion";
 
 /* ─── Personality traits that shape each cursor's movement character ─── */
@@ -17,7 +17,6 @@ interface CursorPersonality {
 interface CursorData {
   id: string;
   name: string;
-  message: string;
   color: string;
   initialPos: { x: number; y: number };
   targetPos: { top: string; left: string };
@@ -29,7 +28,6 @@ const COLLAB_CURSORS: CursorData[] = [
   {
     id: "siwowok",
     name: "Siwowok",
-    message: "Gimiaw cookin fr 🔥",
     color: "#ea580c",
     initialPos: { x: 500, y: -250 },
     targetPos: { top: "18%", left: "82%" },
@@ -47,7 +45,6 @@ const COLLAB_CURSORS: CursorData[] = [
   {
     id: "tutua",
     name: "Tutua",
-    message: "Check out the projects! 🏹",
     color: "#059669",
     initialPos: { x: -450, y: 350 },
     targetPos: { top: "66%", left: "10%" },
@@ -65,7 +62,6 @@ const COLLAB_CURSORS: CursorData[] = [
   {
     id: "gimiaw",
     name: "Gimiaw",
-    message: "Love the ASCII clouds ☁️",
     color: "#dc2626",
     initialPos: { x: -500, y: -300 },
     targetPos: { top: "20%", left: "10%" },
@@ -83,7 +79,6 @@ const COLLAB_CURSORS: CursorData[] = [
   {
     id: "bunga",
     name: "Bunga",
-    message: "Lets goooo! 🚀",
     color: "#db2777",
     initialPos: { x: 400, y: 400 },
     targetPos: { top: "68%", left: "84%" },
@@ -101,7 +96,6 @@ const COLLAB_CURSORS: CursorData[] = [
   {
     id: "julio",
     name: "Julio",
-    message: "Salam bro! Clean UI ✨",
     color: "#7c3aed",
     initialPos: { x: 0, y: 450 },
     targetPos: { top: "78%", left: "48%" },
@@ -250,7 +244,6 @@ const MOBILE_COLLAB_CURSORS: CursorData[] = [
   {
     id: "m-gimiaw",
     name: "Gimiaw",
-    message: "Love the ASCII clouds ☁️",
     color: "#dc2626",
     initialPos: { x: -80, y: 0 },
     targetPos: { top: "63%", left: "16%" },
@@ -268,7 +261,6 @@ const MOBILE_COLLAB_CURSORS: CursorData[] = [
   {
     id: "m-bunga",
     name: "Bunga",
-    message: "Lets goooo! 🚀",
     color: "#db2777",
     initialPos: { x: 80, y: 0 },
     targetPos: { top: "69%", left: "50%" },
@@ -290,7 +282,6 @@ interface FigmaCollabCursorsProps {
 }
 
 export default function FigmaCollabCursors({ isReady = true }: FigmaCollabCursorsProps) {
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(true);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -338,9 +329,6 @@ export default function FigmaCollabCursors({ isReady = true }: FigmaCollabCursor
           <CollabCursorItem
             key={cursor.id}
             cursor={cursor}
-            isHovered={hoveredId === cursor.id}
-            onHover={() => setHoveredId(cursor.id)}
-            onLeave={() => setHoveredId((prev) => (prev === cursor.id ? null : prev))}
             isActive={isVisible && !isMobileScreen}
           />
         ))}
@@ -352,9 +340,6 @@ export default function FigmaCollabCursors({ isReady = true }: FigmaCollabCursor
           <CollabCursorItem
             key={cursor.id}
             cursor={cursor}
-            isHovered={hoveredId === cursor.id}
-            onHover={() => setHoveredId(cursor.id)}
-            onLeave={() => setHoveredId((prev) => (prev === cursor.id ? null : prev))}
             isMobile
             isActive={isVisible && isMobileScreen}
           />
@@ -366,55 +351,13 @@ export default function FigmaCollabCursors({ isReady = true }: FigmaCollabCursor
 
 interface CollabCursorItemProps {
   cursor: CursorData;
-  isHovered: boolean;
-  onHover: () => void;
-  onLeave: () => void;
   isMobile?: boolean;
   isActive?: boolean;
 }
 
-// Horizontal padding inside the pill (px-3 = 12px each side)
-const PILL_PX = 24;
-
-const CollabCursorItem = React.memo(function CollabCursorItem({ cursor, isHovered, onHover, onLeave, isMobile = false, isActive = true }: CollabCursorItemProps) {
-  // Measure intrinsic widths of name and full message once on mount
-  const nameGhostRef = useRef<HTMLSpanElement>(null);
-  const msgGhostRef = useRef<HTMLSpanElement>(null);
-  const [nameW, setNameW] = useState<number | null>(null);
-  const [msgW, setMsgW] = useState<number | null>(null);
-
-  useLayoutEffect(() => {
-    if (nameGhostRef.current) setNameW(nameGhostRef.current.offsetWidth + PILL_PX);
-    if (msgGhostRef.current) setMsgW(msgGhostRef.current.offsetWidth + PILL_PX);
-  }, []);
-
-  const leaveTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handleMouseEnter = () => {
-    if (leaveTimerRef.current) {
-      clearTimeout(leaveTimerRef.current);
-      leaveTimerRef.current = null;
-    }
-    onHover();
-  };
-
-  const handleMouseLeave = () => {
-    if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
-    leaveTimerRef.current = setTimeout(() => {
-      onLeave();
-    }, 250);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
-    };
-  }, []);
-
+const CollabCursorItem = React.memo(function CollabCursorItem({ cursor, isMobile = false, isActive = true }: CollabCursorItemProps) {
   // Procedural organic movement — never repeats, never resets
   const { x: motionX, y: motionY } = useOrganicMovement(cursor.personality, cursor.delay, isActive);
-
-  const targetWidth = isHovered ? (msgW ?? 140) : (nameW ?? 60);
   const baseScale = isMobile ? 0.72 : 1;
 
   return (
@@ -432,22 +375,9 @@ const CollabCursorItem = React.memo(function CollabCursorItem({ cursor, isHovere
       }}
       className="pointer-events-none select-none"
     >
-      {/* Organic procedural movement — driven by useMotionValue, independent of hover */}
+      {/* Organic procedural movement */}
       <motion.div style={{ x: motionX, y: motionY }}>
         <div className="relative flex items-start">
-          {/* Expanded Hitbox: 2x base size, grows larger when hovered, debounced */}
-          <div
-            className="absolute pointer-events-auto cursor-pointer z-20"
-            style={{
-              top: isHovered ? -24 : -10,
-              left: isHovered ? -24 : -10,
-              width: (targetWidth + 14) + (isHovered ? 50 : 24),
-              height: 39 + (isHovered ? 48 : 20),
-            }}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onClick={handleMouseEnter}
-          />
           {/* Cursor arrow — compact 17x19 (matches authentic Figma cursor size) */}
           <svg
             width="17" height="19" viewBox="0 0 22 24" fill="none"
@@ -460,48 +390,15 @@ const CollabCursorItem = React.memo(function CollabCursorItem({ cursor, isHovere
             />
           </svg>
 
-          {/* Ghost spans — off-screen, used only for width measurement */}
-          <span
-            ref={nameGhostRef}
-            className="fixed top-[-9999px] left-[-9999px] text-[13px] font-semibold font-sans tracking-tight whitespace-nowrap pointer-events-none select-none"
-            aria-hidden="true"
-          >
-            {cursor.name}
-          </span>
-          <span
-            ref={msgGhostRef}
-            className="fixed top-[-9999px] left-[-9999px] text-[13px] font-semibold font-sans tracking-tight whitespace-nowrap pointer-events-none select-none"
-            aria-hidden="true"
-          >
-            {cursor.message}
-          </span>
-
-          {/* Badge container — positioned with clean breathing room from arrow notch */}
-          <motion.div
-            animate={{
-              width: targetWidth,
-              borderRadius: isHovered ? "2px 13px 13px 13px" : "13px 13px 13px 13px",
-            }}
-            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="absolute top-[13px] left-[14px] h-[26px] overflow-hidden drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.16)]"
+          {/* Badge container — name only, static Figma pill */}
+          <div
+            className="absolute top-[13px] left-[14px] h-[26px] rounded-[13px] px-3 flex items-center overflow-hidden drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.16)]"
             style={{ backgroundColor: cursor.color }}
           >
-            {/* Name label */}
-            <span
-              className="absolute inset-0 flex items-center px-3 text-white text-[13px] font-semibold font-sans tracking-tight whitespace-nowrap"
-              style={{ opacity: isHovered ? 0 : 1, transition: "opacity 0.15s ease" }}
-            >
+            <span className="text-white text-[13px] font-semibold font-sans tracking-tight whitespace-nowrap">
               {cursor.name}
             </span>
-
-            {/* Chat message */}
-            <span
-              className="absolute inset-0 flex items-center px-3 text-white text-[13px] font-semibold font-sans tracking-tight whitespace-nowrap"
-              style={{ opacity: isHovered ? 1 : 0, transition: "opacity 0.15s ease" }}
-            >
-              {cursor.message}
-            </span>
-          </motion.div>
+          </div>
         </div>
       </motion.div>
     </motion.div>
