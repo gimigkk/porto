@@ -11,7 +11,7 @@
 import { useEffect, useRef } from "react";
 import { CONFIG, CloudState, MouseState } from "./CloudAsciiCore";
 import { updateGusts, updateBlobs, updateDisruptions } from "./CloudAsciiPhysics";
-import { AsciiRenderer } from "./CloudAsciiRenderer";
+import { CloudAsciiGPU } from "./CloudAsciiGPU";
 import type { PreloadedAssets } from "@/hooks/usePreloader";
 
 import { getHasCompletedHomeIntro } from "@/app/(home)/_components/HomeClient";
@@ -43,7 +43,7 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const renderer = new AsciiRenderer(canvas);
+    const renderer = new CloudAsciiGPU(canvas);
 
     const isRevisit = getHasCompletedHomeIntro();
     let simTimeMs = isRevisit ? CONFIG.introDuration * 1000 : 0;
