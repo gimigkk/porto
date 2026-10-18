@@ -49,7 +49,7 @@ export default function SkyBackground({
         style={{ willChange: "transform", transform: "translateZ(0)" }}
       >
         {/* Sky gradient */}
-        <div className="absolute inset-0 bg-linear-to-b from-[#0c3888] to-[#50aaff]" />
+        <div className="absolute inset-0 bg-linear-to-b from-[#1F2484] to-[#50aaff]" />
         {/* Overscroll bleed cover to prevent black flash on low FPS */}
         <div className="absolute top-full left-0 right-0 h-[100vh] bg-black" />
 
