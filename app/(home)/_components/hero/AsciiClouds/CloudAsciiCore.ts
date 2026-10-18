@@ -22,6 +22,7 @@ export const CONFIG = {
   waveDepth: 0.6,
   displacement: 0.6,
   fps: 30,             // Visual render framerate
+  opacity: 0.75,        // Global cloud opacity against sky gradient
 
   // -- Wind gusts --
   maxGusts: 4,
@@ -65,7 +66,7 @@ export const CONFIG = {
     trailFling: 0.28,           // Speed multiplier transferred to trail drift
     pushRadius: 180,            // Physical push radius for smoke blobs (in image pixels)
     pushStrength: 0.65,         // Scaling factor for force applied to the particles
-
+    
     // -- Tune limits below to adjust responsiveness vs. constraints --
     maxWarpDisplacement: 14.0,  // Max grid cells allowed to warp. Lower = stiffer, Higher = looser warp.
     maxBlobSpeed: 320.0,        // Max drift speed of smoke puffs to keep them elegant.

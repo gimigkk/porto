@@ -85,11 +85,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     };
 
     // Pause sources — unified flag check
-    const pauseFlags = { ascii: false, visible: true, tab: false, scrolling: false };
-    let scrollPauseTimer: NodeJS.Timeout | null = null;
+    const pauseFlags = { ascii: false, visible: true, tab: false };
 
     function checkShouldPause() {
-      const shouldPause = !pauseFlags.visible || pauseFlags.tab || pauseFlags.ascii || pauseFlags.scrolling;
+      const shouldPause = !pauseFlags.visible || pauseFlags.tab || pauseFlags.ascii;
       if (shouldPause && !pausedRef.current) {
         pausedRef.current = true;
         cancelAnimationFrame(rafRef.current);
@@ -103,21 +102,13 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     const handlePause = () => { pauseFlags.ascii = true; checkShouldPause(); };
     const handleResume = () => { pauseFlags.ascii = false; checkShouldPause(); };
 
+    let lastScrollAt = -Infinity;
     const handleScroll = () => {
+      lastScrollAt = performance.now();
       mouse.active = false;
       mouse.hasMoved = false;
       mouse.vx = 0;
       mouse.vy = 0;
-
-      // Pause clouds during active scrolling to free 100% main thread & GPU for smooth scroll
-      pauseFlags.scrolling = true;
-      checkShouldPause();
-
-      if (scrollPauseTimer) clearTimeout(scrollPauseTimer);
-      scrollPauseTimer = setTimeout(() => {
-        pauseFlags.scrolling = false;
-        checkShouldPause();
-      }, 150);
     };
 
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
@@ -157,6 +148,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
 
     function loop(now: number) {
       rafRef.current = requestAnimationFrame(loop);
+
+      // Throttle to 10fps while scrolling (150ms grace); skipped time still accumulates via realDt
+      if (now - lastScrollAt < 150 && now - lastRenderTime < 100) return;
+      lastRenderTime = now;
 
       let realDt = now - lastRealTime;
       if (realDt < 0) realDt = 0;
@@ -261,7 +256,6 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     }
 
     return () => {
-      if (scrollPauseTimer) clearTimeout(scrollPauseTimer);
       renderer.destroy();
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("pointermove", handlePointerMove);

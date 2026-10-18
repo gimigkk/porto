@@ -2,6 +2,7 @@
 
 import { useParallaxDock } from "@/hooks/useParallaxDock";
 import AsciiClouds from "@/app/(home)/_components/hero/AsciiClouds/AsciiClouds";
+import { CONFIG } from "@/app/(home)/_components/hero/AsciiClouds/CloudAsciiCore";
 import type { PreloadedAssets } from "@/hooks/usePreloader";
 const SKY_LAYOUT_OBSERVERS = ["#home", "#stacked-sections"] as const;
 
@@ -53,7 +54,10 @@ export default function SkyBackground({
         <div className="absolute top-full left-0 right-0 h-[100vh] bg-black" />
 
         {/* ASCII Clouds */}
-        <div className="absolute inset-0 pointer-events-none select-none">
+        <div
+          className="absolute inset-0 pointer-events-none select-none"
+          style={{ opacity: CONFIG.opacity }}
+        >
           <AsciiClouds
             className="w-full h-full"
             isReady={isReady}

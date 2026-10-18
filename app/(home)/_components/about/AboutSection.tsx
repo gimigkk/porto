@@ -246,7 +246,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
                   <span className={styles.edge}></span>
                   <span
                     className={`${styles.front} !flex items-center justify-center`}
-                    style={{ padding: "9px 12px" }}
+                    style={{ padding: "9px 12px", minHeight: "36px" }}
                   >
                     <TechIcon tech="instagram" size={17} className="text-zinc-900 group-hover:scale-110 transition-transform" />
                   </span>
@@ -265,7 +265,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
                   <span className={styles.edge}></span>
                   <span
                     className={`${styles.front} !flex items-center justify-center`}
-                    style={{ padding: "9px 12px" }}
+                    style={{ padding: "9px 12px", minHeight: "36px" }}
                   >
                     <TechIcon tech="github" size={17} className="text-zinc-900 group-hover:scale-110 transition-transform" />
                   </span>
