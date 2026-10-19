@@ -85,10 +85,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     };
 
     // Pause sources — unified flag check
-    const pauseFlags = { ascii: false, visible: true, tab: false };
+    const pauseFlags = { ascii: false, tab: false };
 
     function checkShouldPause() {
-      const shouldPause = !pauseFlags.visible || pauseFlags.tab || pauseFlags.ascii;
+      const shouldPause = pauseFlags.tab || pauseFlags.ascii;
       if (shouldPause && !pausedRef.current) {
         pausedRef.current = true;
         cancelAnimationFrame(rafRef.current);
@@ -117,30 +117,10 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     window.addEventListener("pointerleave", handlePointerLeave, { passive: true });
     window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
     window.addEventListener("ascii-pause", handlePause);
+    window.addEventListener("ascii-resume", handleResume);
     let heroHeight = window.innerHeight; // fallback
     const heroEl = document.getElementById("home");
     if (heroEl) heroHeight = heroEl.getBoundingClientRect().height;
-
-    let scrollCheckScheduled = false;
-    const onScrollVisibility = () => {
-      if (scrollCheckScheduled) return;
-      scrollCheckScheduled = true;
-      requestAnimationFrame(() => {
-        scrollCheckScheduled = false;
-        const wasVisible = pauseFlags.visible;
-        // If progressRef is provided, pause when progress === 1 (fully docked/covered)
-        // Otherwise fallback to the old heroHeight check
-        if (progressRef) {
-          pauseFlags.visible = progressRef.current < 1;
-        } else {
-          const scrollY = window.scrollY || 0;
-          pauseFlags.visible = scrollY < heroHeight + 100;
-        }
-        if (wasVisible !== pauseFlags.visible) checkShouldPause();
-      });
-    };
-    window.addEventListener("scroll", onScrollVisibility, { passive: true });
-    onScrollVisibility(); // set initial state
 
     // Pause when tab hidden (saves battery on background tabs)
     const onVisibility = () => { pauseFlags.tab = document.hidden; checkShouldPause(); };
@@ -149,8 +129,11 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
     function loop(now: number) {
       rafRef.current = requestAnimationFrame(loop);
 
-      // Throttle to 10fps while scrolling (150ms grace); skipped time still accumulates via realDt
-      if (now - lastScrollAt < 150 && now - lastRenderTime < 100) return;
+      // Throttle to 10fps while scrolling (150ms grace) OR when scrolled down / at bottom
+      const isBottom = typeof window !== "undefined" && window.innerHeight + (window.scrollY || 0) >= (document.documentElement.scrollHeight - 50);
+      const isScrolledDown = (progressRef ? progressRef.current >= 1 : (window.scrollY || 0) >= heroHeight) || isBottom;
+      const isScrolling = now - lastScrollAt < 150;
+      if ((isScrolling || isScrolledDown) && now - lastRenderTime < 100) return;
       lastRenderTime = now;
 
       let realDt = now - lastRealTime;
@@ -162,13 +145,7 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       const H = renderer.currentH;
       if (W === 0 || H === 0) return;
 
-      let speedScale = 1.0;
-      if (progressRef) {
-        speedScale = Math.max(0, Math.pow(1 - progressRef.current, 3));
-      }
-      if (speedScale <= 0.001) return;
-
-      simTimeMs += realDt * speedScale;
+      simTimeMs += realDt;
       const t = simTimeMs / 1000;
 
       const isIntro = t < CONFIG.introDuration;
@@ -265,7 +242,6 @@ export function useAsciiClouds(options: UseAsciiCloudsOptions = {}) {
       window.removeEventListener("scroll", handleScroll, { capture: true });
       window.removeEventListener("ascii-pause", handlePause);
       window.removeEventListener("ascii-resume", handleResume);
-      window.removeEventListener("scroll", onScrollVisibility);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [isReady, preloadedAssets, onFirstFrameRendered, onIntroComplete, progressRef]);

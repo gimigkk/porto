@@ -26,10 +26,9 @@ export default function SkyBackground({
   isRevisit = false,
 }: SkyBackgroundProps) {
   const { parallaxRef, progressRef } = useParallaxDock({
-    dockAnchor: '[data-folder-root="section-experience"]',
+    dockAnchor: '[data-folder-root="section-about"]',
     target: "#home",
-    visibleFrac: 0.3,
-    startSpeed: 1,
+    speed: 0.75,
     disabled: isMobile,
     observeSelectors: SKY_LAYOUT_OBSERVERS,
   });

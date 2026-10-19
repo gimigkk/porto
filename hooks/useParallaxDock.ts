@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useLenis } from "lenis/react";
 import type Lenis from "lenis";
-import { getDocumentTop } from "@/components/layout/stackGeometry";
+import { getDocumentTop, readStackTop } from "@/components/layout/stackGeometry";
 // ─── Types ──────────────────────────────────────────────────────
 
 type ParallaxTarget =
@@ -13,7 +13,7 @@ type ParallaxTarget =
   | null;           // no shift calc — just parallax via progress
 
 interface ParallaxDockOptions {
-  /** Dock anchor — CSS selector (bottom of element) or explicit px scroll position */
+  /** Dock anchor — CSS selector (docking element) or explicit px scroll position */
   dockAnchor: string | number;
   /** Optional offset added to dockAnchor (CSS length like "50px" or "5svh") */
   dockOffset?: string;
@@ -21,8 +21,12 @@ interface ParallaxDockOptions {
   target?: ParallaxTarget;
   /** Fraction of target height left at dock (default 0 = scrolls fully out) */
   visibleFrac?: number;
-  /** Initial speed relative to content (0-1). 0.5 = starts at 50% scroll speed, decelerates to 0. */
+  /** Parallax speed factor relative to scroll (0-1). 0.5 = moves at 50% scroll speed. */
+  speed?: number;
+  /** Initial speed relative to content (0-1) when using ease-out */
   startSpeed?: number;
+  /** Motion curve: 'linear' (constant natural parallax) or 'ease-out' */
+  easing?: "linear" | "ease-out";
   /** If true, parallax is disabled and transform resets to 0 */
   disabled?: boolean;
   /** Additional elements whose resize can move the dock anchor */
@@ -43,11 +47,15 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
     dockAnchor,
     target = "auto",
     visibleFrac = 0,
-    startSpeed = 0.5,
+    speed = 0.5,
+    startSpeed,
+    easing = "linear",
     dockOffset,
     disabled = false,
     observeSelectors = [],
   } = options;
+
+  const effectiveSpeed = startSpeed ?? speed;
 
   const parallaxRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef(0);
@@ -81,34 +89,36 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
     } else {
       const dockEl = document.querySelector(dockAnchor);
       if (dockEl) {
-        const rect = dockEl.getBoundingClientRect();
-        const absoluteBottom = dockEl instanceof HTMLElement
-          ? getDocumentTop(dockEl) + rect.height
-          : rect.top + window.scrollY + rect.height;
-        let dockScroll = absoluteBottom - window.innerHeight;
+        const stackTop = dockEl instanceof HTMLElement ? readStackTop(dockEl) : 0;
+        const top = dockEl instanceof HTMLElement
+          ? getDocumentTop(dockEl)
+          : dockEl.getBoundingClientRect().top + window.scrollY;
+        let dockScroll = top - stackTop;
         if (dockOffset) dockScroll += parseCssLength(dockOffset);
         dockScrollRef.current = Math.max(0, dockScroll);
       }
     }
 
     const dock = dockScrollRef.current;
-    let h = 0;
-    if (typeof target === "number") {
-      h = target;
-    } else if (typeof target === "string") {
-      const el = document.querySelector(target);
-      if (el) h = el.getBoundingClientRect().height;
-    } else if (target === "auto") {
-      if (parallaxRef.current) h = parallaxRef.current.getBoundingClientRect().height;
+    if (dock > 0 && dock !== Infinity) {
+      maxShiftRef.current = dock * effectiveSpeed;
+    } else {
+      let h = 0;
+      if (typeof target === "number") {
+        h = target;
+      } else if (typeof target === "string") {
+        const el = document.querySelector(target);
+        if (el) h = el.getBoundingClientRect().height;
+      } else if (target === "auto") {
+        if (parallaxRef.current) h = parallaxRef.current.getBoundingClientRect().height;
+      }
+      if (h > 0) {
+        maxShiftRef.current = h * (1 - visibleFrac);
+      }
     }
-    if (h > 0) {
-      const desired = h * (1 - visibleFrac);
-      const cap = dock > 0 ? (startSpeed * dock) / 2 : Infinity;
-      maxShiftRef.current = Math.min(desired, cap);
-    }
-  }, [dockAnchor, target, visibleFrac, dockOffset, startSpeed]);
+  }, [dockAnchor, dockOffset, effectiveSpeed, target, visibleFrac]);
 
-  // ── Parallax: quadratic ease-out = linear deceleration, always ──
+  // ── Parallax: linear or quadratic ease-out ──────────────────
   const update = useCallback((scroll: number) => {
     const dock = dockScrollRef.current;
     const maxShift = maxShiftRef.current;
@@ -117,13 +127,13 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
     const progress = Math.min(scroll / dock, 1);
     progressRef.current = progress;
 
-    const eased = 2 * progress - progress * progress; // quadratic ease-out
-    const y = -eased * maxShift;
+    const factor = easing === "linear" ? progress : (2 * progress - progress * progress);
+    const y = -factor * maxShift;
     if (y !== currentY.current) {
       currentY.current = y;
       applyTransform(y);
     }
-  }, []);
+  }, [easing]);
 
   const lenis = useLenis();
 

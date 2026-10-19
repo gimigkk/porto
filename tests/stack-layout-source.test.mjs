@@ -22,6 +22,14 @@ const lenisProviderSource = readFileSync(
   new URL("../components/providers/LenisProvider.tsx", import.meta.url),
   "utf8",
 );
+const skyBackgroundSource = readFileSync(
+  new URL("../components/layout/SkyBackground.tsx", import.meta.url),
+  "utf8",
+);
+const parallaxDockHookSource = readFileSync(
+  new URL("../hooks/useParallaxDock.ts", import.meta.url),
+  "utf8",
+);
 
 test("TestV15_ExperienceIntrinsicHeightHasNoNegativeOuterCompensation", () => {
   assert.doesNotMatch(experienceSource, /min-height:900px[^"\n]*-mt-/);
@@ -94,4 +102,14 @@ test("TestV25_WheelInputReversesWithoutLenisMomentumBacklog", () => {
   assert.match(lenisProviderSource, /Math\.sign\(deltaY\) !== Math\.sign\(pendingDelta\)/);
   assert.match(lenisProviderSource, /lenis\.scrollTo\(lenis\.actualScroll, \{ immediate: true \}\)/);
   assert.match(lenisProviderSource, /return true/);
+});
+
+test("TestV31_HeroParallaxDocksWithFirstFolder", () => {
+  assert.match(skyBackgroundSource, /dockAnchor:\s*['"]\[data-folder-root="section-about"\]['"]/);
+  assert.doesNotMatch(skyBackgroundSource, /section-experience/);
+  assert.match(parallaxDockHookSource, /readStackTop/);
+  assert.match(parallaxDockHookSource, /top\s*-\s*stackTop/);
+  assert.doesNotMatch(parallaxDockHookSource, /absoluteBottom\s*-\s*window\.innerHeight/);
+  assert.match(parallaxDockHookSource, /maxShiftRef\.current\s*=\s*dock\s*\*\s*effectiveSpeed/);
+  assert.match(parallaxDockHookSource, /easing\s*===\s*"linear"\s*\?\s*progress/);
 });

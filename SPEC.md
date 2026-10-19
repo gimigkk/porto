@@ -54,6 +54,7 @@ V27: Each featured project has unique metadata slug + repo/link target + existin
 V28: Project perf compare uses production Chromium 1366×768, 4× CPU, 5s frame sample; retain only non-regressing cadence + unchanged card geometry
 V29: Muted featured Project preview MP4 assets contain video only; no unused audio stream
 V30: Project backdrop blur stays visually same without forced transform compositing layer
+V31: Hero sky parallax uses linear speed (≤0.8) docked to About dock; never exceeds scroll speed or exposes background gap; ASCII clouds run at 10fps when scrolled past hero / to bottom
 
 ## §T TASKS
 id|status|task|cites
@@ -78,6 +79,7 @@ T18|x|replace Rupiyeah placeholder with BIMAyKRS project + approved demo video|V
 T19|x|strip muted preview audio; add repeatable perf/media checks|V14,V28,V29
 T20|x|remove forced Project backdrop transform layer; trace scroll cadence + visual regression|V14,V28,V30
 T21|x|create /projects 2-column magazine archive + wire landing/nav/footer controls|V26,V27
+T22|x|sync hero sky parallax completion with first folder section dock|V11,V31
 
 
 ## §B BUGS
@@ -102,3 +104,5 @@ B17|2026-08-30|SessionStorage intro flag persisted across hard page reload (F5) 
 B18|2026-08-30|Dynamic import latency + initial simTimeMs 0 reset caused slow cloud mount & low FPS on revisit|import AsciiClouds statically; preserve simTimeMs
 B19|2026-08-30|Duplicate popstate/hash effects in ClientProjectModal + onTransitionEnd poster state desync|unify modal effects; make poster overlay declarative
 B20|2026-09-21|WDYR trackHooks monkeypatches React.useState to call useRef; Router useActionQueue shifts hook 2 from useOptimistic to useRef → crash|remove WDYR provider & package; fix React 19 hook lint errors
+B21|2026-10-19|Hero parallax anchored to legacy Experience bottom (absoluteBottom - innerHeight); desynced from first folder sticky dock|dockAnchor section-about top minus stackTop|V11,V31
+B22|2026-10-19|Uncapped quadratic curve had 2.5x initial speed (outran scroll, ripped gap, died out at end)|switch to linear parallax (speed: 0.5) docked cleanly at About arrival|V11,V31
