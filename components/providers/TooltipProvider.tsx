@@ -17,7 +17,17 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const isMobile = () => {
+    if (typeof window === "undefined") return false;
+    return (
+      window.innerWidth < 768 ||
+      window.matchMedia("(hover: none) and (pointer: coarse)").matches
+    );
+  };
+
   const showTooltip = (newContent: ReactNode) => {
+    if (isMobile()) return;
+
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current);
       hideTimeoutRef.current = null;

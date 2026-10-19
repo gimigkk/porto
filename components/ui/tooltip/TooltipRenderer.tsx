@@ -36,6 +36,13 @@ export function TooltipRenderer() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
 
+    if (
+      window.innerWidth < 768 ||
+      window.matchMedia("(hover: none) and (pointer: coarse)").matches
+    ) {
+      return;
+    }
+
     const handleMouseMove = (e: MouseEvent) => {
       const now = performance.now();
       const previousSample = lastPointerSample.current;
@@ -71,6 +78,13 @@ export function TooltipRenderer() {
 
   // Don't render anything until mounted to avoid hydration mismatch
   if (!mounted) return null;
+  if (
+    typeof window !== "undefined" &&
+    (window.innerWidth < 768 ||
+      window.matchMedia("(hover: none) and (pointer: coarse)").matches)
+  ) {
+    return null;
+  }
 
   return (
     <AnimatePresence>

@@ -93,14 +93,21 @@
   border-radius: 8px;
 }
 
-.pushable:hover {
-  filter: brightness(110%);
-}
+@media (hover: hover) and (pointer: fine) {
+  .pushable:hover {
+    filter: brightness(110%);
+  }
 
-.pushable:hover .front,
-.pushable:hover .frontDark {
-  transform: translateY(-6px);
-  transition: transform 400ms cubic-bezier(0.4, 2.5, 0.2, 1);
+  .pushable:hover .front,
+  .pushable:hover .frontDark {
+    transform: translateY(-6px);
+    transition: transform 400ms cubic-bezier(0.4, 2.5, 0.2, 1);
+  }
+
+  .pushable:hover .shadow {
+    transform: translateY(4px);
+    transition: transform 400ms cubic-bezier(0.4, 2.5, 0.2, 1);
+  }
 }
 
 .pushable:active .front,
@@ -109,11 +116,6 @@
 .pushable.simulateActive .frontDark {
   transform: translateY(2px);
   transition: transform 100ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.pushable:hover .shadow {
-  transform: translateY(4px);
-  transition: transform 400ms cubic-bezier(0.4, 2.5, 0.2, 1);
 }
 
 .pushable:active .shadow,

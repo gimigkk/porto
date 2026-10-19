@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
 import GithubCommitGraph from "@/app/(home)/_components/about/GithubCommitGraph";
 import TechOdometer from "@/app/(home)/_components/about/TechOdometer";
@@ -14,23 +13,13 @@ import { useTooltip } from "@/components/providers/TooltipProvider";
 import { NameTooltipContent } from "./tooltips/NameTooltipContent";
 import { CampusTooltipContent } from "./tooltips/CampusTooltipContent";
 
-const BadgeLanyardCanvas = dynamic(
-  () => import("@/app/(home)/_components/about/BadgeLanyardCanvas"),
-  { ssr: false }
-);
-
 export default function AboutSection({ githubGraph }: { githubGraph: GithubGraphDay[][] }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { showTooltip, hideTooltip } = useTooltip();
 
   const [isAnimationSettled, setIsAnimationSettled] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const advanceTechRef = useRef<(() => void) | null>(null);
-
-  useEffect(() => {
-    setIsMobile(window.matchMedia("(max-width: 767px)").matches);
-  }, []);
 
   useEffect(() => {
     if (isInView) {
@@ -53,7 +42,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
   const getCardTransition = (delay: number): CSSProperties => ({
     transform: isInView ? "translate3d(0, 0px, 0)" : "translate3d(0, -30px, 0)",
     opacity: isInView ? 1 : 0,
-    transition: `transform 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s, opacity 0.6s cubic-bezier(0.33, 1, 0.68, 1) ${delay}s`,
+    transition: `transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}s, opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}s`,
     willChange: isAnimationSettled ? "auto" : "transform, opacity"
   });
 
@@ -61,14 +50,14 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
     <section
       id="about"
       ref={ref}
-      className="w-full text-white flex flex-col items-center overflow-hidden md:overflow-visible"
+      className="w-full text-white flex flex-col items-center overflow-visible"
     >
       {/* Use the exact same container padding and max-width as the Navbar */}
       <div className="w-full max-w-350 mx-auto px-4 md:px-12">
 
         {/* === MOBILE LAYOUT === */}
-        <div className="flex md:hidden w-full gap-4 mb-4">
-          <div className="flex flex-col flex-1 justify-between items-start">
+        <div className="flex md:hidden w-full justify-between items-stretch gap-3 mb-8">
+          <div className="flex flex-col justify-between items-start">
             <div>
               <div className="overflow-hidden pb-3 -mb-3">
                 <h2 style={getTransition(0)} className={`font-serif text-3xl font-bold mb-1 tracking-tight leading-none text-zinc-100`}>
@@ -93,7 +82,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
                 </p>
               </div>
 
-              <div className="overflow-hidden pb-2 mb-3 w-max">
+              <div className="overflow-hidden pb-2 mb-4 w-max">
                 <p style={getTransition(2)} className="text-[11px] leading-tight text-zinc-400 whitespace-nowrap w-max">
                   Undergraduate at <span
                     onMouseEnter={() => showTooltip(<CampusTooltipContent />)}
@@ -104,44 +93,37 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
                   Interested in engineering, and design.
                 </p>
               </div>
-
-              <div className="mb-6">
-                <div style={getButtonTransition(6)}>
-                  <a
-                    href="mailto:gimi.gkk@gmail.com"
-                    className={`${styles.pushable} group shrink-0 inline-block`}
-                    aria-label="Contact me"
-                  >
-                    <span className={styles.shadow}></span>
-                    <span className={styles.edge}></span>
-                    <span
-                      className={`${styles.front} !flex items-center justify-center whitespace-nowrap`}
-                      style={{ padding: "6px 14px", fontSize: "11px" }}
-                    >
-                      <span>Contact me</span>
-                    </span>
-                  </a>
-                </div>
-              </div>
             </div>
 
-            <div className="w-full" style={getTransition(4)}>
-              <TechOdometer align="left" isMobile trigger={isInView} onAdvanceRef={advanceTechRef} />
+            <div>
+              <div style={getButtonTransition(6)}>
+                <a
+                  href="mailto:gimi.gkk@gmail.com"
+                  className={`${styles.pushable} group shrink-0 inline-block`}
+                  aria-label="Contact me"
+                >
+                  <span className={styles.shadow}></span>
+                  <span className={styles.edge}></span>
+                  <span
+                    className={`${styles.front} !flex items-center justify-center whitespace-nowrap`}
+                    style={{ padding: "6px 14px", fontSize: "11px" }}
+                  >
+                    <span>Contact me</span>
+                  </span>
+                </a>
+              </div>
             </div>
           </div>
 
-          <div className="flex-1 flex justify-end">
+          <div className="flex justify-end self-stretch shrink-0">
             <div
-              className="relative w-full max-w-[160px] aspect-[4/5]"
+              className="relative h-full aspect-[1300/2232] overflow-visible"
               style={getCardTransition(0.3)}
             >
-              {isMobile && isInView && <BadgeLanyardCanvas trigger={isInView} />}
+              <ProfileFlipCard src="/ktm.png" alt="Gilang" sizes="(max-width: 768px) 150px, 340px" priority />
             </div>
           </div>
         </div>
-
-        {/* Mobile Divider */}
-        <hr className="md:hidden border-zinc-800 my-6" />
 
         {/* Sub-section 2: GitHub Graph */}
         <div className="flex md:hidden flex-col gap-2 w-full overflow-hidden">

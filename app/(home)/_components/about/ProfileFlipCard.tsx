@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, MouseEvent } from "react";
 import Image from "next/image";
-import { motion, useSpring, useTransform, useInView } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform, useInView, animate } from "framer-motion";
 import SpotifyBackside from "./SpotifyBackside";
 
 interface ProfileFlipCardProps {
@@ -12,45 +12,55 @@ interface ProfileFlipCardProps {
   priority?: boolean;
 }
 
-// Shared spring — everything syncs to this bounce feel
-const FLIP_SPRING = { stiffness: 120, damping: 15, mass: 1.0 };
+// Aggressive cubic bezier curve with snappy bounce/overshoot
+const AGGRESSIVE_EASE = [0.34, 1.56, 0.64, 1] as const;
 const TILT_SPRING = { stiffness: 300, damping: 30 };
 const SHIFT_SPRING = { stiffness: 120, damping: 20 }; // softer than tilt so the drift is visibly smooth
 
 export default function ProfileFlipCard({ src, alt, sizes, priority = false }: ProfileFlipCardProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const isInView = useInView(wrapperRef, { margin: "200px" });
   const pendingTiltRef = useRef({ x: 0, y: 0, sx: 0, sy: 0 });
   const rafPending = useRef(false);
 
+  const isCardActive = isMobile ? isFlipped : isHovered;
+
   useEffect(() => {
     if (!videoRef.current) return;
-    if (isHovered && isInView) {
+    if (isCardActive && isInView) {
       videoRef.current.play().catch(() => {});
     } else {
       videoRef.current.pause();
     }
-  }, [isHovered, isInView]);
+  }, [isCardActive, isInView]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMobile(window.matchMedia("(hover: none) and (pointer: coarse)").matches);
+    const checkMobile = () => {
+      setIsMobile(
+        window.matchMedia("(max-width: 767px)").matches ||
+        window.matchMedia("(hover: none) and (pointer: coarse)").matches
+      );
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Springs
-  const flipProgress = useSpring(0, FLIP_SPRING); // 0→1
+  // Motion values & Springs
+  const flipProgress = useMotionValue(0); // 0→1 animated with AGGRESSIVE_EASE
+  const liftY = useMotionValue(0);
   const tiltX = useSpring(0, TILT_SPRING);
   const tiltY = useSpring(0, TILT_SPRING);
   const shiftX = useSpring(0, SHIFT_SPRING);
   const shiftY = useSpring(0, SHIFT_SPRING);
-  const liftY = useSpring(0, FLIP_SPRING);
 
   // Derived
   const flipDeg = useTransform(flipProgress, [0, 1], [0, 180]);
-  const zArc = useTransform(flipProgress, (v: number) => Math.sin(v * Math.PI) * 20);
+  const zArc = useTransform(flipProgress, (v: number) => (isMobile ? 0 : Math.sin(v * Math.PI) * 20));
 
   // Combined transform string
   const cardTransform = useTransform(
@@ -83,18 +93,42 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
     }
   };
 
+  const handleClick = () => {
+    if (!isMobile) return;
+    setIsFlipped((prev) => {
+      const next = !prev;
+      animate(flipProgress, next ? 1 : 0, {
+        duration: 0.55,
+        ease: AGGRESSIVE_EASE,
+      });
+      return next;
+    });
+  };
+
   const handleMouseEnter = () => {
     if (isMobile) return;
     setIsHovered(true);
-    flipProgress.set(1);
-    liftY.set(-50);
+    animate(flipProgress, 1, {
+      duration: 0.55,
+      ease: AGGRESSIVE_EASE,
+    });
+    animate(liftY, -50, {
+      duration: 0.55,
+      ease: AGGRESSIVE_EASE,
+    });
   };
 
   const handleMouseLeave = () => {
     if (isMobile) return;
     setIsHovered(false);
-    flipProgress.set(0);
-    liftY.set(0);
+    animate(flipProgress, 0, {
+      duration: 0.55,
+      ease: AGGRESSIVE_EASE,
+    });
+    animate(liftY, 0, {
+      duration: 0.55,
+      ease: AGGRESSIVE_EASE,
+    });
     tiltX.set(0);
     tiltY.set(0);
     shiftX.set(0);
@@ -118,7 +152,7 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
   return (
     <motion.div
       ref={wrapperRef}
-      className="relative w-full h-full cursor-default rounded-lg"
+      className={`relative w-full h-full rounded-[4px] md:rounded-lg ${isMobile ? "cursor-pointer select-none" : "cursor-default"}`}
       style={{
         perspective: 1000,
         overflow: "visible",
@@ -126,6 +160,7 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
         y: combinedY,
         willChange: "transform",
       }}
+      onClick={handleClick}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -152,53 +187,60 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
       >
         {/* === FRONT === */}
         <div
-          className="absolute inset-0 rounded-lg overflow-hidden border border-zinc-800"
+          className="absolute inset-0 rounded-[4px] md:rounded-lg border border-zinc-800"
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
-            transform: "translateZ(8px)",
+            transform: isMobile ? "translateZ(1px)" : "translateZ(8px)",
           }}
         >
-          <Image src={src} alt={alt} fill sizes={sizes} className="object-cover pointer-events-none" priority={priority} />
+          <Image
+            src={src}
+            alt={alt}
+            fill
+            sizes={sizes}
+            className="object-cover pointer-events-none rounded-[4px] md:rounded-lg"
+            priority={priority}
+          />
           {/* Top-down light reflection */}
           <motion.div
-            className="absolute inset-0 bg-white pointer-events-none mix-blend-overlay"
+            className="absolute inset-0 bg-white pointer-events-none mix-blend-overlay rounded-[4px] md:rounded-lg"
             style={{ opacity: lightOpacity, willChange: "opacity" }}
           />
           {/* Shadow from tilting away from light */}
           <motion.div
-            className="absolute inset-0 bg-black pointer-events-none"
+            className="absolute inset-0 bg-black pointer-events-none rounded-[4px] md:rounded-lg"
             style={{ opacity: darkOpacity, willChange: "opacity" }}
           />
         </div>
 
         {/* === THICKNESS LAYERS (THE EDGE) === */}
-        {/* Reduced from 8 to 4 for performance while maintaining depth illusion */}
-        {Array.from({ length: 4 }).map((_, i) => (
+        {/* Only rendered on desktop where cursor tilts require 3D depth */}
+        {!isMobile && Array.from({ length: 4 }).map((_, i) => (
           <div
             key={`thickness-${i}`}
-            className="absolute inset-0 rounded-lg border border-zinc-800 bg-[#0e0e0e]"
+            className="absolute inset-0 rounded-[4px] md:rounded-lg border border-zinc-800 bg-[#0e0e0e]"
             style={{
-              transform: `translateZ(${6 - (i * 4)}px)`, // Spread them out significantly
+              transform: `translateZ(${6 - (i * 4)}px)`,
             }}
           />
         ))}
 
         {/* === BACK === */}
-        {/* Wrapper at rotateY(180deg) — must NOT have overflow-hidden so the hologram can protrude via translateZ */}
+        {/* Wrapper at rotateY(180deg) */}
         <div
-          className="absolute inset-0 rounded-lg border border-zinc-700"
+          className="absolute inset-0 rounded-[4px] md:rounded-lg border border-zinc-700"
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
-            transform: "rotateY(180deg) translateZ(8px)",
+            transform: isMobile ? "rotateY(180deg) translateZ(1px)" : "rotateY(180deg) translateZ(8px)",
             background: "#0e0e0e",
             transformStyle: "preserve-3d",
           }}
         >
-          {/* Inner clip wrapper keeps the blurred photo and overlays clipped */}
-          <div className="absolute inset-0 rounded-lg overflow-hidden">
-            <SpotifyBackside isFlipped={isHovered} />
+          {/* Inner clip wrapper */}
+          <div className="absolute inset-0 rounded-[4px] md:rounded-lg">
+            <SpotifyBackside isFlipped={isCardActive} isMobile={isMobile} />
             {/* Top-down light reflection */}
             <motion.div
               className="absolute inset-0 bg-white pointer-events-none mix-blend-overlay"
@@ -215,11 +257,11 @@ export default function ProfileFlipCard({ src, alt, sizes, priority = false }: P
           <div
             className="absolute pointer-events-none"
             style={{
-              transform: "translateZ(200px)",
-              top: "45%",
+              transform: isMobile ? "translateZ(20px)" : "translateZ(200px)",
+              top: isMobile ? "28%" : "45%",
               left: "50%",
               translate: "-50% -50%",
-              width: "85%",
+              width: isMobile ? "55%" : "85%",
               aspectRatio: "1 / 1",
             }}
           >
