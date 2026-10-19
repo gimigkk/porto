@@ -419,7 +419,7 @@ export default function Navbar() {
         }}
       >
         {/* Thin bar */}
-        <div className="w-full bg-white">
+        <div className="relative z-10 w-full bg-white">
           <div
             ref={innerNavRef}
             className="h-12 flex items-center justify-between max-w-350 mx-auto px-4 md:px-12"
@@ -512,7 +512,7 @@ export default function Navbar() {
           <motion.div
             initial={{ height: 0 }} // Added initial height to stop SSR flash
             animate={{
-              height: isExpanded ? contentHeight : 0,
+              height: isExpanded ? contentHeight + 2 : 0,
             }}
             transition={{
               height: {
@@ -520,7 +520,7 @@ export default function Navbar() {
                 ease: easeOut,
               },
             }}
-            className="overflow-hidden bg-white rounded-b-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-x border-b border-transparent"
+            className="overflow-hidden bg-white rounded-b-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] -mt-0.5 pt-0.5"
           >
             <div
               ref={contentRef}
