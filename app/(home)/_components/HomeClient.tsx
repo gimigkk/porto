@@ -54,7 +54,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
     if (hasCompletedHomeIntroSession) {
       const el = document.getElementById("ssr-loading-screen");
       if (el) el.style.display = "none";
-      window.dispatchEvent(new Event("hero-phase2"));
+      window.dispatchEvent(new CustomEvent("hero-phase2", { detail: { isRevisit: true } }));
     }
   }, []);
 
@@ -101,28 +101,33 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
     if (isRevisit) {
       const el = document.getElementById("ssr-loading-screen");
       if (el) el.style.display = "none";
-      window.dispatchEvent(new Event("hero-phase2"));
+      window.dispatchEvent(new CustomEvent("hero-phase2", { detail: { isRevisit: true } }));
       return;
     }
 
-    // 1 & 2. SVG and Nav+Folders trigger immediately
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFoldersReady(true);
+    // 1. SVG triggers immediately via showTitle={introComplete}
+    // 2. Top (Navbar) + Bottom (Folders & Hero shrink) come in after a short delay
+    const tFolders = setTimeout(() => {
+      setFoldersReady(true);
+    }, 400);
 
-    // 3. CTA + Subtext after 300ms
-    const t3 = setTimeout(() => setCtaReady(true), 500);
+    // 3. CTA + Subtext after top and bottom start settling
+    const tCta = setTimeout(() => {
+      setCtaReady(true);
+    }, 850);
 
     return () => {
-      clearTimeout(t3);
+      clearTimeout(tFolders);
+      clearTimeout(tCta);
     };
   }, [introComplete, isRevisit]);
 
   // Fire event for navbar phase2 uncollapse
   useEffect(() => {
     if (foldersReady) {
-      window.dispatchEvent(new Event("hero-phase2"));
+      window.dispatchEvent(new CustomEvent("hero-phase2", { detail: { isRevisit } }));
     }
-  }, [foldersReady]);
+  }, [foldersReady, isRevisit]);
 
   // Transition hero height: 100svh → 95svh when folders appear (80svh on mobile)
   useEffect(() => {
@@ -187,7 +192,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
             className="w-full flex flex-col items-center justify-start pt-[120px] md:pt-0 md:justify-center text-zinc-900 sticky z-10 overflow-hidden"
             style={{
               height: heroHeight,
-              transition: isRevisit ? "none" : "height 600ms cubic-bezier(0.22,1,0.36,1), top 600ms cubic-bezier(0.22,1,0.36,1)",
+              transition: isRevisit ? "none" : "height 700ms cubic-bezier(0.22,1,0.36,1), top 700ms cubic-bezier(0.22,1,0.36,1)",
               top: `calc(136px - ${heroHeight})`,
             }}
           >
@@ -206,7 +211,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
               className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none select-none z-10 bg-linear-to-t from-[#141416] via-[#141416]/40 to-transparent"
               style={{
                 opacity: foldersReady ? 1 : 0,
-                transition: isRevisit ? "none" : "opacity 600ms cubic-bezier(0.22, 1, 0.36, 1)",
+                transition: isRevisit ? "none" : "opacity 700ms cubic-bezier(0.22, 1, 0.36, 1)",
               }}
             />
 
@@ -233,11 +238,15 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
             )}
 
             {/* Persistent content — SVG title fades in after intro, subtext+CTA on phase2 */}
-            <HeroContent
-              showTitle={introComplete}
-              ctaReady={ctaReady}
-              skipIntroAnimation={isRevisit}
-            />
+            <div className="absolute top-0 inset-x-0 h-[95svh] max-md:h-[70svh] flex flex-col items-center justify-center max-md:justify-start max-md:pt-[120px] pointer-events-none">
+              <div className="w-full pointer-events-auto">
+                <HeroContent
+                  showTitle={introComplete}
+                  ctaReady={ctaReady}
+                  skipIntroAnimation={isRevisit}
+                />
+              </div>
+            </div>
 
             {/* Fake Figma-style collaboration cursors */}
             <FigmaCollabCursors isReady={ctaReady || isRevisit} />

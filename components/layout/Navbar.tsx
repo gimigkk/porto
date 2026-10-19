@@ -160,19 +160,34 @@ export default function Navbar() {
     INITIAL_NAVBAR_INTRO_STATE,
   );
   const introCollapsed = isNavbarIntroCollapsed(pathname, introState);
+  const [introTransitioning, setIntroTransitioning] = useState(false);
 
   useLayoutEffect(() => {
     dispatchIntro({ type: "route-change", pathname });
 
     if (pathname !== "/") return;
 
-    const onReady = () => dispatchIntro({ type: "intro-ready" });
+    const onReady = (e: Event) => {
+      const customEvent = e as CustomEvent<{ isRevisit?: boolean }>;
+      if (!customEvent.detail?.isRevisit) {
+        setIntroTransitioning(true);
+      }
+      dispatchIntro({ type: "intro-ready" });
+    };
     window.addEventListener("hero-phase2", onReady);
 
     return () => {
       window.removeEventListener("hero-phase2", onReady);
     };
   }, [pathname]);
+
+  useEffect(() => {
+    if (!introTransitioning) return;
+    const timer = setTimeout(() => {
+      setIntroTransitioning(false);
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [introTransitioning]);
 
   // Open Home accordion when mobile menu first opens.
   const currentPageAccordion = 1;
@@ -396,7 +411,9 @@ export default function Navbar() {
         style={{
           transform: (isNavbarOn) ? "translateY(0)" : "translateY(-100%)",
           opacity: introCollapsed ? 0 : 1,
-          transition: "transform 300ms cubic-bezier(0.22,1,0.36,1), opacity 300ms cubic-bezier(0.22,1,0.36,1)",
+          transition: introTransitioning
+            ? "transform 700ms cubic-bezier(0.22,1,0.36,1), opacity 700ms cubic-bezier(0.22,1,0.36,1)"
+            : "transform 300ms cubic-bezier(0.22,1,0.36,1), opacity 300ms cubic-bezier(0.22,1,0.36,1)",
           willChange: "transform, opacity",
           pointerEvents: isProjectModalOpen || !introCollapsed ? "auto" : "none",
         }}

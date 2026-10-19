@@ -56,7 +56,7 @@ export default function StackedSections({ projects, isReady = true, githubGraph,
 			className="relative z-9999 w-full -mt-14 mb-0"
 			initial={isRevisit ? false : { y: 200 }}
 			animate={isReady ? { y: 0 } : { y: 200 }}
-			transition={isRevisit ? { duration: 0 } : { duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0 }}
+			transition={isRevisit ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0 }}
 		>
 			<div ref={viewportProbeRef} className="absolute h-svh w-0 invisible pointer-events-none" aria-hidden="true" />
 			<FolderSection

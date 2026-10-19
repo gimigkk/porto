@@ -144,7 +144,7 @@ export interface MouseState {
 // UTILITIES
 // ============================================================================
 // export const CHARS = ".:/%#G@"; <- lama
-export const CHARS = ".:-=+*#%G";
+export const CHARS = ".:=+*#0X";
 
 
 export function mulberry32(seed: number) {
