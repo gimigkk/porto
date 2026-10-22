@@ -44,6 +44,8 @@ export function ClothingItem({
       ? 239
       : item.id === "exp-3"
       ? 210
+      : item.id === "exp-1"
+      ? 227
       : item.frontImage
       ? 230
       : 200;
@@ -53,6 +55,8 @@ export function ClothingItem({
       ? 73
       : item.id === "exp-3"
       ? 81
+      : item.id === "exp-1"
+      ? 74
       : item.sideImage
       ? 76
       : 58;
@@ -67,7 +71,7 @@ export function ClothingItem({
     width: frontWidth,
     height: 279,
     transformOrigin: `${Math.round(frontWidth / 2)}px 4px`, // Contact apex on chrome rail
-    transform: isSelected ? "rotateY(0deg)" : "rotateY(73deg)",
+    transform: isSelected ? "rotateY(0deg)" : "rotateY(-73deg)",
     opacity: isSelected ? 1 : 0,
     pointerEvents: isSelected ? "auto" : "none",
     cursor: "pointer",
