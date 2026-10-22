@@ -6,6 +6,7 @@ import { ExperienceItem } from "@/types/experience";
 
 interface ExperienceDetailProps {
   item: ExperienceItem;
+  isInView?: boolean;
 }
 
 const slotTransition: Transition = {
@@ -13,16 +14,31 @@ const slotTransition: Transition = {
   ease: [0.16, 1, 0.3, 1],
 };
 
-export function ExperienceDetail({ item }: ExperienceDetailProps) {
+export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProps) {
   const primaryImg = item.image;
   const secondaryImg = item.secondaryImage || item.image;
 
   return (
     <div className="w-full">
       <div className="w-full flex flex-col">
-        {/* Dynamic 2-Image Diptych (Direct overlapping crossfade - never goes black) */}
+        {/* Dynamic 2-Image Diptych (Float up with blur) */}
         {primaryImg && (
-          <div className="relative w-full h-[135px] sm:h-[160px] md:h-[185px]">
+          <motion.div
+            initial={{ opacity: 0, y: 36, filter: "blur(10px)" }}
+            animate={
+              isInView
+                ? { opacity: 1, y: 0, filter: "blur(0px)" }
+                : { opacity: 0, y: 36, filter: "blur(10px)" }
+            }
+            transition={{
+              type: "spring",
+              stiffness: 120,
+              damping: 20,
+              mass: 0.85,
+              delay: 0.10,
+            }}
+            className="relative w-full h-[135px] sm:h-[160px] md:h-[185px]"
+          >
             <AnimatePresence initial={false}>
               <motion.div
                 key={item.id}
@@ -59,13 +75,28 @@ export function ExperienceDetail({ item }: ExperienceDetailProps) {
                 )}
               </motion.div>
             </AnimatePresence>
-          </div>
+          </motion.div>
         )}
 
-        {/* Details Underneath with Simultaneous Grid Slot Slide Up (Never empty) */}
+        {/* Details Underneath with Progressive Staggered Blur Float-Up */}
         <div className="mt-3 sm:mt-4 flex flex-col min-h-[140px] sm:min-h-[150px]">
           {/* Slot 1: Role */}
-          <div className="grid grid-cols-1 overflow-hidden py-0.5 min-h-[1.75rem] sm:min-h-[2rem]">
+          <motion.div
+            initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
+            animate={
+              isInView
+                ? { opacity: 1, y: 0, filter: "blur(0px)" }
+                : { opacity: 0, y: 24, filter: "blur(8px)" }
+            }
+            transition={{
+              type: "spring",
+              stiffness: 120,
+              damping: 20,
+              mass: 0.85,
+              delay: 0.18,
+            }}
+            className="grid grid-cols-1 overflow-hidden py-0.5 min-h-[1.75rem] sm:min-h-[2rem]"
+          >
             <AnimatePresence initial={false}>
               <motion.h3
                 key={item.id}
@@ -78,10 +109,25 @@ export function ExperienceDetail({ item }: ExperienceDetailProps) {
                 {item.role}
               </motion.h3>
             </AnimatePresence>
-          </div>
+          </motion.div>
 
           {/* Slot 2: Company & Dates */}
-          <div className="grid grid-cols-1 overflow-hidden py-0.5 mt-0.5 sm:mt-1 min-h-[1.25rem] sm:min-h-[1.5rem]">
+          <motion.div
+            initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
+            animate={
+              isInView
+                ? { opacity: 1, y: 0, filter: "blur(0px)" }
+                : { opacity: 0, y: 20, filter: "blur(6px)" }
+            }
+            transition={{
+              type: "spring",
+              stiffness: 120,
+              damping: 20,
+              mass: 0.85,
+              delay: 0.26,
+            }}
+            className="grid grid-cols-1 overflow-hidden py-0.5 mt-0.5 sm:mt-1 min-h-[1.25rem] sm:min-h-[1.5rem]"
+          >
             <AnimatePresence initial={false}>
               <motion.p
                 key={item.id}
@@ -94,10 +140,25 @@ export function ExperienceDetail({ item }: ExperienceDetailProps) {
                 {item.company} <span className="mx-1.5 opacity-40">•</span> {item.startDate} — {item.endDate}
               </motion.p>
             </AnimatePresence>
-          </div>
+          </motion.div>
 
           {/* Slot 3: Description */}
-          <div className="grid grid-cols-1 overflow-hidden py-0.5 mt-2 sm:mt-3 min-h-[4rem] sm:min-h-[4.25rem]">
+          <motion.div
+            initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
+            animate={
+              isInView
+                ? { opacity: 1, y: 0, filter: "blur(0px)" }
+                : { opacity: 0, y: 20, filter: "blur(6px)" }
+            }
+            transition={{
+              type: "spring",
+              stiffness: 120,
+              damping: 20,
+              mass: 0.85,
+              delay: 0.34,
+            }}
+            className="grid grid-cols-1 overflow-hidden py-0.5 mt-2 sm:mt-3 min-h-[4rem] sm:min-h-[4.25rem]"
+          >
             <AnimatePresence initial={false}>
               <motion.p
                 key={item.id}
@@ -110,7 +171,7 @@ export function ExperienceDetail({ item }: ExperienceDetailProps) {
                 {item.description}
               </motion.p>
             </AnimatePresence>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

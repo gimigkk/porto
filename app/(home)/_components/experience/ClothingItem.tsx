@@ -11,6 +11,7 @@ interface ClothingItemProps {
   isSelected: boolean;
   targetX: number;
   onSelect: (item: ExperienceItem, index: number) => void;
+  isInView?: boolean;
 }
 
 function formatStartDateTag(dateStr: string): string {
@@ -29,6 +30,7 @@ export function ClothingItem({
   isSelected,
   targetX,
   onSelect,
+  isInView = true,
 }: ClothingItemProps) {
   const prevXRef = useRef(targetX);
   const swayAngle = useMotionValue(0);
@@ -134,67 +136,84 @@ export function ClothingItem({
     >
       {/* Desktop-only garment scale (1.20x) anchored at hook apex */}
       <div className="relative origin-[0px_4px] scale-100 lg:scale-[1.20] overflow-visible">
-        {/* Hover Lift: lifts both hanger and date tag together */}
+        {/* Entry Drop: lowers hanger and tag from above onto rail with staggered cascade & blur */}
         <motion.div
-          whileHover={{
-            y: -8, // Clean, grounded lift on hover
-            transition: { type: "spring", stiffness: 400, damping: 22 },
+          initial={{ y: -64, opacity: 0, filter: "blur(8px)" }}
+          animate={
+            isInView
+              ? { y: 0, opacity: 1, filter: "blur(0px)" }
+              : { y: -64, opacity: 0, filter: "blur(8px)" }
+          }
+          transition={{
+            type: "spring",
+            stiffness: 140,
+            damping: 18,
+            mass: 0.75,
+            delay: 0.15 + index * 0.065,
           }}
         >
-          {/* Start date tag hovering cleanly above the chrome rail hook */}
-          <div className="absolute -top-[32px] left-0 -translate-x-1/2 pointer-events-none select-none whitespace-nowrap z-40">
-            <span
-              className={`font-mono text-[9px] tracking-wider font-semibold transition-all duration-200 ${
-                isSelected
-                  ? "text-blue-400 drop-shadow-[0_1px_6px_rgba(96,165,250,0.5)]"
-                  : "text-zinc-500/80 group-hover:text-zinc-300"
-              }`}
-            >
-              {formatStartDateTag(item.startDate)}
-            </span>
-          </div>
-
-          {/* Fabric Momentum Sway */}
+          {/* Hover Lift: lifts both hanger and date tag together */}
           <motion.div
-            style={{
-              rotate: isSelected ? 0 : swayAngle,
-              transformOrigin: "0px 4px",
+            whileHover={{
+              y: -8, // Clean, grounded lift on hover
+              transition: { type: "spring", stiffness: 400, damping: 22 },
             }}
           >
-            {/* 3D Perspective Stage */}
-            <div
-              className="relative overflow-visible"
+            {/* Start date tag hovering cleanly above the chrome rail hook */}
+            <div className="absolute -top-[32px] left-0 -translate-x-1/2 pointer-events-none select-none whitespace-nowrap z-40">
+              <span
+                className={`font-mono text-[9px] tracking-wider font-semibold transition-all duration-200 ${
+                  isSelected
+                    ? "text-blue-400 drop-shadow-[0_1px_6px_rgba(96,165,250,0.5)]"
+                    : "text-zinc-500/80 group-hover:text-zinc-300"
+                }`}
+              >
+                {formatStartDateTag(item.startDate)}
+              </span>
+            </div>
+
+            {/* Fabric Momentum Sway */}
+            <motion.div
               style={{
-                perspective: 1200,
-                transformStyle: "preserve-3d",
+                rotate: isSelected ? 0 : swayAngle,
+                transformOrigin: "0px 4px",
               }}
             >
-              {/* FRONT VIEW (Symmetric 73° <-> 0° around hook apex) */}
-              <div style={frontStyle} onClick={() => onSelect(item, index)}>
-                <ClothingFrontView item={item} />
+              {/* 3D Perspective Stage */}
+              <div
+                className="relative overflow-visible"
+                style={{
+                  perspective: 1200,
+                  transformStyle: "preserve-3d",
+                }}
+              >
+                {/* FRONT VIEW (Symmetric 73° <-> 0° around hook apex) */}
+                <div style={frontStyle} onClick={() => onSelect(item, index)}>
+                  <ClothingFrontView item={item} />
 
-                {/* Front label under selected garment (desktop only) */}
-                <div
-                  className="mt-2 hidden sm:flex flex-col items-center text-center whitespace-nowrap pointer-events-none"
-                  style={{
-                    opacity: isSelected ? 1 : 0,
-                    transition: "opacity 0.22s ease-out",
-                  }}
-                >
-                  <span className="text-xs font-semibold tracking-wider uppercase text-neutral-200">
-                    {item.company}
-                  </span>
-                  <span className="text-[11px] text-neutral-400">
-                    {item.role}
-                  </span>
+                  {/* Front label under selected garment (desktop only) */}
+                  <div
+                    className="mt-2 hidden sm:flex flex-col items-center text-center whitespace-nowrap pointer-events-none"
+                    style={{
+                      opacity: isSelected ? 1 : 0,
+                      transition: "opacity 0.22s ease-out",
+                    }}
+                  >
+                    <span className="text-xs font-semibold tracking-wider uppercase text-neutral-200">
+                      {item.company}
+                    </span>
+                    <span className="text-[11px] text-neutral-400">
+                      {item.role}
+                    </span>
+                  </div>
+                </div>
+
+                {/* SIDE VIEW (profile drape on rail, symmetric crossfade) */}
+                <div style={sideStyle} onClick={() => onSelect(item, index)}>
+                  <ClothingSideView item={item} />
                 </div>
               </div>
-
-              {/* SIDE VIEW (profile drape on rail, symmetric crossfade) */}
-              <div style={sideStyle} onClick={() => onSelect(item, index)}>
-                <ClothingSideView item={item} />
-              </div>
-            </div>
+            </motion.div>
           </motion.div>
         </motion.div>
       </div>

@@ -1,6 +1,7 @@
 import { getAllProjects } from "@/lib/projects";
 import { getGithubGraph } from "@/lib/github";
 import HomeClient from "@/app/(home)/_components/HomeClient";
+import experienceData from "@/lib/data/experience.json";
 
 export default async function Home() {
   const projects = getAllProjects();
@@ -34,11 +35,38 @@ export default async function Home() {
     })),
   };
 
+  const experienceItemList = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Work Experience & Career Timeline",
+    description: "Professional work experience and engineering roles of Gilang Muhamad Widiagung",
+    numberOfItems: experienceData.length,
+    itemListElement: experienceData.map((exp, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Role",
+        roleName: exp.role,
+        description: exp.description,
+        startDate: exp.startDate,
+        endDate: exp.endDate,
+        worksFor: {
+          "@type": "Organization",
+          name: exp.company,
+        },
+      },
+    })),
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(projectItemList) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(experienceItemList) }}
       />
       <HomeClient projects={projects} githubGraph={githubGraph} />
     </>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
 import { ExperienceItem } from "@/types/experience";
 import { ClothingItem } from "./ClothingItem";
 import { getEqualGappedTargets } from "./clothingLayout";
@@ -9,12 +10,14 @@ interface ClothingRackProps {
   items: ExperienceItem[];
   selectedIndex: number;
   onSelect: (item: ExperienceItem, index: number) => void;
+  isInView?: boolean;
 }
 
 export function ClothingRack({
   items,
   selectedIndex,
   onSelect,
+  isInView = true,
 }: ClothingRackProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [railWidth, setRailWidth] = useState(720);
@@ -80,8 +83,15 @@ export function ClothingRack({
           style={{ width: `${railWidth}px`, height: "100%" }}
         >
           {/* Photorealistic Chrome Rail with Gradient-Faded Ends: Top aligned with left image (Y = 0px) */}
-          <div
-            className="absolute top-0 left-0 right-0 h-[11px] pointer-events-none z-10"
+          <motion.div
+            initial={{ opacity: 0, scaleX: 0.94, filter: "blur(6px)" }}
+            animate={
+              isInView
+                ? { opacity: 1, scaleX: 1, filter: "blur(0px)" }
+                : { opacity: 0, scaleX: 0.94, filter: "blur(6px)" }
+            }
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+            className="absolute top-0 left-0 right-0 h-[11px] pointer-events-none z-10 origin-center"
             style={{
               maskImage:
                 "linear-gradient(90deg, transparent 0%, black 48px, black calc(100% - 48px), transparent 100%)",
@@ -102,7 +112,7 @@ export function ClothingRack({
                   "inset 0 1px 0.5px rgba(255, 255, 255, 0.95), inset 0 -1px 1px rgba(0, 0, 0, 0.9), 0 4px 12px rgba(0, 0, 0, 0.5)",
               }}
             />
-          </div>
+          </motion.div>
 
           {/* Hanger Items Stage */}
           <div className="relative w-full h-full overflow-visible">
@@ -114,6 +124,7 @@ export function ClothingRack({
                 isSelected={index === selectedIndex}
                 targetX={targets[index] ?? 0}
                 onSelect={onSelect}
+                isInView={isInView}
               />
             ))}
           </div>
