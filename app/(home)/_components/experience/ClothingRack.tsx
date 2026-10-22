@@ -24,8 +24,10 @@ export function ClothingRack({
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         if (entry.contentRect.width > 0) {
-          // Desktop uses container width (min 720px)
-          setRailWidth(Math.max(entry.contentRect.width, 720));
+          const w = entry.contentRect.width;
+          const isDesktop = window.innerWidth >= 1024;
+          // Desktop uses actual column width; mobile/tablet uses min 720 for comfortable spacing on horizontal scroll
+          setRailWidth(isDesktop ? w : Math.max(w, 720));
         }
       }
     });
@@ -39,14 +41,19 @@ export function ClothingRack({
     [items.length, selectedIndex, railWidth]
   );
 
-  // Auto-scroll on selection change to center the selected garment in mobile view
+  // Auto-scroll on selection change ONLY for mobile/tablet where rack scrolls
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
+    // Desktop: never auto-scroll horizontally (prevents layout shift on select)
+    if (window.innerWidth >= 1024) {
+      container.scrollLeft = 0;
+      return;
+    }
+
     const isMobile = window.innerWidth < 640;
-    const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024;
-    const scale = isMobile ? 0.62 : isTablet ? 0.85 : 1.0;
+    const scale = isMobile ? 0.62 : 0.85;
 
     const targetX = targets[selectedIndex] ?? 0;
     const visualX = targetX * scale;
@@ -61,16 +68,16 @@ export function ClothingRack({
   return (
     <div
       ref={scrollContainerRef}
-      className="relative w-full overflow-x-auto overflow-y-visible pt-0 pb-6 scrollbar-none [touch-action:pan-x_pan-y] overscroll-x-contain"
+      className="relative w-full overflow-x-auto lg:overflow-visible pt-0 pb-6 lg:pb-0 scrollbar-none [touch-action:pan-x_pan-y] overscroll-x-contain"
     >
       {/* Outer wrapper sized precisely to scaled footprint:
           Mobile (0.62x): 720 * 0.62 = 446px wide, 350 * 0.62 = 217px high
           Tablet (0.85x): 720 * 0.85 = 612px wide, 350 * 0.85 = 298px high
-          Desktop (1.0x): 100% wide, 350px high */}
-      <div className="relative mx-auto lg:w-full w-[446px] sm:w-[612px] h-[220px] sm:h-[298px] lg:h-[350px] shrink-0 overflow-visible">
+          Desktop (1.0x): 100% wide, 410px high (accommodates 1.20x scaled garments & labels) */}
+      <div className="relative mx-auto w-[446px] sm:w-[612px] lg:w-full h-[220px] sm:h-[298px] lg:h-[410px] shrink-0 overflow-visible">
         <div
           className="relative origin-top-left scale-[0.62] sm:scale-85 lg:scale-100 overflow-visible"
-          style={{ width: `${railWidth}px`, height: "350px" }}
+          style={{ width: `${railWidth}px`, height: "100%" }}
         >
           {/* Photorealistic Chrome Rail with Gradient-Faded Ends: Top aligned with left image (Y = 0px) */}
           <div
@@ -98,7 +105,7 @@ export function ClothingRack({
           </div>
 
           {/* Hanger Items Stage */}
-          <div className="relative w-full h-[350px] overflow-visible">
+          <div className="relative w-full h-full overflow-visible">
             {items.map((item, index) => (
               <ClothingItem
                 key={item.id}

@@ -63,9 +63,9 @@ export function ExperienceDetail({ item }: ExperienceDetailProps) {
         )}
 
         {/* Details Underneath with Simultaneous Grid Slot Slide Up (Never empty) */}
-        <div className="mt-3 sm:mt-4 flex flex-col">
+        <div className="mt-3 sm:mt-4 flex flex-col min-h-[140px] sm:min-h-[150px]">
           {/* Slot 1: Role */}
-          <div className="grid grid-cols-1 overflow-hidden py-0.5">
+          <div className="grid grid-cols-1 overflow-hidden py-0.5 min-h-[1.75rem] sm:min-h-[2rem]">
             <AnimatePresence initial={false}>
               <motion.h3
                 key={item.id}
@@ -81,7 +81,7 @@ export function ExperienceDetail({ item }: ExperienceDetailProps) {
           </div>
 
           {/* Slot 2: Company & Dates */}
-          <div className="grid grid-cols-1 overflow-hidden py-0.5 mt-0.5 sm:mt-1">
+          <div className="grid grid-cols-1 overflow-hidden py-0.5 mt-0.5 sm:mt-1 min-h-[1.25rem] sm:min-h-[1.5rem]">
             <AnimatePresence initial={false}>
               <motion.p
                 key={item.id}
@@ -97,7 +97,7 @@ export function ExperienceDetail({ item }: ExperienceDetailProps) {
           </div>
 
           {/* Slot 3: Description */}
-          <div className="grid grid-cols-1 overflow-hidden py-0.5 mt-2 sm:mt-3">
+          <div className="grid grid-cols-1 overflow-hidden py-0.5 mt-2 sm:mt-3 min-h-[4rem] sm:min-h-[4.25rem]">
             <AnimatePresence initial={false}>
               <motion.p
                 key={item.id}

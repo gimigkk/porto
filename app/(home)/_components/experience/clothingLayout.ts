@@ -1,6 +1,6 @@
-const CLEARANCE = 195; // Strong repulsion gap around enlarged garment (front half-width 120px + 75px buffer)
+const CLEARANCE = 180; // Powerful repulsion gap around selected garment (front half-width 120px + 60px buffer)
 const PIN_MARGIN = 48; // Edge pin margin within solid rail segment
-const MIN_UNSELECTED_STEP = 28; // Minimum spacing between side hangers
+const MIN_UNSELECTED_STEP = 24; // Minimum spacing between side hangers
 
 /**
  * Computes strictly equal-gapped target coordinates across the rail:

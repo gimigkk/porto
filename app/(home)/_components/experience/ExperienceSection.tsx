@@ -24,18 +24,18 @@ export default function ExperienceSection() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full flex flex-col items-start md:justify-center md:mt-6"
+      className="relative w-full flex flex-col items-start md:justify-center md:mt-6 overflow-visible"
     >
-      <div className="relative mx-auto w-full max-w-[1400px] px-4 md:px-8 lg:px-12">
+      <div className="relative mx-auto w-full max-w-[1400px] px-4 md:px-8 lg:px-12 overflow-visible">
         {/* Main Interactive Stage with 2:3 Column Ratio */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-12 items-start w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-12 items-start w-full overflow-visible">
           {/* Column 1 (2 parts): Simple Image & Paragraph */}
-          <div className="lg:col-span-2 w-full">
+          <div className="lg:col-span-2 w-full overflow-visible">
             <ExperienceDetail item={selectedItem} />
           </div>
 
           {/* Column 2 (3 parts): Straight Clothing Rack (No containing border) */}
-          <div className="lg:col-span-3 w-full flex flex-col items-center">
+          <div className="lg:col-span-3 w-full flex flex-col items-center overflow-visible">
             <ClothingRack
               items={typedExperienceData}
               selectedIndex={selectedIndex}

@@ -39,17 +39,34 @@ export function ClothingItem({
     prevXRef.current = targetX;
   }, [targetX, swayAngle]);
 
+  const frontWidth =
+    item.id === "exp-7"
+      ? 239
+      : item.id === "exp-3"
+      ? 210
+      : item.frontImage
+      ? 230
+      : 200;
+  const frontLeft = -Math.round(frontWidth / 2);
+  const sideWidth =
+    item.id === "exp-7"
+      ? 73
+      : item.id === "exp-3"
+      ? 81
+      : item.sideImage
+      ? 76
+      : 58;
+  const sideLeft = -Math.round(sideWidth / 2);
+
   // Rail top is aligned with left image at Y = 0px.
-  // With wrapper at Y = -1.5px, hook inside arch sits at Y = 0.1px, resting flush on rail.
-  // At 73° Y-rotation, the 200px front view projects to: 200 * cos(73°) ≈ 58.5px,
-  // matching the 58px side view silhouette to within 0.5px.
+  // With wrapper at Y = -4px and object-top, hook crook curves over and rests flush on rail.
   const frontStyle: React.CSSProperties = {
     position: "absolute",
-    left: -100,
+    left: frontLeft,
     top: 0,
-    width: 200,
+    width: frontWidth,
     height: 279,
-    transformOrigin: "100px 2px", // Contact apex on chrome rail
+    transformOrigin: `${Math.round(frontWidth / 2)}px 4px`, // Contact apex on chrome rail
     transform: isSelected ? "rotateY(0deg)" : "rotateY(73deg)",
     opacity: isSelected ? 1 : 0,
     pointerEvents: isSelected ? "auto" : "none",
@@ -62,11 +79,11 @@ export function ClothingItem({
 
   const sideStyle: React.CSSProperties = {
     position: "absolute",
-    left: -29,
+    left: sideLeft,
     top: 0,
-    width: 58,
+    width: sideWidth,
     height: 278,
-    transformOrigin: "29px 2px", // Contact apex on chrome rail
+    transformOrigin: `${Math.round(sideWidth / 2)}px 4px`, // Contact apex on chrome rail
     transform: "rotateY(0deg)",
     opacity: isSelected ? 0 : 1,
     pointerEvents: isSelected ? "none" : "auto",
@@ -78,10 +95,10 @@ export function ClothingItem({
 
   return (
     <motion.div
-      className={`absolute top-[-1.5px] select-none ${isSelected ? "z-30" : "z-20"}`}
+      className={`absolute top-[-4px] select-none ${isSelected ? "z-30" : "z-20"}`}
       style={{
         left: 0,
-        transformOrigin: "0px 2px", // Contact apex on chrome rail
+        transformOrigin: "0px 4px", // Contact apex on chrome rail
       }}
       initial={{ x: targetX }}
       animate={{ x: targetX }}
@@ -102,12 +119,12 @@ export function ClothingItem({
       }}
     >
       {/* Desktop-only garment scale (1.20x) anchored at hook apex */}
-      <div className="relative origin-[0px_2px] scale-100 lg:scale-[1.20] overflow-visible">
+      <div className="relative origin-[0px_4px] scale-100 lg:scale-[1.20] overflow-visible">
         {/* Fabric Momentum Sway */}
         <motion.div
           style={{
             rotate: isSelected ? 0 : swayAngle,
-            transformOrigin: "0px 2px",
+            transformOrigin: "0px 4px",
           }}
           whileHover={{
             y: -8, // Clean translateY lift on hover, strictly no rotation

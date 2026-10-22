@@ -17,11 +17,11 @@ export function ClothingFrontView({ item, className = "" }: GraphicProps) {
   const frontSrc = item.frontImage || "/experience/shirt-front.png";
 
   return (
-    <div className={`relative w-[200px] h-[279px] flex flex-col items-center select-none pointer-events-none ${className}`}>
+    <div className={`relative w-full h-[279px] flex flex-col items-center select-none pointer-events-none ${className}`}>
       <img
         src={frontSrc}
         alt={`${item.role} front view`}
-        className="w-full h-full block drop-shadow-[0_12px_24px_rgba(0,0,0,0.55)] pointer-events-none"
+        className="w-full h-full object-contain object-top block drop-shadow-[0_12px_24px_rgba(0,0,0,0.55)] pointer-events-none"
         draggable={false}
       />
     </div>
@@ -37,11 +37,11 @@ export function ClothingSideView({ item, className = "" }: GraphicProps) {
   const sideSrc = item.sideImage || "/experience/shirt-side.png";
 
   return (
-    <div className={`relative w-[58px] h-[278px] flex flex-col items-center select-none pointer-events-none ${className}`}>
+    <div className={`relative w-full h-[278px] flex flex-col items-center select-none pointer-events-none ${className}`}>
       <img
         src={sideSrc}
         alt={`${item.role} side view`}
-        className="w-full h-full block drop-shadow-[0_8px_16px_rgba(0,0,0,0.45)] pointer-events-none"
+        className="w-full h-full object-contain object-top block drop-shadow-[0_8px_16px_rgba(0,0,0,0.45)] pointer-events-none"
         draggable={false}
       />
     </div>
