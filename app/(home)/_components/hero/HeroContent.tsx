@@ -5,7 +5,16 @@ import Image from "next/image";
 import CompanyLogoGrid from "./CompanyLogoGrid";
 
 const ANIM_INITIAL = { opacity: 0, y: 200, scale: 0.9, filter: "blur(10px)" };
-const ANIM_ANIMATE = { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" };
+const ANIM_ANIMATE = {
+  opacity: 1,
+  y: 0,
+  scale: 1,
+  filter: "blur(0px)",
+  transitionEnd: {
+    filter: "none",
+    transform: "none",
+  },
+};
 const ANIM_TRANSITION = {
   duration: 1,
   ease: [0.13, 0.11, 0.21, 1] as const,

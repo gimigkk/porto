@@ -71,7 +71,7 @@ export function ClothingRack({
   return (
     <div
       ref={scrollContainerRef}
-      className="relative w-full overflow-x-auto lg:overflow-visible pt-9 lg:pt-0 pb-6 lg:pb-0 scrollbar-none [touch-action:pan-x_pan-y] overscroll-x-contain"
+      className="relative w-full overflow-x-auto lg:overflow-visible pt-5 lg:pt-0 pb-6 lg:pb-0 scrollbar-none [touch-action:pan-x_pan-y] overscroll-x-contain"
     >
       {/* Outer wrapper sized precisely to scaled footprint:
           Mobile (0.62x): 720 * 0.62 = 446px wide, 350 * 0.62 = 217px high

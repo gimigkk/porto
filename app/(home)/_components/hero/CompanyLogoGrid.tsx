@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { motion, type Variants } from "framer-motion";
 import { COMPANY_LOGOS, CompanyLogoItem } from "./CompanyLogos";
 
@@ -11,18 +10,16 @@ interface CompanyLogoGridProps {
   skipIntroAnimation?: boolean;
 }
 
-const LOGO_IMG_CLASS = "w-auto h-[21px] sm:h-6 md:h-8 lg:h-9 max-w-[26vw] md:max-w-none object-contain opacity-80 hover:opacity-100 transition-opacity duration-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]";
+const LOGO_IMG_CLASS = "w-auto h-[21px] sm:h-6 md:h-8 lg:h-9 max-w-[26vw] md:max-w-none object-contain opacity-80 hover:opacity-100 transition-opacity duration-200";
 
 const logoVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 30,
-    scale: 0.95,
   },
   visible: ({ index, skip }: { index: number; skip: boolean }) => ({
     opacity: 1,
     y: 0,
-    scale: 1,
     transition: skip
       ? { duration: 0 }
       : {
@@ -37,6 +34,9 @@ const logoVariants: Variants = {
             delay: index * 0.08,
           },
         },
+    transitionEnd: {
+      transform: "none",
+    },
   }),
 };
 
@@ -72,12 +72,12 @@ export default function CompanyLogoGrid({
               : "justify-center";
 
           const Content = (
-            <Image
+            <img
               src={logo.src}
               alt={logo.name}
-              width={120}
-              height={36}
               className={LOGO_IMG_CLASS}
+              loading="eager"
+              decoding="async"
             />
           );
 
@@ -142,12 +142,12 @@ export default function CompanyLogoGrid({
                 : "justify-center";
 
             const Content = (
-              <Image
+              <img
                 src={logo.src}
                 alt={logo.name}
-                width={120}
-                height={36}
                 className={LOGO_IMG_CLASS}
+                loading="eager"
+                decoding="async"
               />
             );
 

@@ -79,7 +79,7 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
         )}
 
         {/* Details Underneath with Progressive Staggered Blur Float-Up */}
-        <div className="mt-3 sm:mt-4 flex flex-col min-h-[140px] sm:min-h-[150px]">
+        <div className="mt-3 sm:mt-4 flex flex-col min-h-0 lg:min-h-[140px]">
           {/* Slot 1: Role */}
           <motion.div
             initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
@@ -157,7 +157,7 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
               mass: 0.85,
               delay: 0.34,
             }}
-            className="grid grid-cols-1 overflow-hidden py-0.5 mt-2 sm:mt-3 min-h-[4rem] sm:min-h-[4.25rem]"
+            className="grid grid-cols-1 overflow-hidden py-0.5 mt-2 sm:mt-3 h-[3.85rem] sm:h-[4.25rem]"
           >
             <AnimatePresence initial={false}>
               <motion.p
@@ -166,7 +166,7 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
                 animate={{ y: "0%", opacity: 1 }}
                 exit={{ y: "-100%", opacity: 0 }}
                 transition={{ ...slotTransition, delay: 0.2 }}
-                className="col-start-1 row-start-1 text-xs sm:text-sm text-neutral-300 leading-relaxed"
+                className="col-start-1 row-start-1 text-xs sm:text-sm text-neutral-300 leading-relaxed line-clamp-3"
               >
                 {item.description}
               </motion.p>
