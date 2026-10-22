@@ -1,4 +1,4 @@
-const CLEARANCE = 170; // Powerful repulsion gap around selected garment (front half-width 120-138px + 30-40px air buffer)
+const CLEARANCE = 190; // Powerful repulsion gap around selected garment (front half-width 120-138px + 30-40px air buffer)
 const PIN_MARGIN = 48; // Edge pin margin within solid rail segment
 
 /**

@@ -27,6 +27,16 @@ export default function ExperienceSection() {
       className="relative w-full flex flex-col items-start md:justify-center md:mt-6 overflow-visible"
     >
       <div className="relative mx-auto w-full max-w-[1400px] px-4 md:px-8 lg:px-12 overflow-visible">
+        {/* Desktop Header & Subheading (Hidden on mobile to fit screen) */}
+        <div className="hidden md:flex flex-col items-start mb-6 lg:mb-8 text-left">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
+            Experience
+          </h2>
+          <p className="text-zinc-400 text-sm max-w-lg" style={{ textWrap: "balance" }}>
+            A timeline of my semi-professional journey, roles, and major contributions in the field of Computer Science.
+          </p>
+        </div>
+
         {/* Main Interactive Stage with 2:3 Column Ratio */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-12 items-start w-full overflow-visible">
           {/* Column 1 (2 parts): Simple Image & Paragraph */}
