@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ExperienceItem } from "@/types/experience";
 
 export function ExperienceTooltipContent({ item }: { item: ExperienceItem }) {
@@ -5,7 +6,7 @@ export function ExperienceTooltipContent({ item }: { item: ExperienceItem }) {
     <div className="max-w-xs flex flex-col gap-3 p-4">
       {item.image && (
         <div className="relative w-full h-32 rounded-lg overflow-hidden shrink-0">
-          <img src={item.image} alt={item.company} className="object-cover w-full h-full" />
+          <Image src={item.image} alt={item.company} fill sizes="320px" className="object-cover" />
         </div>
       )}
       

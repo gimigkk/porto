@@ -5,11 +5,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLenis } from "lenis/react";
 import { FileText, ArrowUpRight } from "lucide-react";
+import Badge from "@/components/ui/Badge";
 import {
   getDocumentTop,
   resolveSectionNavigationOffset,
   resolveSectionNavigationTarget,
-} from "@/components/layout/stackGeometry";
+} from "@/app/(home)/_components/layout/stackGeometry";
 
 export default function Footer() {
   const lenis = useLenis();
@@ -95,10 +96,10 @@ export default function Footer() {
               Full-Stack Developer & Product Designer creating interactive digital experiences with craft & precision.
             </p>
 
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[11px] sm:text-xs font-medium text-white shadow-xs">
+            <Badge variant="status">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Available for work
-            </div>
+            </Badge>
           </div>
 
           {/* Right Side: Navigation Columns (Balanced flex justify-between across screen) */}

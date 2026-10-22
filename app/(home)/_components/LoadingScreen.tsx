@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import JumpingDots from "@/components/shared/JumpingDots";
+import JumpingDots from "@/components/ui/JumpingDots";
 
 interface LoadingScreenProps {
   isReady: boolean;
@@ -17,12 +17,6 @@ export default function LoadingScreen({
   onComplete,
 }: LoadingScreenProps) {
   const [fading, setFading] = useState(false);
-
-  useEffect(() => {
-    // Hide SSR fallback if present in initial document
-    const el = document.getElementById("ssr-loading-screen");
-    if (el) el.style.display = "none";
-  }, []);
 
   useEffect(() => {
     if (isReady && !fading) {

@@ -1,30 +1,31 @@
 "use client";
 
-import Link from "next/link";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useSyncExternalStore } from "react";
 import { motion, useInView, type Variants } from "framer-motion";
 import type { ProjectMeta } from "@/lib/projects";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
-import TechIcon from "@/components/shared/TechIcon";
-import JumpingDots from "@/components/shared/JumpingDots";
-import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
+import TechIcon from "@/components/ui/TechIcon";
+import JumpingDots from "@/components/ui/JumpingDots";
+import PushButton from "@/components/ui/PushButton";
+import styles from "./ProjectCards.module.css";
+
+const subscribeModal = (callback: () => void) => {
+  window.addEventListener("popstate", callback);
+  window.addEventListener("project-modal-changed", callback);
+  window.addEventListener("hashchange", callback);
+  return () => {
+    window.removeEventListener("popstate", callback);
+    window.removeEventListener("project-modal-changed", callback);
+    window.removeEventListener("hashchange", callback);
+  };
+};
+
+const getModalSnapshot = () => (typeof window !== "undefined" ? window.location.hash.startsWith("#project=") : false);
+const getModalServerSnapshot = () => false;
 
 function useIsModalOpen() {
-  const [isOpen, setIsOpen] = useState(false);
-  useEffect(() => {
-    const check = () => setIsOpen(window.location.hash.startsWith("#project="));
-    check();
-    window.addEventListener("popstate", check);
-    window.addEventListener("project-modal-changed", check);
-    window.addEventListener("hashchange", check);
-    return () => {
-      window.removeEventListener("popstate", check);
-      window.removeEventListener("project-modal-changed", check);
-      window.removeEventListener("hashchange", check);
-    };
-  }, []);
-  return isOpen;
+  return useSyncExternalStore(subscribeModal, getModalSnapshot, getModalServerSnapshot);
 }
 
 function CulledVideo({ src, className, title }: { src: string, className?: string, title?: string }) {
@@ -34,14 +35,6 @@ function CulledVideo({ src, className, title }: { src: string, className?: strin
   const isModalOpen = useIsModalOpen();
   const [isLoaded, setIsLoaded] = useState(false);
   const posterSrc = src.replace('-sm', '').replace(/\.(mp4|webm)$/, '-poster.jpg');
-
-  // Aggressive culling: reset state when out of view
-  useEffect(() => {
-    if (!isInView) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsLoaded(false);
-    }
-  }, [isInView]);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -59,10 +52,12 @@ function CulledVideo({ src, className, title }: { src: string, className?: strin
           isLoaded ? "opacity-0" : "opacity-100"
         }`}
       >
-        <img
+        <Image
           src={posterSrc}
           alt={title ? `${title} video preview poster` : "Project video preview poster"}
-          className="w-full h-full object-cover scale-105"
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="object-cover scale-105"
         />
         <div className="absolute inset-0 flex items-center justify-center">
           <JumpingDots />
@@ -142,7 +137,7 @@ export default function ProjectCards({
           >
             {/* Background Documents (Pop-up effect) — hidden on mobile */}
             <div className="absolute inset-0 z-0 pointer-events-none hidden md:block">
-              <div className="absolute top-10 left-[12%] right-[12%] bottom-16 rounded-lg border border-zinc-700/50 bg-zinc-800 shadow-xl transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-24 group-hover:-rotate-3 origin-bottom">
+              <div className={styles.backplateOne}>
                 <div className="p-5 flex flex-col gap-3">
                   <div className="h-1.5 w-1/3 bg-zinc-600 rounded-full"></div>
                   <div className="h-1.5 w-full bg-zinc-600 rounded-full"></div>
@@ -151,7 +146,7 @@ export default function ProjectCards({
                 </div>
               </div>
               <div
-                className="absolute top-8 left-[8%] right-[8%] bottom-12 rounded-lg border border-black/20 shadow-xl transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-12 group-hover:rotate-3 origin-bottom delay-75"
+                className={styles.backplateTwo}
                 style={{ backgroundColor: project.accent }}
               >
                 <div className="p-5 flex flex-col gap-3 mix-blend-overlay opacity-80">
@@ -177,7 +172,7 @@ export default function ProjectCards({
                 window.dispatchEvent(new Event("project-modal-changed"));
                 window.dispatchEvent(new Event("hashchange"));
               }}
-              className="relative z-10 flex w-full flex-col overflow-hidden md:overflow-visible no-underline cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom md:group-hover:transform-[translateY(13px)_rotateX(-6deg)] md:group-hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)]"
+              className={styles.cardAnchor}
               style={{ willChange: isAnimationSettled ? "auto" : "transform" }}
             >
               {/* -- Thumbnail -- */}
@@ -200,7 +195,7 @@ export default function ProjectCards({
               </div>
 
               {/* -- Metadata plate -- */}
-              <div className="relative z-10 box-border flex w-full items-end justify-between gap-3 px-1 pt-2 pb-1 md:z-0 md:-mt-2 md:gap-4 md:rounded-b-lg md:bg-white md:px-4 md:pt-4 md:pb-2.5 md:text-zinc-950 md:shadow-[0_10px_20px_-14px_rgba(0,0,0,0.8)]">
+              <div className={styles.metaPlate}>
                 {/* Left side: Title & Description */}
                 <div className="flex flex-col flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
@@ -252,24 +247,23 @@ export default function ProjectCards({
           <div className="md:hidden absolute inset-x-0 top-0 bottom-20 bg-linear-to-t from-[#09090b]/80 via-[#09090b]/30 to-transparent" />
           <div className="md:hidden absolute inset-x-0 bottom-0 h-20 bg-[#09090b]/80" />
           {/* Mobile View More CTA */}
-          <Link
+          <PushButton
             href="/projects"
-            className={`md:hidden ${styles.pushable} group shrink-0 pointer-events-auto relative z-10`}
-            aria-label="View Project Archive"
+            ariaLabel="View Project Archive"
+            className="md:hidden group shrink-0 pointer-events-auto relative z-10"
+            frontStyle={{
+              padding: "6px 12px",
+              fontSize: "0.75rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              whiteSpace: "nowrap",
+            }}
           >
-            <span className={styles.shadow}></span>
-            <span className={styles.edge}></span>
-            <span
-              className={`${styles.front} !flex items-center justify-center gap-1.5 whitespace-nowrap`}
-              style={{
-                padding: "6px 12px",
-                fontSize: "0.75rem"
-              }}
-            >
-              <span>View More</span>
-              <ArrowRight className="w-3 h-3 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
-            </span>
-          </Link>
+            <span>View More</span>
+            <ArrowRight className="w-3 h-3 transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-rotate-45" />
+          </PushButton>
         </div>
       )}
     </div>

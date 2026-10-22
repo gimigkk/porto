@@ -1,10 +1,9 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
 import GithubCommitGraph from "@/app/(home)/_components/about/GithubCommitGraph";
 import TechOdometer from "@/app/(home)/_components/about/TechOdometer";
 import ProfileFlipCard from "@/app/(home)/_components/about/ProfileFlipCard";
-import TechIcon from "@/components/shared/TechIcon";
+import TechIcon from "@/components/ui/TechIcon";
 import styles from "@/app/(home)/_components/SkipIntroButton.module.css";
 import type { GithubGraphDay } from "@/lib/github";
 import { useRef, useState, useEffect, type CSSProperties } from "react";
@@ -19,7 +18,6 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
   const { showTooltip, hideTooltip } = useTooltip();
 
   const [isAnimationSettled, setIsAnimationSettled] = useState(false);
-  const advanceTechRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (isInView) {
@@ -208,7 +206,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
           {/* Right Column */}
           <div className="flex flex-col items-end h-full text-right w-[360px]">
             <div style={getTransition(4)}>
-              <TechOdometer align="right" trigger={isInView} onAdvanceRef={advanceTechRef} />
+              <TechOdometer align="right" trigger={isInView} />
             </div>
 
             <div className="flex justify-end w-full mt-[176px]">

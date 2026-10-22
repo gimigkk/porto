@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import TechIcon from "@/components/shared/TechIcon";
+import TechIcon from "@/components/ui/TechIcon";
 import { useTooltip } from "@/components/providers/TooltipProvider";
 import { GithubTooltipContent } from "./tooltips/GithubTooltipContent";
 
@@ -79,14 +79,12 @@ interface TechOdometerProps {
   align?: "left" | "right";
   isMobile?: boolean;
   trigger?: boolean;
-  onAdvanceRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 export default function TechOdometer({
   align = "right",
   isMobile = false,
   trigger = true,
-  onAdvanceRef,
 }: TechOdometerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -100,12 +98,6 @@ export default function TechOdometer({
   const selectCategory = useCallback((index: number) => {
     setCurrentIndex(index);
   }, []);
-
-  useEffect(() => {
-    if (onAdvanceRef) {
-      onAdvanceRef.current = nextCategory;
-    }
-  }, [onAdvanceRef, nextCategory]);
 
   useEffect(() => {
     if (!trigger || isPaused) return;
@@ -132,13 +124,6 @@ export default function TechOdometer({
         hideTooltip();
       }}
     >
-      <style>{`
-        @keyframes odometerProgress {
-          from { transform: scaleY(0); }
-          to { transform: scaleY(1); }
-        }
-      `}</style>
-
       {/* Main Odometer Content */}
       <div className={`flex flex-col justify-between ${isRight ? "items-end text-right pr-3.5" : "items-start text-left pl-3.5"}`}>
         {/* Odometer Title */}

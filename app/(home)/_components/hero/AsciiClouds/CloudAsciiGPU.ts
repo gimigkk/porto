@@ -564,6 +564,7 @@ export class CloudAsciiGPU {
       const boostFade   = g.boost * fade;
       const wobbleScale = g.wobble * halfW;
       const halfWInv    = 1 / halfW;
+      const direction   = g.speed > 0 ? 1 : -1;
       const tS1 = t * 0.25 + g.wobblePhase;
       const tS2 = t * 0.41 + g.wobblePhase * 1.7;
       const tS3 = t * 0.13;
@@ -608,7 +609,6 @@ export class CloudAsciiGPU {
           const dist = Math.abs(offsetFromCenter);
           if (dist < halfW) {
             const u = offsetFromCenter * halfWInv;
-            const direction = g.speed > 0 ? 1 : -1;
             const directedU = u * direction;
 
             const noisyU = directedU + (no1 * 0.4 + no2 * 0.2);

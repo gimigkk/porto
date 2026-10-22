@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import NextTopLoader from 'nextjs-toploader';
 import { TooltipProvider } from "@/components/providers/TooltipProvider";
 import { TooltipRenderer } from "@/components/ui/tooltip/TooltipRenderer";
+import { LanguageProvider } from "@/components/providers/LanguageProvider";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
@@ -101,11 +102,13 @@ export default function RootLayout({
           shadow="none"
           zIndex={2147483647}
         />
-        <TooltipProvider>
-          <TooltipRenderer />
-          <Navbar />
-          <LenisProvider>{children}</LenisProvider>
-        </TooltipProvider>
+        <LanguageProvider>
+          <TooltipProvider>
+            <TooltipRenderer />
+            <Navbar />
+            <LenisProvider>{children}</LenisProvider>
+          </TooltipProvider>
+        </LanguageProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

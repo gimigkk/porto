@@ -7,15 +7,15 @@ const experienceSource = readFileSync(
   "utf8",
 );
 const folderSectionSource = readFileSync(
-  new URL("../components/layout/FolderSection.tsx", import.meta.url),
+  new URL("../app/(home)/_components/layout/FolderSection.tsx", import.meta.url),
   "utf8",
 );
 const stackedSectionsSource = readFileSync(
-  new URL("../components/layout/StackedSections.tsx", import.meta.url),
+  new URL("../app/(home)/_components/layout/StackedSections.tsx", import.meta.url),
   "utf8",
 );
 const geometryHookSource = readFileSync(
-  new URL("../hooks/useStackedSectionGeometry.ts", import.meta.url),
+  new URL("../app/(home)/_components/hooks/useStackedSectionGeometry.ts", import.meta.url),
   "utf8",
 );
 const lenisProviderSource = readFileSync(
@@ -23,11 +23,11 @@ const lenisProviderSource = readFileSync(
   "utf8",
 );
 const skyBackgroundSource = readFileSync(
-  new URL("../components/layout/SkyBackground.tsx", import.meta.url),
+  new URL("../app/(home)/_components/layout/SkyBackground.tsx", import.meta.url),
   "utf8",
 );
 const parallaxDockHookSource = readFileSync(
-  new URL("../hooks/useParallaxDock.ts", import.meta.url),
+  new URL("../app/(home)/_components/hooks/useParallaxDock.ts", import.meta.url),
   "utf8",
 );
 

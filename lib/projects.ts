@@ -30,6 +30,49 @@ export interface ProjectMeta {
  * 
  * Note: This function uses `fs` and must only be called in Server Components.
  */
+function extractMetadataBlock(content: string): string | null {
+  const match = /export\s+const\s+metadata\s*=\s*/.exec(content);
+  if (!match) return null;
+
+  const startIndex = match.index + match[0].length;
+  if (content[startIndex] !== "{") return null;
+
+  let depth = 0;
+  let inString: string | null = null;
+  let isEscaped = false;
+
+  for (let i = startIndex; i < content.length; i++) {
+    const char = content[i];
+
+    if (inString) {
+      if (isEscaped) {
+        isEscaped = false;
+      } else if (char === "\\") {
+        isEscaped = true;
+      } else if (char === inString) {
+        inString = null;
+      }
+      continue;
+    }
+
+    if (char === '"' || char === "'" || char === "`") {
+      inString = char;
+      continue;
+    }
+
+    if (char === "{") {
+      depth++;
+    } else if (char === "}") {
+      depth--;
+      if (depth === 0) {
+        return content.slice(startIndex, i + 1);
+      }
+    }
+  }
+
+  return null;
+}
+
 export function getAllProjects(): ProjectMeta[] {
   const projectsDir = path.join(process.cwd(), "content", "projects");
   
@@ -48,22 +91,14 @@ export function getAllProjects(): ProjectMeta[] {
 
     const filePath = path.join(projectsDir, filename);
     const fileContents = fs.readFileSync(filePath, "utf8");
+    const metadataString = extractMetadataBlock(fileContents);
 
-    // Extract the export const metadata = { ... } block
-    const match = fileContents.match(/export\s+const\s+metadata\s*=\s*({[\s\S]*?});/);
-    if (match) {
+    if (metadataString) {
       try {
-        // Safely evaluate the JS object literal using a Function
-        // We use new Function here because it's a build-time script running in Node,
-        // parsing our own trusted code, and it effortlessly handles single/double quotes, 
-        // trailing commas, and unquoted keys.
-        const metadata = new Function(`return ${match[1]}`)() as ProjectMeta;
-        
-        // Use the filename as fallback slug if not provided
+        const metadata = new Function(`return (${metadataString})`)() as ProjectMeta;
         if (!metadata.slug) {
           metadata.slug = filename.replace(/\.mdx$/, "");
         }
-        
         projects.push(metadata);
       } catch (e) {
         console.error(`Failed to parse metadata in ${filename}`, e);

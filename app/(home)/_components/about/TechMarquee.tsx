@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { useInView } from "framer-motion";
-import TechIcon from "@/components/shared/TechIcon";
+import TechIcon from "@/components/ui/TechIcon";
 
 const TECH_STACK = [
   "react", "nextjs", "ts", "tailwind", "nodejs", "postgres", "figma", 
@@ -17,15 +17,6 @@ export default function TechMarquee({ trigger }: { trigger?: boolean } = {}) {
 
   return (
     <div className="w-full overflow-hidden flex py-3" ref={ref}>
-      <style>{`
-        @keyframes scrollMarquee {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-scrollMarquee {
-          animation: scrollMarquee 25s linear infinite;
-        }
-      `}</style>
       <div
         className={`flex whitespace-nowrap gap-4 md:gap-6 px-4 items-center ${isInView && isVisible ? 'animate-scrollMarquee' : ''}`}
       >

@@ -7,7 +7,7 @@
   --color-background: #09090b;
   --color-foreground: #171717;
   --font-sans: var(--font-plus-jakarta-sans), sans-serif;
-  --font-mono: var(--font-plus-jakarta-sans), monospace;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-serif: var(--font-ibm-plex-serif), Georgia, serif;
 }
 
@@ -59,4 +59,18 @@ body {
 @keyframes ssrDotFade {
   0% { opacity: 1; }
   100% { opacity: 0.2; }
+}
+
+@keyframes odometerProgress {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes scrollMarquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-scrollMarquee {
+  animation: scrollMarquee 25s linear infinite;
 }

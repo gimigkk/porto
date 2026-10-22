@@ -8,7 +8,7 @@
 "use client";
 
 import { useAsciiClouds } from "./useAsciiClouds";
-import type { PreloadedAssets } from "@/hooks/usePreloader";
+import type { PreloadedAssets } from "@/app/(home)/_components/hooks/usePreloader";
 
 interface AsciiCloudsProps {
   className?: string;

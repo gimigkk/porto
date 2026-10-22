@@ -1,4 +1,5 @@
 import createMDX from "@next/mdx";
+import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const mermaidPluginPath = new URL('./lib/rehype-mermaid.mjs', import.meta.url).pathname;
 
@@ -11,6 +12,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "i.scdn.co",
+      },
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
       },
     ],
   },
@@ -28,8 +33,6 @@ const withMDX = createMDX({
     ],
   },
 });
-
-import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const withAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useLayoutEffect, useEffect, useReducer, useSyncExternalStore } from "react";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download, ChevronDown, Menu, X } from "lucide-react";
@@ -9,27 +10,17 @@ import {
   getDocumentTop,
   resolveSectionNavigationOffset,
   resolveSectionNavigationTarget,
-} from "@/components/layout/stackGeometry";
+} from "@/app/(home)/_components/layout/stackGeometry";
 import {
   INITIAL_NAVBAR_INTRO_STATE,
   isNavbarIntroCollapsed,
   navbarIntroReducer,
 } from "@/components/layout/navbarIntroState";
+import MobileNavDrawer from "@/components/layout/MobileNavDrawer";
+import type { NavItem, SubLink } from "@/components/layout/navTypes";
 
-interface SubLink {
-  label: string;
-  target: string;
-  href?: string;
-  external?: boolean;
-  icon?: string;
-}
-
-interface NavItem {
-  label: string;
-  target: string;
-  sublinks: SubLink[];
-  isLogo?: boolean;
-}
+const DESKTOP_NAV_BTN =
+  "group/navlink flex items-center gap-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100 transition-colors duration-200 tracking-tight px-3 py-1.5 rounded-full focus:outline-none cursor-pointer";
 
 /** Maps nav target keys to actual DOM section IDs */
 const TARGET_ID_MAP: Record<string, string> = {
@@ -433,7 +424,7 @@ export default function Navbar() {
                 onMouseEnter={(e) => handleNavEnter(0, e)}
                 className="flex items-center gap-1.5 text-sm font-semibold text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none md:px-3 md:py-1.5"
               >
-                <img src="/gimigkk-black.svg" alt="@gimigkk" className="h-[22px] w-auto object-contain " fetchPriority="high" />
+                <Image src="/gimigkk-black.svg" alt="@gimigkk" width={69} height={22} className="h-[22px] w-auto object-contain" priority />
               </button>
 
               {/* Main nav items - desktop only */}
@@ -448,7 +439,7 @@ export default function Navbar() {
                       aria-label={item.label}
                       onClick={() => scrollTo(item.target)}
                       onMouseEnter={(e) => handleNavEnter(i, e)}
-                      className="group/navlink flex items-center gap-1.5 text-sm font-medium transition-colors duration-200 tracking-tight px-3 py-1.5 rounded-full focus:outline-none text-zinc-700 hover:bg-zinc-100 cursor-pointer"
+                      className={DESKTOP_NAV_BTN}
                     >
                       <span className={isHovered ? "text-zinc-950" : ""}>
                         {item.label}
@@ -476,7 +467,7 @@ export default function Navbar() {
                       type="button"
                       onClick={() => scrollTo(item.target)}
                       onMouseEnter={(e) => handleNavEnter(i, e)}
-                      className="group/navlink flex items-center gap-1.5 text-sm font-medium text-zinc-700 transition-colors duration-200 tracking-tight px-3 py-1.5 rounded-full hover:bg-zinc-100 cursor-pointer focus:outline-none"
+                      className={DESKTOP_NAV_BTN}
                     >
                       <span className={isHovered ? "text-zinc-950" : ""}>
                         {item.label}
@@ -557,138 +548,30 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* @gimigkk mobile panel */}
-      {gimigkkPanelOpen && (
-        <>
-          <div
-            className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-            onClick={closeGimigkkPanel}
-          />
-
-          <div
-            className="md:hidden fixed top-11.75 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl"
-          >
-          <div className="px-4 py-4 flex flex-col gap-1">
-            {/* @gimigkk accordion */}
-            <div>
-              <button
-                type="button"
-                onClick={() =>
-                  setActiveAccordion(activeAccordion === 0 ? null : 0)
-                }
-                className="flex items-center justify-between w-full py-3 text-sm font-medium text-zinc-800 hover:text-zinc-950 transition-colors duration-200 tracking-tight cursor-pointer focus:outline-none"
-              >
-                <span>Socials</span>
-                <ChevronDown
-                  className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ease-out ${activeAccordion === 0 ? "rotate-180" : "rotate-0"
-                    }`}
-                />
-              </button>
-
-              <div
-                className="grid overflow-hidden"
-                style={{
-                  gridTemplateRows: activeAccordion === 0 ? "1fr" : "0fr",
-                  opacity: activeAccordion === 0 ? 1 : 0,
-                }}
-              >
-                <div className="min-h-0">
-                  <div className="pb-3 pl-2 flex flex-col gap-2 pt-1">
-                    {NAV_ITEMS[0].sublinks.map((sublink) => (
-                      <button
-                        key={sublink.label}
-                        type="button"
-                        onClick={() => {
-                          handleSublinkClick(sublink);
-                          closeGimigkkPanel();
-                        }}
-                        className="text-left text-sm font-medium text-zinc-500 hover:text-zinc-950 transition-colors duration-200 tracking-tight py-1.5 cursor-pointer focus:outline-none"
-                      >
-                        {sublink.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    )}
-
-      {/* Hamburger mobile panel */}
-      {mobileMenuOpen && (
-        <>
-          <div
-            className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-            onClick={closeMobileMenu}
-          />
-
-          <div
-            className="md:hidden fixed top-11.75 inset-x-0 z-45 max-h-[calc(100svh-48px)] overflow-y-auto bg-white border-t border-zinc-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-b-2xl px-4 py-4 flex flex-col gap-1"
-          >
-          {/* Home + Project Archive + CV accordions */}
-          {NAV_ITEMS.slice(1).map((item, idx) => {
-            const i = idx + 1;
-            const isOpen = activeAccordion === i;
-
-            return (
-              <div key={item.label} className="flex flex-col gap-1">
-                <button
-                  type="button"
-                  aria-label={item.label}
-                  onClick={() => {
-                    if (item.target === "projects") {
-                      setActiveAccordion(isOpen ? null : i);
-                      return;
-                    }
-                    // Keep mobile menu on homepage while expanding Home.
-                    if (item.target !== "cv") {
-                      router.push("/");
-                    }
-                    setActiveAccordion(i);
-                  }}
-                  className="flex items-center justify-between w-full py-3 text-sm font-medium transition-colors duration-200 tracking-tight focus:outline-none text-zinc-800 hover:text-zinc-950 cursor-pointer"
-                >
-                  <span>{item.label}</span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ease-out ${isOpen ? "rotate-180" : "rotate-0"
-                      }`}
-                  />
-                </button>
-
-                <div
-                  className="grid overflow-hidden"
-                  style={{
-                    gridTemplateRows: isOpen ? "1fr" : "0fr",
-                    opacity: isOpen ? 1 : 0,
-                  }}
-                >
-                  <div className="min-h-0">
-                    <div className="pb-3 pl-2 flex flex-col gap-2 pt-1">
-                      {item.sublinks.map((sublink) => (
-                        <button
-                          key={sublink.label}
-                          type="button"
-                          onClick={() => {
-                            handleSublinkClick(sublink);
-                            closeMobileMenu();
-                          }}
-                          className="flex items-center justify-between w-full text-left text-sm font-medium transition-colors duration-200 tracking-tight py-1.5 focus:outline-none text-zinc-500 hover:text-zinc-950 cursor-pointer"
-                        >
-                          <span>{sublink.label}</span>
-                          {sublink.icon === "download" && <Download className="w-4 h-4 mr-2" />}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </>
-    )}
+      {/* Mobile Drawer (Single Responsibility) */}
+      <MobileNavDrawer
+        navItems={NAV_ITEMS}
+        mobileMenuOpen={mobileMenuOpen}
+        gimigkkPanelOpen={gimigkkPanelOpen}
+        activeAccordion={activeAccordion}
+        onToggleAccordion={(i) => {
+          if (i === null) {
+            setActiveAccordion(null);
+            return;
+          }
+          if (NAV_ITEMS[i]?.target === "projects") {
+            setActiveAccordion(activeAccordion === i ? null : i);
+            return;
+          }
+          if (NAV_ITEMS[i]?.target !== "cv") {
+            router.push("/");
+          }
+          setActiveAccordion(i);
+        }}
+        onCloseMobileMenu={closeMobileMenu}
+        onCloseGimigkkPanel={closeGimigkkPanel}
+        onSublinkClick={handleSublinkClick}
+      />
     </>
   );
 }

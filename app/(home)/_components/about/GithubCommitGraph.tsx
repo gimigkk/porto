@@ -12,44 +12,58 @@ export default React.memo(function GithubCommitGraph({ data, delayBase = 0, trig
   const isInView = trigger !== undefined ? trigger : internalInView;
   const { showTooltip, hideTooltip } = useTooltip();
   
-  // Mathematical linear curve mapper and Month Labels cached via useMemo
+  // Linear scale calculation and Month Labels cached via useMemo
   const { maxLinear, monthLabels } = useMemo(() => {
-    // 1. Calculate Mean & StdDev
-    const flatCounts = data.flat().map(d => d.count).filter(c => c > 0);
+    let count = 0;
+    let sum = 0;
+    let sumSq = 0;
+
+    for (let c = 0; c < data.length; c++) {
+      const week = data[c];
+      for (let r = 0; r < week.length; r++) {
+        const val = week[r].count;
+        if (val > 0) {
+          count++;
+          sum += val;
+          sumSq += val * val;
+        }
+      }
+    }
+
     let maxL = 10;
-    if (flatCounts.length > 0) {
-      const sum = flatCounts.reduce((a, b) => a + b, 0);
-      const mean = sum / flatCounts.length;
-      const squareDiffs = flatCounts.map(c => Math.pow(c - mean, 2));
-      const stdDev = Math.sqrt(squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length);
+    if (count > 0) {
+      const mean = sum / count;
+      const variance = Math.max(0, (sumSq / count) - (mean * mean));
+      const stdDev = Math.sqrt(variance);
       maxL = Math.max(Math.ceil(mean + 1.5 * stdDev), 1);
     }
 
-    // 2. Compute accurate month labels
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const labels: { name: string, colIndex: number }[] = [];
+    const labels: { name: string; colIndex: number }[] = [];
     let currentMonth = -1;
 
-    data.forEach((week, colIndex) => {
-      const dayWithDate = week.find(d => !!d.date);
-      if (!dayWithDate) return;
+    for (let colIndex = 0; colIndex < data.length; colIndex++) {
+      const week = data[colIndex];
+      for (let dayIndex = 0; dayIndex < week.length; dayIndex++) {
+        const date = week[dayIndex]?.date;
+        if (!date) continue;
+        const parts = date.split("-");
+        if (parts.length < 3) continue;
+        const monthIndex = parseInt(parts[1], 10) - 1;
 
-      const parts = dayWithDate.date.split("-");
-      if (parts.length < 3) return;
-      const monthIndex = parseInt(parts[1], 10) - 1;
-
-      if (monthIndex !== currentMonth) {
-        const lastLabel = labels[labels.length - 1];
-        const isDistantEnough = !lastLabel || (colIndex - lastLabel.colIndex >= 3);
-
-        if (isDistantEnough) {
-          labels.push({ name: monthNames[monthIndex], colIndex });
-        } else if (labels.length === 1) {
-          labels[0] = { name: monthNames[monthIndex], colIndex };
+        if (monthIndex !== currentMonth) {
+          const lastLabel = labels[labels.length - 1];
+          const isDistantEnough = !lastLabel || (colIndex - lastLabel.colIndex >= 3);
+          if (isDistantEnough) {
+            labels.push({ name: monthNames[monthIndex], colIndex });
+          } else if (labels.length === 1) {
+            labels[0] = { name: monthNames[monthIndex], colIndex };
+          }
+          currentMonth = monthIndex;
         }
-        currentMonth = monthIndex;
+        break;
       }
-    });
+    }
 
     return { maxLinear: maxL, monthLabels: labels };
   }, [data]);

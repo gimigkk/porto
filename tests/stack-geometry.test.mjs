@@ -9,7 +9,7 @@ import {
   getParallaxSeamExtension,
   navigationOffsetForStackTop,
   progressBetween,
-} from "../components/layout/stackGeometry.ts";
+} from "../app/(home)/_components/layout/stackGeometry.ts";
 
 test("TestV11_DynamicAnchorsProduceSemanticRanges", () => {
   assert.deepEqual(

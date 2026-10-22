@@ -1,0 +1,54 @@
+.button {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background-color: rgb(9, 9, 11);
+  border: 1px solid rgb(82, 82, 91);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-radius 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.icon {
+  width: 14px;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.icon path {
+  fill: rgb(161, 161, 170);
+}
+
+.button:hover {
+  width: 140px;
+  border-radius: 50px;
+  background-color: rgb(39, 39, 42);
+}
+
+.button:hover .icon {
+  transform: translateY(-200%);
+}
+
+.label {
+  position: absolute;
+  bottom: -20px;
+  color: rgb(228, 228, 231);
+  font-size: 0px;
+  white-space: nowrap;
+  font-family: inherit;
+  font-weight: 500;
+  transition: font-size 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.button:hover .label {
+  font-size: 13px;
+  bottom: unset;
+}

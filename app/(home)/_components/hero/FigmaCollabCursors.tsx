@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { motion, useMotionValue, animate } from "framer-motion";
+import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import { motion, useMotionValue, animate, type ValueAnimationTransition } from "framer-motion";
 
 /* ─── Personality traits that shape each cursor's movement character ─── */
 interface CursorPersonality {
@@ -257,7 +257,10 @@ function useOrganicMovement(personality: CursorPersonality, slot: CollabSlot, st
   const y = useMotionValue(0);
   const hasStartedRef = useRef(false);
   const slotRef = useRef(slot);
-  slotRef.current = slot;
+
+  useEffect(() => {
+    slotRef.current = slot;
+  }, [slot]);
 
   useEffect(() => {
     if (!isActive) return;
@@ -347,8 +350,8 @@ function useOrganicMovement(personality: CursorPersonality, slot: CollabSlot, st
           : false;
         const motorLag = shouldCurve ? 0.04 + Math.random() * 0.045 : 0;
 
-        let xConfig: any;
-        let yConfig: any;
+        let xConfig: ValueAnimationTransition | Record<string, unknown>;
+        let yConfig: ValueAnimationTransition | Record<string, unknown>;
 
         if (shouldCurve) {
           xConfig = {
@@ -527,20 +530,23 @@ interface FigmaCollabCursorsProps {
 
 export default function FigmaCollabCursors({ isReady = true }: FigmaCollabCursorsProps) {
   const [isVisible, setIsVisible] = useState(true);
-  const [isMobileScreen, setIsMobileScreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const isMobileScreen = useSyncExternalStore(
+    (callback) => {
+      if (typeof window === "undefined") return () => {};
+      const mq = window.matchMedia("(max-width: 767px)");
+      mq.addEventListener("change", callback);
+      return () => mq.removeEventListener("change", callback);
+    },
+    () => (typeof window !== "undefined" ? window.matchMedia("(max-width: 767px)").matches : false),
+    () => false
+  );
 
   // Desktop slot assignment: cursor index -> slot index
   const [desktopSlots, setDesktopSlots] = useState<number[]>([0, 1, 2, 3, 4]);
   // Mobile slot assignment
   const [mobileSlots, setMobileSlots] = useState<number[]>([0, 1]);
-
-  useEffect(() => {
-    setIsMobileScreen(window.matchMedia("(max-width: 767px)").matches);
-    const onResize = () => setIsMobileScreen(window.matchMedia("(max-width: 767px)").matches);
-    window.addEventListener("resize", onResize, { passive: true });
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;

@@ -1,0 +1,85 @@
+.backplateOne {
+  position: absolute;
+  top: 2.5rem;
+  left: 12%;
+  right: 12%;
+  bottom: 4rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(63, 63, 70, 0.5);
+  background-color: #27272a;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform-origin: bottom;
+  transition: all 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:global(.group:hover) .backplateOne {
+  transform: translateY(-6rem) rotate(-3deg);
+}
+
+.backplateTwo {
+  position: absolute;
+  top: 2rem;
+  left: 8%;
+  right: 8%;
+  bottom: 3rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform-origin: bottom;
+  transition: all 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: 75ms;
+}
+
+:global(.group:hover) .backplateTwo {
+  transform: translateY(-3rem) rotate(3deg);
+}
+
+.cardAnchor {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  text-decoration: none;
+  cursor: pointer;
+  transform-origin: bottom;
+  transition: all 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (min-width: 768px) {
+  .cardAnchor {
+    overflow: visible;
+  }
+
+  :global(.group:hover) .cardAnchor {
+    transform: translateY(13px) rotateX(-6deg);
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.8);
+  }
+}
+
+.metaPlate {
+  position: relative;
+  z-index: 10;
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.25rem 0.25rem;
+}
+
+@media (min-width: 768px) {
+  .metaPlate {
+    z-index: 0;
+    margin-top: -0.5rem;
+    gap: 1rem;
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    background-color: #ffffff;
+    padding: 1rem 1rem 0.625rem;
+    color: #09090b;
+    box-shadow: 0 10px 20px -14px rgba(0, 0, 0, 0.8);
+  }
+}

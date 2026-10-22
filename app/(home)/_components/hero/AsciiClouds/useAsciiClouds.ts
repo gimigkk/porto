@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react";
 import { CONFIG, CloudState, MouseState } from "./CloudAsciiCore";
 import { updateGusts, updateBlobs, updateDisruptions } from "./CloudAsciiPhysics";
 import { CloudAsciiGPU } from "./CloudAsciiGPU";
-import type { PreloadedAssets } from "@/hooks/usePreloader";
+import type { PreloadedAssets } from "@/app/(home)/_components/hooks/usePreloader";
 
 import { getHasCompletedHomeIntro } from "@/app/(home)/_components/HomeClient";
 

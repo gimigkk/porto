@@ -8,7 +8,7 @@ const sectionSource = readFileSync(new URL("../app/(home)/_components/projects/P
 const cardsSource = readFileSync(new URL("../app/(home)/_components/projects/ProjectCards.tsx", import.meta.url), "utf8");
 const archivePageSource = readFileSync(new URL("../app/projects/page.tsx", import.meta.url), "utf8");
 const archiveClientSource = readFileSync(new URL("../app/projects/_components/ProjectsArchiveClient.tsx", import.meta.url), "utf8");
-const modalSource = readFileSync(new URL("../app/(home)/_components/projects/ClientProjectModal.tsx", import.meta.url), "utf8");
+const modalSource = readFileSync(new URL("../components/projects/modal/useModalShortcutsAndLock.ts", import.meta.url), "utf8");
 
 test("TestV26_ProjectArchiveControlsNavigateToProjectsRoute", () => {
   // Archive route page exists

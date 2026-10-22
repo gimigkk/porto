@@ -1,13 +1,16 @@
 import { ExternalLink } from "lucide-react";
+import Image from "next/image";
 
 export function CampusTooltipContent() {
   return (
     <div className="max-w-xs flex flex-col gap-3 p-4">
       <div className="relative w-full h-32 rounded-lg overflow-hidden shrink-0 bg-neutral-200">
-        <img 
+        <Image 
           src="/ipb-drone.jpg" 
           alt="IPB University Campus" 
-          className="object-cover w-full h-full"
+          fill
+          sizes="320px"
+          className="object-cover"
         />
       </div>
       

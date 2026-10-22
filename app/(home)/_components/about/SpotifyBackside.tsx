@@ -1,369 +1,21 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useRef } from "react";
 import Image from "next/image";
-import { Loader2 } from "lucide-react";
 import { useTooltip } from "@/components/providers/TooltipProvider";
-
-interface SpotifyData {
-  isPlaying: boolean;
-  title?: string;
-  artist?: string;
-  album?: string;
-  albumImageUrl?: string;
-  songUrl?: string;
-  progressMs?: number;
-  durationMs?: number;
-}
-
-const MOCK_TRACKS: SpotifyData[] = [
-  {
-    isPlaying: true,
-    title: "Suiheisen wa Boku no Furukizu",
-    artist: "yanaginagi",
-    album: "Suiheisen",
-    albumImageUrl: "/images/spotify/suiheisen.jpg",
-    songUrl: "https://open.spotify.com/track/2jHegMG75LTPEHolqbm8UM",
-    progressMs: 85000,
-    durationMs: 281000,
-  },
-  {
-    isPlaying: true,
-    title: "君の知らない物語 -TV Edit-",
-    artist: "supercell",
-    album: "Today Is A Beautiful Day",
-    albumImageUrl: "/images/spotify/bakemonogatari.jpg",
-    songUrl: "https://open.spotify.com/track/3hcxvXjflT9z5UV9IJHjgF",
-    progressMs: 65000,
-    durationMs: 93000,
-  },
-  {
-    isPlaying: true,
-    title: "リトルソルジャー",
-    artist: "田所あずさ",
-    album: "Little Soldier",
-    albumImageUrl: "/images/spotify/littlesoldier.jpg",
-    songUrl: "https://open.spotify.com/track/4ESR8uG70TFcWKqtePEJpo",
-    progressMs: 145000,
-    durationMs: 234000,
-  },
-  {
-    isPlaying: true,
-    title: "STAY ALIVE ～REGAIN～",
-    artist: "エミリア(CV:高橋李依)",
-    album: "Re:ZERO",
-    albumImageUrl: "/images/spotify/stayalive.jpg",
-    songUrl: "https://open.spotify.com/track/0s2VcNK7LZdk4lGdIRgSdt",
-    progressMs: 145000,
-    durationMs: 294000,
-  },
-  {
-    isPlaying: true,
-    title: "薄ら氷心中",
-    artist: "Sheena Ringo",
-    album: "Sandokushi",
-    albumImageUrl: "/images/spotify/sheenaringo.jpg",
-    songUrl: "https://open.spotify.com/track/1DxOabtnI3W4ouECc6AdyT",
-    progressMs: 45000,
-    durationMs: 193000,
-  },
-  {
-    isPlaying: true,
-    title: "JANE DOE",
-    artist: "Kenshi Yonezu, Hikaru Utada",
-    album: "JANE DOE",
-    albumImageUrl: "/images/spotify/janedoe.png",
-    songUrl: "https://open.spotify.com/track/4oE7MyJhqSD3BaHRpNs8Nl",
-    progressMs: 120000,
-    durationMs: 236000,
-  },
-  {
-    isPlaying: true,
-    title: "センチメンタルクライシス",
-    artist: "halca",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273d7a6c99c292eaa54ddf8a3f7",
-    songUrl: "https://open.spotify.com/track/31fN64zoCHnWmFmPVmiVJT",
-    durationMs: 235000,
-  },
-  {
-    isPlaying: true,
-    title: "VOICE",
-    artist: "ZAQ",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b27373d6f1bb38a4581030995c34",
-    songUrl: "https://open.spotify.com/track/6ysyGkEAHi2obFmW21eSyl",
-    durationMs: 212000,
-  },
-  {
-    isPlaying: true,
-    title: "Sleep Walking Orchestra",
-    artist: "BUMP OF CHICKEN",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2734fa6f800142c0e82a60b5bec",
-    songUrl: "https://open.spotify.com/track/0vMBqdJIkmflvFk728hKH7",
-    durationMs: 245000,
-  },
-  {
-    isPlaying: true,
-    title: "Aishite Aishite Aishite",
-    artist: "Ado",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273f5912abed0ea22e746552771",
-    songUrl: "https://open.spotify.com/track/4gpvY7b9wHA9G1ZsMDu15b",
-    durationMs: 204000,
-  },
-  {
-    isPlaying: true,
-    title: "風と行く道",
-    artist: "大原ゆい子",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2738e06192b20db0e7665e299c1",
-    songUrl: "https://open.spotify.com/track/0aNhn72dSTLI5DKcbx579b",
-    durationMs: 265000,
-  },
-  {
-    isPlaying: true,
-    title: "Ketsui no Uta",
-    artist: "大原ゆい子",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2739da7ea7ec3fdd889ada7462d",
-    songUrl: "https://open.spotify.com/track/4lOOJXa8XJWOmT5Ha3COIu",
-    durationMs: 278000,
-  },
-  {
-    isPlaying: true,
-    title: "Wind's Anthem (feat. suis From Yorushika)",
-    artist: "Eve",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2734b3802ca0f0cde9fb1da1b2c",
-    songUrl: "https://open.spotify.com/track/1xjyjzvD6l7nCHMySQrgVc",
-    durationMs: 251000,
-  },
-  {
-    isPlaying: true,
-    title: "KIRA",
-    artist: "Ado",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273422899ac4d2bf386921a9775",
-    songUrl: "https://open.spotify.com/track/7FTTLL9jM3wcpgeCAJU9L6",
-    durationMs: 198000,
-  },
-  {
-    isPlaying: true,
-    title: "LOVE 2000",
-    artist: "八奈見杏菜（CV: 遠野ひかる）",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2739f3bd62e5cb8053fb94ad2c0",
-    songUrl: "https://open.spotify.com/track/3SgrOFXKKNcffg5jFvU5Cf",
-    durationMs: 258000,
-  },
-  {
-    isPlaying: true,
-    title: "Fuyubiyori",
-    artist: "佐々木恵梨",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273e88c2d63e455f7c14c1082c0",
-    songUrl: "https://open.spotify.com/track/4Ts3FQkEs1jRIbcgxxT7R0",
-    durationMs: 242000,
-  },
-  {
-    isPlaying: true,
-    title: "会いたかった空",
-    artist: "茅原実里",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2730b2ec123c0a0916817a07083",
-    songUrl: "https://open.spotify.com/track/2WmY0S1XUdWaYiVRYap5H1",
-    durationMs: 312000,
-  },
-  {
-    isPlaying: true,
-    title: "秘密",
-    artist: "sumika",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2739324a240e4d3fc7ac67b225a",
-    songUrl: "https://open.spotify.com/track/7y06U9dmbU1d73cX0gjMCj",
-    durationMs: 215000,
-  },
-  {
-    isPlaying: true,
-    title: "春夏秋冬",
-    artist: "sumika",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2739324a240e4d3fc7ac67b225a",
-    songUrl: "https://open.spotify.com/track/3TQKZoYr4tH2YeJ02bcw1m",
-    durationMs: 235000,
-  },
-  {
-    isPlaying: true,
-    title: "Sincerely",
-    artist: "TRUE",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2732c3cbb74ae5cc1d3e8996983",
-    songUrl: "https://open.spotify.com/track/1774XGEDmmV7ynAzCQHrhU",
-    durationMs: 275000,
-  },
-  {
-    isPlaying: true,
-    title: "旅人の唄",
-    artist: "大原ゆい子",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b2738e06192b20db0e7665e299c1",
-    songUrl: "https://open.spotify.com/track/7fgA5gjOjGlsIPLbUFvHDb",
-    durationMs: 250000,
-  },
-  {
-    isPlaying: true,
-    title: "全力少年",
-    artist: "Sukima Switch",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273d0624e5204e7871f088a65b9",
-    songUrl: "https://open.spotify.com/track/3Ztjw8utVpcrzms1RrsJvR",
-    durationMs: 275000,
-  },
-  {
-    isPlaying: true,
-    title: "Sincerely",
-    artist: "Lia",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b273dddca4ba4d52751dd192c99c",
-    songUrl: "https://open.spotify.com/track/62X8QsHGfAImwjrCtlFByg",
-    durationMs: 285000,
-  },
-  {
-    isPlaying: true,
-    title: "Sing My Pleasure",
-    artist: "ヴィヴィ(Vo.八木海莉)",
-    album: "Spotify Track",
-    albumImageUrl: "https://i.scdn.co/image/ab67616d0000b27330353054c4cdfe757f66997b",
-    songUrl: "https://open.spotify.com/track/6wOazYrDGLhMAhwU6RArlg",
-    durationMs: 275000,
-  }
-];
+import { useSpotifyPlayback, formatTime } from "./useSpotifyPlayback";
 
 export default function SpotifyBackside({
   isFlipped = false,
-  isMobile = false
+  isMobile = false,
 }: {
   isFlipped?: boolean;
   isMobile?: boolean;
 }) {
-  const [data, setData] = useState<SpotifyData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { showTooltip, hideTooltip } = useTooltip();
-
   const barRef = useRef<HTMLDivElement>(null);
   const timeRef = useRef<HTMLSpanElement>(null);
-  const progressRef = useRef<number>(0);
-  const trackRef = useRef<SpotifyData | null>(null);
-  const isFlippedRef = useRef(isFlipped);
-
-  useEffect(() => {
-    isFlippedRef.current = isFlipped;
-  }, [isFlipped]);
-
-
-
-  const formatTime = (ms: number) => {
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
-
-  useEffect(() => {
-    const date = new Date();
-    const currentHour = date.getHours();
-    const isDowntime = currentHour >= 0 && currentHour < 7;
-    
-    // Freeze time at 23:59:59 of previous day if in downtime
-    const timeToUse = isDowntime 
-      ? new Date(date).setHours(0, 0, 0, 0) - 1 
-      : date.getTime();
-
-    const totalDuration = MOCK_TRACKS.reduce((acc, track) => acc + (track.durationMs || 0), 0);
-    const currentLoopTime = timeToUse % totalDuration;
-
-    let accumulatedTime = 0;
-    let initialIndex = 0;
-    let initialProgress = 0;
-
-    for (let i = 0; i < MOCK_TRACKS.length; i++) {
-      const duration = MOCK_TRACKS[i].durationMs || 100000;
-      if (currentLoopTime < accumulatedTime + duration) {
-        initialIndex = i;
-        initialProgress = currentLoopTime - accumulatedTime;
-        break;
-      }
-      accumulatedTime += duration;
-    }
-
-    const initialTrack = {
-      ...MOCK_TRACKS[initialIndex],
-      progressMs: initialProgress,
-      isPlaying: !isDowntime
-    };
-
-    trackRef.current = initialTrack;
-    progressRef.current = initialProgress;
-    
-    // Real-time anchors prevent drift and desync when tab is inactive
-    let startTime = Date.now();
-    let baseProgress = initialProgress;
-    
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setData(initialTrack);
-    setLoading(false);
-
-    const interval = setInterval(() => {
-      // Proper performance optimization: skip DOM updates when tab is hidden or card is facing front
-      if (document.hidden || !isFlippedRef.current) return;
-
-      const currentTrack = trackRef.current;
-      if (!currentTrack || !currentTrack.isPlaying || currentTrack.durationMs === undefined) return;
-
-      // Track elapsed time properly instead of naive +1000ms
-      const elapsed = Date.now() - startTime;
-      progressRef.current = baseProgress + elapsed;
-
-      if (progressRef.current >= currentTrack.durationMs) {
-        const currentIndex = MOCK_TRACKS.findIndex(t => t.songUrl === currentTrack.songUrl);
-        const nextIndex = currentIndex !== -1 ? (currentIndex + 1) % MOCK_TRACKS.length : 0;
-        const nextTrack = {
-          ...MOCK_TRACKS[nextIndex],
-          progressMs: 0,
-          isPlaying: true
-        };
-        trackRef.current = nextTrack;
-        progressRef.current = 0;
-        
-        // Reset anchors for next track
-        startTime = Date.now();
-        baseProgress = 0;
-        
-        setData(nextTrack);
-        return;
-      }
-
-      if (barRef.current) {
-        const percentage = Math.min((progressRef.current / currentTrack.durationMs) * 100, 100);
-        barRef.current.style.width = `${percentage}%`;
-      }
-      if (timeRef.current) {
-        timeRef.current.innerText = formatTime(progressRef.current);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="absolute inset-0 bg-[#0e0e0e] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-zinc-500 animate-spin" />
-      </div>
-    );
-  }
+  const data = useSpotifyPlayback(isFlipped, barRef, timeRef);
+  const { showTooltip, hideTooltip } = useTooltip();
 
   if (!data || !data.title) {
     return (
@@ -385,9 +37,7 @@ export default function SpotifyBackside({
   const content = (
     <>
       {/* Top half: Album Art */}
-      <div
-        className="w-full relative aspect-square bg-[#121212] rounded-[3px] md:rounded-md shadow-lg flex flex-col overflow-hidden border border-zinc-800 shrink-0"
-      >
+      <div className="w-full relative aspect-square bg-[#121212] rounded-[3px] md:rounded-md shadow-lg flex flex-col overflow-hidden border border-zinc-800 shrink-0">
         <div className="relative w-full h-full">
           {data.albumImageUrl ? (
             <Image
@@ -408,7 +58,7 @@ export default function SpotifyBackside({
         <div className="mb-1 md:mb-4">
           <div className="flex items-center justify-between gap-1 mb-0.5 md:mb-1">
             <p className="text-[7.5px] md:text-xs text-zinc-400 font-medium tracking-wide uppercase truncate">
-              {data.isPlaying ? "Playing" : "Recent"}
+              {data.isPlaying ? "Currently Playing" : "Recently Played"}
             </p>
             {isMobile && data.songUrl && (
               <a
@@ -425,16 +75,22 @@ export default function SpotifyBackside({
           <h4 className="text-white font-bold text-[10px] md:text-lg leading-tight truncate">
             {data.title}
           </h4>
-          <p className="text-zinc-400 text-[8.5px] md:text-sm truncate leading-tight mt-0.5 mb-1 md:mb-0">{data.artist}</p>
+          <p className="text-zinc-400 text-[8.5px] md:text-sm truncate leading-tight mt-0.5 mb-1 md:mb-0">
+            {data.artist}
+          </p>
         </div>
 
-        {/* Progress Bar */}
+        {/* Progress Bar Container */}
         <div className="w-full">
           <div className="h-1 md:h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden relative mb-1 md:mb-1.5">
             <div
               ref={barRef}
               className="absolute top-0 left-0 h-full bg-white rounded-full transition-all duration-1000 ease-linear relative"
-              style={{ width: `${data.durationMs ? Math.min(((data.progressMs ?? 0) / data.durationMs) * 100, 100) : 0}%` }}
+              style={{
+                width: data.durationMs
+                  ? `${Math.min(((data.progressMs ?? 0) / data.durationMs) * 100, 100)}%`
+                  : "0%",
+              }}
             >
               {/* Progress Dot Handle */}
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full translate-x-1/2 shadow-[0_0_4px_rgba(0,0,0,0.5)]" />
@@ -442,21 +98,18 @@ export default function SpotifyBackside({
           </div>
           <div className="flex justify-between text-[7.5px] md:text-[10px] text-zinc-500 font-medium tracking-wider font-mono leading-none">
             <span ref={timeRef}>{formatTime(data.progressMs ?? 0)}</span>
-            <span>{formatTime(data.durationMs || 0)}</span>
+            <span>{data.durationMs ? formatTime(data.durationMs) : "--:--"}</span>
           </div>
         </div>
       </div>
     </>
   );
 
-  const containerClass = "absolute inset-0 bg-[#0e0e0e] rounded-[4px] md:rounded-lg border border-zinc-800 flex flex-col items-center justify-between p-2 md:p-4";
+  const containerClass =
+    "absolute inset-0 bg-[#0e0e0e] rounded-[4px] md:rounded-lg border border-zinc-800 flex flex-col items-center justify-between p-2 md:p-4";
 
   if (isMobile) {
-    return (
-      <div className={containerClass}>
-        {content}
-      </div>
-    );
+    return <div className={containerClass}>{content}</div>;
   }
 
   return (
@@ -464,23 +117,29 @@ export default function SpotifyBackside({
       href={data.songUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`${containerClass} cursor-pointer`}
-      onMouseEnter={() => showTooltip(
-        <div className="flex items-center gap-3 px-4 py-3">
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" className="text-[#1DB954] shrink-0">
-            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
-          </svg>
-          <div className="flex flex-col gap-0.5">
-            <span className="font-bold text-sm text-neutral-900">Open in Spotify?</span>
-            <span className="text-xs text-neutral-500">Play full track</span>
+      className={`${containerClass} cursor-pointer select-none`}
+      onMouseEnter={() =>
+        showTooltip(
+          <div className="flex items-center gap-3 px-4 py-3">
+            <svg
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              fill="currentColor"
+              className="text-[#1DB954] shrink-0"
+            >
+              <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+            </svg>
+            <div className="flex flex-col gap-0.5">
+              <span className="font-bold text-sm text-neutral-900">Open in Spotify?</span>
+              <span className="text-xs text-neutral-500">Play full track</span>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
       onMouseLeave={hideTooltip}
     >
       {content}
     </a>
   );
 }
-
-SpotifyBackside.whyDidYouRender = true;

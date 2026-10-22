@@ -1,22 +1,21 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { motion } from "framer-motion";
 import { useLenis } from "lenis/react";
-import { usePreloader } from "@/hooks/usePreloader";
+import { usePreloader } from "@/app/(home)/_components/hooks/usePreloader";
+import { useBrowserEnvironment } from "@/hooks/useBrowserEnvironment";
 import LoadingScreen from "@/app/(home)/_components/LoadingScreen";
-import SkyBackground from "@/components/layout/SkyBackground";
+import SkyBackground from "@/app/(home)/_components/layout/SkyBackground";
 import HeroContent from "@/app/(home)/_components/hero/HeroContent";
 import FigmaCollabCursors from "@/app/(home)/_components/hero/FigmaCollabCursors";
 import HeroIntroText from "@/app/(home)/_components/hero/HeroIntroText";
 import BrowserWarning from "@/app/(home)/_components/hero/BrowserWarning";
-import { LanguageProvider } from "@/components/providers/LanguageProvider";
-import StackedSections from "@/components/layout/StackedSections";
-import BackToTop from "@/components/shared/BackToTop";
+import StackedSections from "@/app/(home)/_components/layout/StackedSections";
+import BackToTop from "@/components/ui/BackToTop";
 import type { ProjectMeta } from "@/lib/projects";
 import type { GithubGraphDay } from "@/lib/github";
-import ClientProjectModal from "@/app/(home)/_components/projects/ClientProjectModal";
-import { MOBILE_MEDIA_QUERY } from "@/components/layout/stackGeometry";
+import ClientProjectModal from "@/components/projects/ClientProjectModal";
+import { MOBILE_MEDIA_QUERY } from "@/app/(home)/_components/layout/stackGeometry";
 
 // IMPORT: Loading Cormorant Garamond for the stylish accent
 
@@ -52,42 +51,15 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   // Handle revisit within same SPA session (not on page reload/F5)
   useEffect(() => {
     if (hasCompletedHomeIntroSession) {
-      const el = document.getElementById("ssr-loading-screen");
-      if (el) el.style.display = "none";
       window.dispatchEvent(new CustomEvent("hero-phase2", { detail: { isRevisit: true } }));
     }
   }, []);
 
-  // Detect mobile and update on resize
-  const [isMobile, setIsMobile] = useState(false);
-  const [isChromium, setIsChromium] = useState(true);
-  const [warningResolved, setWarningResolved] = useState(true);
-  const [needsWarning, setNeedsWarning] = useState(false);
-
-  useEffect(() => {
-    const mobileMatch = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
-    const chromeMatch = !!(window as Window & { chrome?: unknown }).chrome;
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMobile(mobileMatch);
-    setIsChromium(chromeMatch);
-
-    if (mobileMatch || !chromeMatch) {
-      const isDismissed = sessionStorage.getItem('browser-warning-dismissed');
-      if (isDismissed) {
-        setWarningResolved(true);
-      } else {
-        setNeedsWarning(true);
-        setWarningResolved(false);
-      }
-    } else {
-      setWarningResolved(true);
-    }
-
-    const checkMobile = () => setIsMobile(window.matchMedia(MOBILE_MEDIA_QUERY).matches);
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  // Detect mobile and update on resize via clean hook
+  const { isMobile, isChromium, needsWarning: envNeedsWarning } = useBrowserEnvironment();
+  const [warningDismissed, setWarningDismissed] = useState(false);
+  const needsWarning = envNeedsWarning && !warningDismissed;
+  const warningResolved = !needsWarning;
 
   // Phase 1: words + contact text animate ONLY AFTER loading screen finishes fading out
   const heroAnimationReady = isReady && loadingComplete;
@@ -99,19 +71,16 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
     hasCompletedHomeIntroSession = true;
 
     if (isRevisit) {
-      const el = document.getElementById("ssr-loading-screen");
-      if (el) el.style.display = "none";
       window.dispatchEvent(new CustomEvent("hero-phase2", { detail: { isRevisit: true } }));
       return;
     }
 
-    // 1. SVG triggers immediately via showTitle={introComplete}
-    // 2. Top (Navbar) + Bottom (Folders & Hero shrink) come in after a short delay
     const tFolders = setTimeout(() => {
       setFoldersReady(true);
+      window.dispatchEvent(new CustomEvent("hero-phase2", { detail: { isRevisit: false } }));
+      setHeroHeight(isMobile ? "70svh" : "95svh");
     }, 400);
 
-    // 3. CTA + Subtext after top and bottom start settling
     const tCta = setTimeout(() => {
       setCtaReady(true);
     }, 850);
@@ -120,22 +89,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
       clearTimeout(tFolders);
       clearTimeout(tCta);
     };
-  }, [introComplete, isRevisit]);
-
-  // Fire event for navbar phase2 uncollapse
-  useEffect(() => {
-    if (foldersReady) {
-      window.dispatchEvent(new CustomEvent("hero-phase2", { detail: { isRevisit } }));
-    }
-  }, [foldersReady, isRevisit]);
-
-  // Transition hero height: 100svh → 95svh when folders appear (80svh on mobile)
-  useEffect(() => {
-    if (foldersReady) {
-      const targetHeight = isMobile ? "70svh" : "95svh";
-      requestAnimationFrame(() => setHeroHeight(targetHeight));
-    }
-  }, [foldersReady, isMobile, isRevisit]);
+  }, [introComplete, isRevisit, isMobile]);
 
   const handleIntroComplete = useCallback(() => {
     // no-op — kept for clouds callback compatibility
@@ -181,8 +135,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   }, []);
 
   return (
-    <LanguageProvider>
-      <main role="main" className="w-full min-h-svh bg-[#09090b]">
+    <main role="main" className="w-full min-h-svh bg-[#09090b]">
 
         {/* Hero height via CSS transition — starts 100svh, shrinks to 95/70svh on Phase 2 */}
         <div className="relative z-20 w-full">
@@ -216,14 +169,14 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
             />
 
             {/* Warning Screen - intercepts before intro text if needed */}
-            {needsWarning && !warningResolved && (
+            {needsWarning && (
               <BrowserWarning
                 isReady={heroAnimationReady}
                 isMobile={isMobile}
                 isChromium={isChromium}
                 onComplete={() => {
-                  sessionStorage.setItem('browser-warning-dismissed', 'true');
-                  setWarningResolved(true);
+                  sessionStorage.setItem("browser-warning-dismissed", "true");
+                  setWarningDismissed(true);
                 }}
               />
             )}
@@ -271,6 +224,5 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
           <BackToTop />
         </div>
       </main>
-    </LanguageProvider>
   );
 }
