@@ -1,13 +1,11 @@
-const CLEARANCE = 180; // Powerful repulsion gap around selected garment (front half-width 120px + 60px buffer)
+const CLEARANCE = 170; // Powerful repulsion gap around selected garment (front half-width 120-138px + 30-40px air buffer)
 const PIN_MARGIN = 48; // Edge pin margin within solid rail segment
-const MIN_UNSELECTED_STEP = 24; // Minimum spacing between side hangers
 
 /**
- * Computes strictly equal-gapped target coordinates across the rail:
+ * Computes balanced target coordinates across the rail:
  * - Leftmost & rightmost hangers stay pinned to rail ends.
- * - Selected garment opens wide in its natural rail slot with strong repulsion.
- * - Garments to the left are pushed away and spaced strictly equally.
- * - Garments to the right are pushed away and spaced strictly equally.
+ * - Spacing between all unselected hangers is strictly uniform on both sides.
+ * - Prevents garments from squishing when near either end of the rack.
  */
 export function getEqualGappedTargets(
   n: number,
@@ -24,10 +22,9 @@ export function getEqualGappedTargets(
 
   // Selected item is at left end
   if (s === 0) {
-    targets[0] = xLeft + 100;
-    const rightCount = n - 1;
+    targets[0] = xLeft + 60;
     const startX = targets[0] + CLEARANCE;
-    const step = (xRight - startX) / (rightCount - 1);
+    const step = n > 2 ? (xRight - startX) / (n - 2) : 0;
     for (let i = 1; i < n; i++) {
       targets[i] = startX + (i - 1) * step;
     }
@@ -36,44 +33,38 @@ export function getEqualGappedTargets(
 
   // Selected item is at right end
   if (s === n - 1) {
-    targets[n - 1] = xRight - 100;
-    const leftCount = n - 1;
+    targets[n - 1] = xRight - 60;
     const endX = targets[n - 1] - CLEARANCE;
-    const step = (endX - xLeft) / (leftCount - 1);
-    for (let i = 0; i < leftCount; i++) {
+    const step = n > 2 ? (endX - xLeft) / (n - 2) : 0;
+    for (let i = 0; i < n - 1; i++) {
       targets[i] = xLeft + i * step;
     }
     return targets;
   }
 
-  // Middle selected item: sits at natural slot ratio, guarded so it never pinches either end
-  const minSelX = xLeft + s * MIN_UNSELECTED_STEP + CLEARANCE;
-  const maxSelX = xRight - (n - 1 - s) * MIN_UNSELECTED_STEP - CLEARANCE;
-  const idealSelX = xLeft + (xRight - xLeft) * (s / (n - 1));
-  const selX = Math.max(minSelX, Math.min(idealSelX, maxSelX));
-  targets[s] = selX;
+  // Middle selected item:
+  // Distribute remaining space evenly across all unselected hanger gaps (both left and right)
+  const leftGaps = Math.max(s - 1, 0);
+  const rightGaps = Math.max(n - 1 - s - 1, 0);
+  const totalGaps = leftGaps + rightGaps;
 
-  // Evenly distribute and push all items to the left
-  if (s === 1) {
-    targets[0] = xLeft;
-  } else {
-    const endX = selX - CLEARANCE;
-    const step = (endX - xLeft) / (s - 1);
-    for (let i = 0; i < s; i++) {
-      targets[i] = xLeft + i * step;
-    }
+  const availSpace = xRight - xLeft - 2 * CLEARANCE;
+  const step = totalGaps > 0 ? availSpace / totalGaps : 0;
+
+  // Unselected items to the left
+  for (let i = 0; i < s; i++) {
+    targets[i] = xLeft + i * step;
   }
 
-  // Evenly distribute and push all items to the right
-  const rightCount = n - 1 - s;
-  if (rightCount === 1) {
-    targets[n - 1] = xRight;
-  } else {
-    const startX = selX + CLEARANCE;
-    const step = (xRight - startX) / (rightCount - 1);
-    for (let i = s + 1; i < n; i++) {
-      targets[i] = startX + (i - (s + 1)) * step;
-    }
+  // Selected item placed clearance away from left neighbor
+  targets[s] = targets[s - 1] + CLEARANCE;
+
+  // First unselected item to the right placed clearance away
+  targets[s + 1] = targets[s] + CLEARANCE;
+
+  // Remaining unselected items to the right spaced with uniform step
+  for (let i = s + 2; i < n; i++) {
+    targets[i] = targets[i - 1] + step;
   }
 
   return targets;

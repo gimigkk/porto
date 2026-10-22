@@ -23,17 +23,17 @@ export function ClothingItem({
   const prevXRef = useRef(targetX);
   const swayAngle = useMotionValue(0);
 
-  // Subtle inertial momentum sway on rail slide (max ±3° so hook never leaves rail)
+  // Inertial pendular sway on rail slide (calibrated natural cloth momentum)
   useEffect(() => {
     const deltaX = targetX - prevXRef.current;
     if (Math.abs(deltaX) > 2) {
-      const baseTilt = Math.min(Math.max(deltaX / 24, -3), 3);
+      const baseTilt = Math.min(Math.max(deltaX / 20, -4), 4);
       swayAngle.set(baseTilt);
       animate(swayAngle, 0, {
         type: "spring",
-        stiffness: 120,
-        damping: 18,
-        mass: 0.9,
+        stiffness: 140,
+        damping: 14,
+        mass: 0.8,
       });
     }
     prevXRef.current = targetX;
@@ -78,7 +78,7 @@ export function ClothingItem({
     backfaceVisibility: "hidden",
     WebkitBackfaceVisibility: "hidden",
     transition:
-      "transform 0.48s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease-out",
+      "transform 0.46s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.22s ease-out",
   };
 
   const sideStyle: React.CSSProperties = {
@@ -108,9 +108,9 @@ export function ClothingItem({
       animate={{ x: targetX }}
       transition={{
         type: "spring",
-        stiffness: 140,
-        damping: 22,
-        mass: 0.85,
+        stiffness: 160,
+        damping: 18,
+        mass: 0.8,
       }}
       role="button"
       tabIndex={0}
@@ -131,8 +131,8 @@ export function ClothingItem({
             transformOrigin: "0px 4px",
           }}
           whileHover={{
-            y: -8, // Clean translateY lift on hover, strictly no rotation
-            transition: { type: "spring", stiffness: 400, damping: 25 },
+            y: -8, // Clean, grounded lift on hover
+            transition: { type: "spring", stiffness: 400, damping: 22 },
           }}
         >
           {/* 3D Perspective Stage */}
