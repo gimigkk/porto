@@ -1,67 +1,47 @@
 "use client";
 
-import { useRef } from "react";
-import { useInView } from "framer-motion";
-import { Baby, Bed } from "lucide-react";
-import { ExperienceNode } from "./ExperienceNode";
+import { useState, useRef, useCallback } from "react";
 import experienceData from "@/lib/data/experience.json";
+import { ExperienceItem } from "@/types/experience";
+import { ExperienceDetail } from "./ExperienceDetail";
+import { ClothingRack } from "./ClothingRack";
+
+const typedExperienceData = experienceData as ExperienceItem[];
 
 export default function ExperienceSection() {
   const containerRef = useRef<HTMLElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  // Default to the latest experience (last item in array)
+  const [selectedIndex, setSelectedIndex] = useState<number>(
+    typedExperienceData.length > 0 ? typedExperienceData.length - 1 : 0
+  );
+
+  const selectedItem = typedExperienceData[selectedIndex] || typedExperienceData[0];
+
+  const handleSelect = useCallback((_: ExperienceItem, index: number) => {
+    setSelectedIndex(index);
+  }, []);
 
   return (
-    <section ref={containerRef} className="relative w-full flex flex-col items-start md:justify-center md:mt-6">
-      <div className="relative mx-auto w-full max-w-350 px-4 md:px-12">
-        
-        {/* Mobile Vertical Timeline Line Segment (Placed outside flex container to avoid any possible layout clipping) */}
-        <div 
-          className="md:hidden absolute left-[31px] w-[2px] border-l-[2px] border-dotted border-neutral-300 dark:border-neutral-700 -z-10 pointer-events-none" 
-          style={{ top: '32px', bottom: '48px' }}
-        />
-
-        {/* -- Desktop Header (Absolutely positioned to overlap the empty space above the graph, preventing section overflow) -- */}
-        <div className="hidden md:flex absolute -top-4 left-0 w-full px-12 flex-row items-end justify-between gap-6 pointer-events-none z-20">
-          <div className="text-left pointer-events-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-2">
-              Experience
-            </h2>
-            <p className="text-neutral-600 dark:text-neutral-400 text-sm max-w-md" style={{ textWrap: 'balance' }}>
-              A timeline of my semi-professional journey, roles, and major contributions in the field of Computer Science.
-            </p>
+    <section
+      ref={containerRef}
+      className="relative w-full flex flex-col items-start md:justify-center md:mt-6"
+    >
+      <div className="relative mx-auto w-full max-w-[1400px] px-4 md:px-8 lg:px-12">
+        {/* Main Interactive Stage with 2:3 Column Ratio */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-12 items-start w-full">
+          {/* Column 1 (2 parts): Simple Image & Paragraph */}
+          <div className="lg:col-span-2 w-full">
+            <ExperienceDetail item={selectedItem} />
           </div>
-        </div>
 
-        {/* Desktop: Horizontal line edge to edge with start/end icons */}
-        <div className="hidden md:flex absolute left-4 right-4 md:left-12 md:right-12 top-1/2 -translate-y-1/2 items-center -z-10">
-          <Baby className="w-5 h-5 text-neutral-400 dark:text-neutral-600 shrink-0" />
-          <div className="w-full border-t-[2px] border-dotted border-neutral-300 dark:border-neutral-700 mx-3" />
-          <Bed className="w-5 h-5 text-neutral-400 dark:text-neutral-600 shrink-0" />
-        </div>
-
-        <div className="relative flex flex-col-reverse md:block w-full pt-2 pb-12 md:pt-0 md:pb-0 md:h-[500px] gap-12 md:gap-0">
-
-          {/* Nodes */}
-          {experienceData.map((item, index, arr) => {
-            const isFirst = index === 0;
-            const isLast = index === arr.length - 1;
-            const isMiddle = !isFirst && !isLast;
-            const ratio = index / (arr.length - 1);
-
-            return (
-              <div
-                key={item.id}
-                className={`w-full md:w-max md:absolute md:top-0 md:h-full pointer-events-none
-                  ${isFirst ? 'md:left-0' : ''}
-                  ${isLast ? 'md:right-0' : ''}
-                  ${isMiddle ? 'md:-translate-x-1/2' : ''}
-                `}
-                style={isMiddle ? { left: `calc(162px + (100% - 324px) * ${ratio})` } : undefined}
-              >
-                <ExperienceNode item={item} index={index} total={arr.length} isInView={isInView} />
-              </div>
-            );
-          })}
+          {/* Column 2 (3 parts): Straight Clothing Rack (No containing border) */}
+          <div className="lg:col-span-3 w-full flex flex-col items-center">
+            <ClothingRack
+              items={typedExperienceData}
+              selectedIndex={selectedIndex}
+              onSelect={handleSelect}
+            />
+          </div>
         </div>
       </div>
     </section>

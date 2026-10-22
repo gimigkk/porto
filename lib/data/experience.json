@@ -6,11 +6,32 @@
     "startDate": "Feb 2025",
     "endDate": "Dec 2025",
     "impressiveness": 2,
-    "description": "Designed and managed creative assets for various IEEE events and posts.",
-    "image": "/experience/IEEE-25.jpeg"
+    "description": "Designed and managed creative assets for various IEEE events, social feeds, and organizational branding.",
+    "image": "/experience/IEEE-25.jpeg",
+    "secondaryImage": "/experience/IEEE-2026.jpg",
+    "apparelColor": "#192841",
+    "apparelType": "tee",
+    "graphicText": "IEEE SB IPB",
+    "graphicSubtext": "CREATIVE '25"
   },
   {
     "id": "exp-2",
+    "role": "Lead Frontend Engineer",
+    "company": "ICoDMI Conference",
+    "companyMobile": "ICoDMI",
+    "startDate": "Aug 2025",
+    "endDate": "Nov 2025",
+    "impressiveness": 7,
+    "description": "Engineered responsive web portal for the International Conference on Data Science, Mathematics, and Informatics.",
+    "image": "/logos/icodmi-trimmed.png",
+    "secondaryImage": "/experience/IWDC.jpeg",
+    "apparelColor": "#1e3a8a",
+    "apparelType": "tee",
+    "graphicText": "ICODMI '25",
+    "graphicSubtext": "LEAD FRONTEND"
+  },
+  {
+    "id": "exp-3",
     "role": "Fullstack Developer",
     "company": "Ilkomers Batch 61 Academic Team",
     "companyMobile": "Ilkomers 61 Academic Team",
@@ -18,10 +39,15 @@
     "endDate": "Present",
     "impressiveness": 10,
     "description": "Built and maintained academic tools for ~150 students, including marbot and krswitch to make lives of students easier.",
-    "image": "https://picsum.photos/seed/academic/400/200"
+    "image": "https://picsum.photos/seed/academic/400/250",
+    "secondaryImage": "https://picsum.photos/seed/code/300/400",
+    "apparelColor": "#1f3b2b",
+    "apparelType": "sweatshirt",
+    "graphicText": "ILKOMERS 61",
+    "graphicSubtext": "ACADEMIC DEV"
   },
   {
-    "id": "exp-3",
+    "id": "exp-4",
     "role": "Director of Creative & Marketing",
     "company": "IEEE SB IPB",
     "companyMobile": "IEEE Student Branch IPB",
@@ -29,26 +55,57 @@
     "endDate": "Present",
     "impressiveness": 8,
     "description": "Led the creative marketing team, organizing campaigns and standardizing brand identity across the organization. Designed UI/UX for one of the megaproker.",
-    "image": "/experience/IEEE-2026.jpg"
+    "image": "/experience/IEEE-2026.jpg",
+    "secondaryImage": "/experience/IEEE-25.jpeg",
+    "apparelColor": "#18181b",
+    "apparelType": "tee",
+    "graphicText": "IEEE IPB",
+    "graphicSubtext": "DIRECTOR '26"
   },
   {
-    "id": "exp-4",
+    "id": "exp-5",
     "role": "Fullstack Developer",
     "company": "IPB Web Dev Community",
     "startDate": "Mar 2026",
     "endDate": "Present",
     "impressiveness": 6,
-    "description": "Developed fullstack platform for a project, it kinda died because no sponsor gone lol.",
-    "image": "/experience/IWDC.jpeg"
+    "description": "Developed fullstack platform for community web projects and interactive event landing pages.",
+    "image": "/experience/IWDC.jpeg",
+    "secondaryImage": "/experience/NoBrainDev.jpeg",
+    "apparelColor": "#334155",
+    "apparelType": "sweatshirt",
+    "graphicText": "IWDC",
+    "graphicSubtext": "WEB COMMUNITY"
   },
   {
-    "id": "exp-5",
+    "id": "exp-7",
+    "role": "Creative Technologist",
+    "company": "Imah Keramik Bogor",
+    "companyMobile": "Imah Keramik",
+    "startDate": "Apr 2026",
+    "endDate": "Present",
+    "impressiveness": 8,
+    "description": "Crafted interactive single-page digital hub and web catalog, transforming brochure photos into a tactile web experience.",
+    "image": "/projects/imah-keramik-bogor/imah-keramik-poster.jpg",
+    "secondaryImage": "/projects/imah-keramik-bogor/imah-keramik-poster.jpg",
+    "apparelColor": "#4a2d27",
+    "apparelType": "sweatshirt",
+    "graphicText": "IMAH KERAMIK",
+    "graphicSubtext": "STUDIO TECH"
+  },
+  {
+    "id": "exp-8",
     "role": "Programmer (Game Developer)",
     "company": "NoBrainDev Studio",
     "startDate": "May 2026",
     "endDate": "Present",
     "impressiveness": 8,
     "description": "Implemented core gameplay mechanics and systems in Godot for upcoming indie titles.",
-    "image": "/experience/NoBrainDev.jpeg"
+    "image": "/experience/NoBrainDev.jpeg",
+    "secondaryImage": "/experience/IWDC.jpeg",
+    "apparelColor": "#3c2a1e",
+    "apparelType": "tee",
+    "graphicText": "NO BRAIN DEV",
+    "graphicSubtext": "GAME STUDIO"
   }
 ]

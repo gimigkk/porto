@@ -162,7 +162,7 @@ export default function FolderSection({
           {/* Main Body */}
           <div
             data-folder-body
-            className={`w-full min-h-0 ${bodyRadius} ${pbClass} flex flex-col items-center justify-start relative z-20 border-t border-x border-zinc-800 overflow-hidden`}
+            className={`w-full min-h-0 ${bodyRadius} ${pbClass} flex flex-col items-center justify-start relative z-20 border-t border-x border-zinc-800 ${dockMode === "crop" ? "overflow-visible" : "overflow-hidden"}`}
             style={bgBase ? { background: bgBase } : undefined}
           >
             {/* Background overlay for smooth parallax fade */}

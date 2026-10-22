@@ -101,7 +101,11 @@ export default function StackedSections({ projects, isReady = true, githubGraph,
 				pbClass="p-0"
 			>
 				<div data-folder-content className={`${SECTION_CONTENT_PADDING} min-h-0 flex flex-col`}>
-					<div data-folder-content-clip className="min-h-0 flex-1 overflow-hidden">
+					<div
+						data-folder-content-clip
+						className="min-h-0 flex-1 overflow-hidden"
+						style={{ overflow: "visible" }}
+					>
 						<ExperienceSection />
 					</div>
 				</div>
