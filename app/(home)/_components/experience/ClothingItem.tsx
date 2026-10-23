@@ -56,6 +56,8 @@ export function ClothingItem({
       ? 239
       : item.id === "exp-5"
       ? 231
+      : item.id === "exp-4"
+      ? 252
       : item.id === "exp-3"
       ? 210
       : item.id === "exp-1"
@@ -69,6 +71,8 @@ export function ClothingItem({
       ? 73
       : item.id === "exp-5"
       ? 87
+      : item.id === "exp-4"
+      ? 93
       : item.id === "exp-3"
       ? 81
       : item.id === "exp-1"
