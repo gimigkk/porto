@@ -19,4 +19,6 @@ export interface ExperienceItem {
   frontImage?: string;
   sideImage?: string;
   garmentName?: string;
+  frontWidth?: number;
+  sideWidth?: number;
 }

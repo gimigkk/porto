@@ -9,14 +9,16 @@
     "impressiveness": 2,
     "description": "Designed and managed creative assets for various IEEE events, social feeds, and organizational branding.",
     "image": "/experience/IEEE-25.jpeg",
-    "secondaryImage": "/experience/IEEE-2026.jpg",
+    "secondaryImage": "/experience/IEEE-2025-secondary.jpeg",
     "frontImage": "/experience/ieee-jacket-front.png?v=3",
     "sideImage": "/experience/ieee-jacket-side.png?v=3",
     "apparelColor": "#192841",
     "apparelType": "tee",
     "graphicText": "IEEE SB IPB",
     "graphicSubtext": "CREATIVE '25",
-    "garmentName": "Jaket IEEE SB IPB 25"
+    "garmentName": "Jaket IEEE SB IPB 25",
+    "frontWidth": 227,
+    "sideWidth": 74
   },
   {
     "id": "exp-3",
@@ -35,7 +37,9 @@
     "apparelType": "sweatshirt",
     "graphicText": "ILKOMERS 61",
     "graphicSubtext": "ACADEMIC DEV",
-    "garmentName": "Almamater IPB"
+    "garmentName": "Almamater IPB",
+    "frontWidth": 210,
+    "sideWidth": 81
   },
   {
     "id": "exp-4",
@@ -54,7 +58,9 @@
     "apparelType": "sweatshirt",
     "graphicText": "IEEE IPB",
     "graphicSubtext": "DIRECTOR '26",
-    "garmentName": "Jaket IEEE SB IPB 26"
+    "garmentName": "Jaket IEEE SB IPB 26",
+    "frontWidth": 252,
+    "sideWidth": 93
   },
   {
     "id": "exp-5",
@@ -72,7 +78,9 @@
     "apparelType": "sweatshirt",
     "graphicText": "IWDC",
     "graphicSubtext": "WEB COMMUNITY",
-    "garmentName": "Baju Lapang Himalkom"
+    "garmentName": "Baju Lapang Himalkom",
+    "frontWidth": 231,
+    "sideWidth": 87
   },
   {
     "id": "exp-8",
@@ -84,11 +92,15 @@
     "description": "Implemented core gameplay mechanics and systems in Godot for Gameseed 2026, we got top 20 best games in nationals.",
     "image": "/experience/NoBrainDev.jpeg",
     "secondaryImage": "/experience/IWDC.jpeg",
-    "apparelColor": "#3c2a1e",
-    "apparelType": "tee",
+    "frontImage": "/experience/nobrain-jacket-front.png?v=5",
+    "sideImage": "/experience/nobrain-jacket-side.png?v=5",
+    "apparelColor": "#8b8a8b",
+    "apparelType": "sweatshirt",
     "graphicText": "NO BRAIN DEV",
     "graphicSubtext": "GAME STUDIO",
-    "garmentName": "Placeholder"
+    "garmentName": "Orang Depok btw",
+    "frontWidth": 235,
+    "sideWidth": 58
   },
   {
     "id": "exp-2",
@@ -100,12 +112,12 @@
     "impressiveness": 7,
     "description": "Engineered responsive website for the International Conference on Data Science, Mathematics, and Informatics, and designed a lot of posters.",
     "image": "/experience/ICoDMI-main.jpeg",
-    "secondaryImage": "/experience/IWDC.jpeg",
+    "secondaryImage": "/experience/ICoDMI-secondary.jpeg",
     "apparelColor": "#1e3a8a",
     "apparelType": "tee",
     "graphicText": "ICODMI '26",
     "graphicSubtext": "LEAD FRONTEND",
-    "garmentName": "Placeholder"
+    "garmentName": "baju icodmi masih WIP"
   },
   {
     "id": "exp-7",
@@ -124,6 +136,8 @@
     "apparelType": "sweatshirt",
     "graphicText": "LEMMA",
     "graphicSubtext": "BERCERITA",
-    "garmentName": "Jaket Corduroy Fav"
+    "garmentName": "Jaket Corduroy Fav",
+    "frontWidth": 239,
+    "sideWidth": 73
   }
 ]

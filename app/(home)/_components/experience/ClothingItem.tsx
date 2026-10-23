@@ -70,35 +70,9 @@ export function ClothingItem({
     prevXRef.current = targetX;
   }, [targetX, swayAngle]);
 
-  const frontWidth =
-    item.id === "exp-7"
-      ? 239
-      : item.id === "exp-5"
-      ? 231
-      : item.id === "exp-4"
-      ? 252
-      : item.id === "exp-3"
-      ? 210
-      : item.id === "exp-1"
-      ? 227
-      : item.frontImage
-      ? 230
-      : 200;
+  const frontWidth = item.frontWidth ?? (item.frontImage ? 230 : 200);
   const frontLeft = -Math.round(frontWidth / 2);
-  const sideWidth =
-    item.id === "exp-7"
-      ? 73
-      : item.id === "exp-5"
-      ? 87
-      : item.id === "exp-4"
-      ? 93
-      : item.id === "exp-3"
-      ? 81
-      : item.id === "exp-1"
-      ? 74
-      : item.sideImage
-      ? 76
-      : 58;
+  const sideWidth = item.sideWidth ?? (item.sideImage ? 76 : 58);
   const sideLeft = -Math.round(sideWidth / 2);
 
   // Rail top is aligned with left image at Y = 0px.
@@ -194,20 +168,19 @@ export function ClothingItem({
             whileHover={
               canHover
                 ? {
-                    y: -8, // Clean, grounded lift on hover
-                    transition: { type: "spring", stiffness: 400, damping: 22 },
-                  }
+                  y: -8, // Clean, grounded lift on hover
+                  transition: { type: "spring", stiffness: 400, damping: 22 },
+                }
                 : undefined
             }
           >
             {/* Start date tag hovering cleanly above the chrome rail hook */}
             <div className="absolute -top-[32px] left-0 -translate-x-1/2 pointer-events-none select-none whitespace-nowrap z-40">
               <span
-                className={`font-mono text-[9px] tracking-wider font-semibold transition-all duration-200 ${
-                  isSelected
-                    ? "text-blue-400 drop-shadow-[0_1px_6px_rgba(96,165,250,0.5)]"
-                    : "text-zinc-500/80 [@media(hover:hover)]:group-hover:text-zinc-300"
-                }`}
+                className={`font-mono text-[9px] tracking-wider font-semibold transition-all duration-200 ${isSelected
+                  ? "text-blue-400 drop-shadow-[0_1px_6px_rgba(96,165,250,0.5)]"
+                  : "text-zinc-500/80 [@media(hover:hover)]:group-hover:text-zinc-300"
+                  }`}
               >
                 {formatStartDateTag(item.startDate, item.endDate?.trim().toLowerCase() === "present")}
               </span>
