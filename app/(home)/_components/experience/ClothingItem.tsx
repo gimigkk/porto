@@ -4,6 +4,8 @@ import React, { useEffect, useRef } from "react";
 import { motion, useMotionValue, animate } from "framer-motion";
 import { ExperienceItem } from "@/types/experience";
 import { ClothingFrontView, ClothingSideView } from "./ClothingGraphics";
+import { useTooltip } from "@/components/providers/TooltipProvider";
+import { GarmentTooltipContent } from "./tooltips/GarmentTooltipContent";
 
 interface ClothingItemProps {
   item: ExperienceItem;
@@ -40,6 +42,8 @@ export function ClothingItem({
   const prevXRef = useRef(targetX);
   const swayAngle = useMotionValue(0);
   const [canHover, setCanHover] = React.useState(false);
+  const { showTooltip, hideTooltip } = useTooltip();
+  const garmentLabel = item.garmentName || item.graphicText || "Garment";
 
   // Disable sticky hover states on touch/mobile devices
   useEffect(() => {
@@ -150,6 +154,16 @@ export function ClothingItem({
       role="button"
       tabIndex={0}
       aria-label={`Select experience: ${item.role} at ${item.company}`}
+      onMouseEnter={() => {
+        if (canHover) {
+          showTooltip(<GarmentTooltipContent name={garmentLabel} />);
+        }
+      }}
+      onMouseLeave={() => {
+        if (canHover) {
+          hideTooltip();
+        }
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();

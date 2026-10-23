@@ -16,16 +16,16 @@ export function TooltipRenderer() {
   const cursorX = useMotionValue(0);
   const cursorY = useMotionValue(0);
 
-  // Faster spring for responsive cursor tracking
-  const cursorSpringConfig = { damping: 24, stiffness: 700, mass: 0.15 };
+  // Faster spring for snappy, responsive cursor tracking (reduced latency)
+  const cursorSpringConfig = { damping: 28, stiffness: 1000, mass: 0.08 };
 
   const smoothCursorX = useSpring(cursorX, cursorSpringConfig);
   const smoothCursorY = useSpring(cursorY, cursorSpringConfig);
   const rotationTarget = useMotionValue(0);
   const smoothRotation = useSpring(rotationTarget, {
-    damping: 24,
-    stiffness: 500,
-    mass: 0.2,
+    damping: 26,
+    stiffness: 650,
+    mass: 0.12,
   });
 
   // Combine them into the final rendered coordinates
@@ -50,7 +50,8 @@ export function TooltipRenderer() {
       if (previousSample) {
         const elapsed = Math.max(now - previousSample.time, 1);
         const verticalVelocity = ((e.clientY - previousSample.y) / elapsed) * 1000;
-        rotationTarget.set(tooltipRotationForVelocity(verticalVelocity));
+        // Subtler banking rotation (~45% amplitude)
+        rotationTarget.set(tooltipRotationForVelocity(verticalVelocity) * 0.45);
 
         if (rotationResetTimeout.current) {
           clearTimeout(rotationResetTimeout.current);
@@ -58,7 +59,7 @@ export function TooltipRenderer() {
         rotationResetTimeout.current = setTimeout(() => {
           rotationTarget.set(0);
           rotationResetTimeout.current = null;
-        }, 80);
+        }, 60);
       }
 
       lastPointerSample.current = { y: e.clientY, time: now };

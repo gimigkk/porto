@@ -15,7 +15,8 @@
     "apparelColor": "#192841",
     "apparelType": "tee",
     "graphicText": "IEEE SB IPB",
-    "graphicSubtext": "CREATIVE '25"
+    "graphicSubtext": "CREATIVE '25",
+    "garmentName": "Jaket IEEE SB IPB 25"
   },
   {
     "id": "exp-3",
@@ -33,7 +34,8 @@
     "apparelColor": "#1e3352",
     "apparelType": "sweatshirt",
     "graphicText": "ILKOMERS 61",
-    "graphicSubtext": "ACADEMIC DEV"
+    "graphicSubtext": "ACADEMIC DEV",
+    "garmentName": "Almamater IPB"
   },
   {
     "id": "exp-4",
@@ -51,7 +53,8 @@
     "apparelColor": "#18181b",
     "apparelType": "sweatshirt",
     "graphicText": "IEEE IPB",
-    "graphicSubtext": "DIRECTOR '26"
+    "graphicSubtext": "DIRECTOR '26",
+    "garmentName": "Jaket IEEE SB IPB 26"
   },
   {
     "id": "exp-5",
@@ -68,7 +71,8 @@
     "apparelColor": "#1c2838",
     "apparelType": "sweatshirt",
     "graphicText": "IWDC",
-    "graphicSubtext": "WEB COMMUNITY"
+    "graphicSubtext": "WEB COMMUNITY",
+    "garmentName": "Baju Lapang Himalkom"
   },
   {
     "id": "exp-8",
@@ -83,7 +87,8 @@
     "apparelColor": "#3c2a1e",
     "apparelType": "tee",
     "graphicText": "NO BRAIN DEV",
-    "graphicSubtext": "GAME STUDIO"
+    "graphicSubtext": "GAME STUDIO",
+    "garmentName": "Placeholder"
   },
   {
     "id": "exp-2",
@@ -99,7 +104,8 @@
     "apparelColor": "#1e3a8a",
     "apparelType": "tee",
     "graphicText": "ICODMI '26",
-    "graphicSubtext": "LEAD FRONTEND"
+    "graphicSubtext": "LEAD FRONTEND",
+    "garmentName": "Placeholder"
   },
   {
     "id": "exp-7",
@@ -117,6 +123,7 @@
     "apparelColor": "#3d231e",
     "apparelType": "sweatshirt",
     "graphicText": "LEMMA",
-    "graphicSubtext": "BERCERITA"
+    "graphicSubtext": "BERCERITA",
+    "garmentName": "Jaket Corduroy Fav"
   }
 ]
