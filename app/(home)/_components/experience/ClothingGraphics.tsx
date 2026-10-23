@@ -67,7 +67,7 @@ export function ClothingSideView({
       />
       {/* Inter-Garment Cavity Occlusion: natural flank shadowing between neighbors */}
       <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-300 group-hover/side:opacity-40"
+        className="absolute inset-0 pointer-events-none transition-opacity duration-300 [@media(hover:hover)]:group-hover/side:opacity-40"
         style={{
           background: horizontalOcclusionGradient,
           WebkitMaskImage: `url(${sideSrc})`,

@@ -39,6 +39,16 @@ export function ClothingItem({
 }: ClothingItemProps) {
   const prevXRef = useRef(targetX);
   const swayAngle = useMotionValue(0);
+  const [canHover, setCanHover] = React.useState(false);
+
+  // Disable sticky hover states on touch/mobile devices
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    setCanHover(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setCanHover(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   // Inertial pendular sway on rail slide (calibrated natural cloth momentum)
   useEffect(() => {
@@ -165,12 +175,16 @@ export function ClothingItem({
             delay: 0.15 + index * 0.065,
           }}
         >
-          {/* Hover Lift: lifts both hanger and date tag together */}
+          {/* Hover Lift: lifts both hanger and date tag together (pointer: fine only) */}
           <motion.div
-            whileHover={{
-              y: -8, // Clean, grounded lift on hover
-              transition: { type: "spring", stiffness: 400, damping: 22 },
-            }}
+            whileHover={
+              canHover
+                ? {
+                    y: -8, // Clean, grounded lift on hover
+                    transition: { type: "spring", stiffness: 400, damping: 22 },
+                  }
+                : undefined
+            }
           >
             {/* Start date tag hovering cleanly above the chrome rail hook */}
             <div className="absolute -top-[32px] left-0 -translate-x-1/2 pointer-events-none select-none whitespace-nowrap z-40">
@@ -178,7 +192,7 @@ export function ClothingItem({
                 className={`font-mono text-[9px] tracking-wider font-semibold transition-all duration-200 ${
                   isSelected
                     ? "text-blue-400 drop-shadow-[0_1px_6px_rgba(96,165,250,0.5)]"
-                    : "text-zinc-500/80 group-hover:text-zinc-300"
+                    : "text-zinc-500/80 [@media(hover:hover)]:group-hover:text-zinc-300"
                 }`}
               >
                 {formatStartDateTag(item.startDate, item.endDate?.trim().toLowerCase() === "present")}
