@@ -96,7 +96,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
             <div>
               <div style={getButtonTransition(6)}>
                 <a
-                  href="mailto:gimi.gkk@gmail.com"
+                  href="mailto:gilangmwa@gmail.com"
                   className={`${styles.pushable} group shrink-0 inline-block`}
                   aria-label="Contact me"
                 >
@@ -176,7 +176,7 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
             <div className="mt-12">
               <div style={getButtonTransition(6)}>
                 <a
-                  href="mailto:gimi.gkk@gmail.com"
+                  href="mailto:gilangmwa@gmail.com"
                   className={`${styles.pushable} group shrink-0 inline-block`}
                   aria-label="Contact me"
                 >

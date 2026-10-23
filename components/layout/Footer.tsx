@@ -235,7 +235,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <a
-                    href="mailto:gimi.gkk@gmail.com"
+                    href="mailto:gilangmwa@gmail.com"
                     className="hover:text-white/70 transition-colors duration-200 inline-flex items-center gap-1"
                   >
                     Email Me <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-70" />
