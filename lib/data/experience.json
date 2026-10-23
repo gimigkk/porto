@@ -61,7 +61,9 @@
     "description": "Developed fullstack platform for community web projects and interactive event landing pages. Got to show off my works to new students as a hook",
     "image": "/experience/IWDC.jpeg",
     "secondaryImage": "/experience/NoBrainDev.jpeg",
-    "apparelColor": "#334155",
+    "frontImage": "/experience/iwdc-pdh-front.png?v=3",
+    "sideImage": "/experience/iwdc-pdh-side.png?v=3",
+    "apparelColor": "#1c2838",
     "apparelType": "sweatshirt",
     "graphicText": "IWDC",
     "graphicSubtext": "WEB COMMUNITY"

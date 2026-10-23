@@ -54,6 +54,8 @@ export function ClothingItem({
   const frontWidth =
     item.id === "exp-7"
       ? 239
+      : item.id === "exp-5"
+      ? 231
       : item.id === "exp-3"
       ? 210
       : item.id === "exp-1"
@@ -65,6 +67,8 @@ export function ClothingItem({
   const sideWidth =
     item.id === "exp-7"
       ? 73
+      : item.id === "exp-5"
+      ? 87
       : item.id === "exp-3"
       ? 81
       : item.id === "exp-1"
