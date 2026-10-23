@@ -73,7 +73,10 @@ test("TestV20_CropMeasurementUsesIntrinsicBodyScrollHeight", () => {
 });
 
 test("TestV21_AllSectionContentsShareVerticalPadding", () => {
-  assert.match(stackedSectionsSource, /const SECTION_CONTENT_PADDING = "py-16 md:py-24"/);
+  assert.match(
+    stackedSectionsSource,
+    /const SECTION_CONTENT_PADDING = "pt-4 pb-12 sm:pt-6 sm:pb-16 md:py-24"/,
+  );
   assert.equal((stackedSectionsSource.match(/data-folder-content className/g) ?? []).length, 3);
   assert.equal((stackedSectionsSource.match(/SECTION_CONTENT_PADDING/g) ?? []).length, 4);
 

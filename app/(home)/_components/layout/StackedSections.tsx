@@ -18,7 +18,7 @@ const STACK_TOPS = {
 	projects: { mobile: 128, desktop: 160 },
 } as const;
 
-const SECTION_CONTENT_PADDING = "py-16 md:py-24";
+const SECTION_CONTENT_PADDING = "pt-4 pb-12 sm:pt-6 sm:pb-16 md:py-24";
 
 interface StackedSectionsProps {
 	projects: ProjectMeta[];
