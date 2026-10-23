@@ -16,14 +16,15 @@ interface ClothingItemProps {
   isInView?: boolean;
 }
 
-function formatStartDateTag(dateStr: string): string {
+function formatStartDateTag(dateStr: string, isPresent: boolean): string {
   const parts = dateStr.trim().split(/\s+/);
+  const [open, close] = isPresent ? ["<", ">"] : ["[", "]"];
   if (parts.length >= 2) {
     const month = parts[0].slice(0, 3).toUpperCase();
     const year = parts[1].slice(-2);
-    return `[${month}/${year}]`;
+    return `${open}${month}/${year}${close}`;
   }
-  return `[${dateStr.toUpperCase()}]`;
+  return `${open}${dateStr.toUpperCase()}${close}`;
 }
 
 export function ClothingItem({
@@ -180,7 +181,7 @@ export function ClothingItem({
                     : "text-zinc-500/80 group-hover:text-zinc-300"
                 }`}
               >
-                {formatStartDateTag(item.startDate)}
+                {formatStartDateTag(item.startDate, item.endDate?.trim().toLowerCase() === "present")}
               </span>
             </div>
 

@@ -18,6 +18,19 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
   const primaryImg = item.image;
   const secondaryImg = item.secondaryImage || item.image;
 
+  // Monotonic sequence counter to ensure alternating between garments
+  // always mounts a fresh DOM node and animates strictly from below (y: 100% -> 0%)
+  // rather than resurrecting an exiting node from above (negative y).
+  const seqRef = React.useRef(0);
+  const prevIdRef = React.useRef(item.id);
+
+  if (prevIdRef.current !== item.id) {
+    prevIdRef.current = item.id;
+    seqRef.current += 1;
+  }
+
+  const slotKey = `${item.id}-${seqRef.current}`;
+
   return (
     <div className="w-full">
       <div className="w-full flex flex-col">
@@ -41,7 +54,7 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
           >
             <AnimatePresence initial={false}>
               <motion.div
-                key={item.id}
+                key={slotKey}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -99,7 +112,7 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
           >
             <AnimatePresence initial={false}>
               <motion.h3
-                key={item.id}
+                key={slotKey}
                 initial={{ y: "100%", opacity: 0.2 }}
                 animate={{ y: "0%", opacity: 1 }}
                 exit={{ y: "-100%", opacity: 0 }}
@@ -130,7 +143,7 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
           >
             <AnimatePresence initial={false}>
               <motion.p
-                key={item.id}
+                key={slotKey}
                 initial={{ y: "100%", opacity: 0.2 }}
                 animate={{ y: "0%", opacity: 1 }}
                 exit={{ y: "-100%", opacity: 0 }}
@@ -161,7 +174,7 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
           >
             <AnimatePresence initial={false}>
               <motion.p
-                key={item.id}
+                key={slotKey}
                 initial={{ y: "100%", opacity: 0.2 }}
                 animate={{ y: "0%", opacity: 1 }}
                 exit={{ y: "-100%", opacity: 0 }}
