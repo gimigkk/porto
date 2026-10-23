@@ -13,20 +13,28 @@ interface GraphicProps {
  * Dimensions match source aspect ratio (988x1377 -> 200x279)
  * Scale is 1:1 identical to side view.
  */
-export function ClothingFrontView({ item, className = "" }: GraphicProps) {
-  const frontSrc = item.frontImage || "/experience/shirt-front.png";
+export const ClothingFrontView = React.memo(function ClothingFrontView({
+  item,
+  className = "",
+}: GraphicProps) {
+  const frontSrc = item.frontImage || "/experience/shirt-front.webp";
 
   return (
-    <div className={`relative w-full h-[279px] flex flex-col items-center select-none pointer-events-none ${className}`}>
+    <div
+      className={`relative w-full h-[279px] flex flex-col items-center select-none pointer-events-none ${className}`}
+    >
       <img
         src={frontSrc}
-        alt={`${item.role} front view`}
-        className="w-full h-full object-contain object-top block drop-shadow-[0_12px_24px_rgba(0,0,0,0.55)] pointer-events-none"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        className="w-full h-full object-contain object-top block drop-shadow-[0_12px_24px_rgba(0,0,0,0.55)] pointer-events-none will-change-transform"
         draggable={false}
       />
     </div>
   );
-}
+});
 
 /**
  * Side view of clothing on wooden hanger
@@ -40,20 +48,21 @@ interface SideGraphicProps {
   isLast?: boolean;
 }
 
-export function ClothingSideView({
+export const ClothingSideView = React.memo(function ClothingSideView({
   item,
   className = "",
   isFirst = false,
   isLast = false,
 }: SideGraphicProps) {
-  const sideSrc = item.sideImage || "/experience/shirt-side.png";
+  const sideSrc = item.sideImage || "/experience/shirt-side.webp";
 
-  const horizontalOcclusionGradient =
-    !isFirst && !isLast
+  const horizontalOcclusionGradient = React.useMemo(() => {
+    return !isFirst && !isLast
       ? "linear-gradient(90deg, rgba(0, 0, 0, 0.54) 0%, rgba(0, 0, 0, 0.22) 18%, transparent 35%, transparent 65%, rgba(0, 0, 0, 0.22) 82%, rgba(0, 0, 0, 0.54) 100%)"
       : isFirst
       ? "linear-gradient(90deg, transparent 0%, transparent 65%, rgba(0, 0, 0, 0.22) 82%, rgba(0, 0, 0, 0.54) 100%)"
       : "linear-gradient(90deg, rgba(0, 0, 0, 0.54) 0%, rgba(0, 0, 0, 0.22) 18%, transparent 35%, transparent 100%)";
+  }, [isFirst, isLast]);
 
   return (
     <div
@@ -61,8 +70,11 @@ export function ClothingSideView({
     >
       <img
         src={sideSrc}
-        alt={`${item.role} side view`}
-        className="w-full h-full object-contain object-top block drop-shadow-[0_8px_16px_rgba(0,0,0,0.45)] pointer-events-none"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        className="w-full h-full object-contain object-top block drop-shadow-[0_8px_16px_rgba(0,0,0,0.45)] pointer-events-none will-change-transform"
         draggable={false}
       />
       {/* Inter-Garment Cavity Occlusion: natural flank shadowing between neighbors */}
@@ -82,4 +94,4 @@ export function ClothingSideView({
       />
     </div>
   );
-}
+});

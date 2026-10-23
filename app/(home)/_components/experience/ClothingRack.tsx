@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import React, { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ExperienceItem } from "@/types/experience";
 import { ClothingItem } from "./ClothingItem";
@@ -13,7 +13,7 @@ interface ClothingRackProps {
   isInView?: boolean;
 }
 
-export function ClothingRack({
+export const ClothingRack = React.memo(function ClothingRack({
   items,
   selectedIndex,
   onSelect,
@@ -21,6 +21,16 @@ export function ClothingRack({
 }: ClothingRackProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [railWidth, setRailWidth] = useState(720);
+  const [canHover, setCanHover] = useState(false);
+
+  // Single shared media query listener for entire rack
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    setCanHover(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setCanHover(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   useEffect(() => {
     if (!scrollContainerRef.current) return;
@@ -45,33 +55,52 @@ export function ClothingRack({
   );
 
   // Auto-scroll on selection change ONLY for mobile/tablet where rack scrolls
+  // Uses requestAnimationFrame to prevent forced reflow layout thrashing
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    // Desktop: never auto-scroll horizontally (prevents layout shift on select)
     if (window.innerWidth >= 1024) {
       container.scrollLeft = 0;
       return;
     }
 
-    const w = window.innerWidth;
-    const scale =
-      w >= 1024 ? 1.0 :
-      w >= 640 ? 0.92 :
-      w >= 410 ? 0.90 :
-      w >= 380 ? 0.85 :
-      0.62;
+    const rafId = requestAnimationFrame(() => {
+      const w = window.innerWidth;
+      const scale =
+        w >= 1024 ? 1.0 :
+        w >= 640 ? 0.92 :
+        w >= 410 ? 0.90 :
+        w >= 380 ? 0.85 :
+        0.62;
 
-    const targetX = targets[selectedIndex] ?? 0;
-    const visualX = targetX * scale;
-    const targetScrollLeft = visualX - container.clientWidth / 2;
+      const targetX = targets[selectedIndex] ?? 0;
+      const visualX = targetX * scale;
+      const targetScrollLeft = visualX - container.clientWidth / 2;
 
-    container.scrollTo({
-      left: Math.max(0, targetScrollLeft),
-      behavior: "smooth",
+      container.scrollTo({
+        left: Math.max(0, targetScrollLeft),
+        behavior: "smooth",
+      });
     });
+
+    return () => cancelAnimationFrame(rafId);
   }, [selectedIndex, targets]);
+
+  const handleKeyDownNav = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        const nextIndex = Math.min(items.length - 1, selectedIndex + 1);
+        if (nextIndex !== selectedIndex) onSelect(items[nextIndex], nextIndex);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        const prevIndex = Math.max(0, selectedIndex - 1);
+        if (prevIndex !== selectedIndex) onSelect(items[prevIndex], prevIndex);
+      }
+    },
+    [items, selectedIndex, onSelect]
+  );
 
   return (
     <div
@@ -122,7 +151,11 @@ export function ClothingRack({
           </motion.div>
 
           {/* Hanger Items Stage */}
-          <div className="relative w-full h-full overflow-visible">
+          <div
+            className="relative w-full h-full overflow-visible"
+            role="tablist"
+            aria-label="Clothing rack experience selector"
+          >
             {items.map((item, index) => (
               <ClothingItem
                 key={item.id}
@@ -134,6 +167,8 @@ export function ClothingRack({
                 targetX={targets[index] ?? 0}
                 onSelect={onSelect}
                 isInView={isInView}
+                canHover={canHover}
+                onKeyDownNav={handleKeyDownNav}
               />
             ))}
           </div>
@@ -141,4 +176,4 @@ export function ClothingRack({
       </div>
     </div>
   );
-}
+});

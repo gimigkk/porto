@@ -14,7 +14,10 @@ const slotTransition: Transition = {
   ease: [0.16, 1, 0.3, 1],
 };
 
-export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProps) {
+export const ExperienceDetail = React.memo(function ExperienceDetail({
+  item,
+  isInView = true,
+}: ExperienceDetailProps) {
   const primaryImg = item.image;
   const secondaryImg = item.secondaryImage || item.image;
 
@@ -32,16 +35,22 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
   const slotKey = `${item.id}-${seqRef.current}`;
 
   return (
-    <div className="w-full">
+    <div
+      className="w-full [contain:content]"
+      role="tabpanel"
+      aria-label={`${item.role} details`}
+      aria-live="polite"
+      aria-atomic="true"
+    >
       <div className="w-full flex flex-col">
-        {/* Dynamic 2-Image Diptych (Float up with blur) */}
+        {/* Dynamic 2-Image Diptych (Float up with smooth GPU transform) */}
         {primaryImg && (
           <motion.div
-            initial={{ opacity: 0, y: 36, filter: "blur(10px)" }}
+            initial={{ opacity: 0, y: 32 }}
             animate={
               isInView
-                ? { opacity: 1, y: 0, filter: "blur(0px)" }
-                : { opacity: 0, y: 36, filter: "blur(10px)" }
+                ? { opacity: 1, y: 0 }
+                : { opacity: 0, y: 32 }
             }
             transition={{
               type: "spring",
@@ -50,7 +59,7 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
               mass: 0.85,
               delay: 0.10,
             }}
-            className="relative w-full h-[clamp(135px,19vh,170px)] sm:h-[165px] md:h-[185px]"
+            className="relative w-full h-[clamp(135px,19vh,170px)] sm:h-[165px] md:h-[185px] will-change-transform"
           >
             <AnimatePresence initial={false}>
               <motion.div
@@ -66,6 +75,8 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
                   <img
                     src={primaryImg}
                     alt={`${item.role} at ${item.company}`}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       (e.currentTarget as HTMLElement).style.display = "none";
@@ -79,6 +90,8 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
                     <img
                       src={secondaryImg}
                       alt={`${item.role} details`}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.currentTarget as HTMLElement).style.display = "none";
@@ -91,15 +104,15 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
           </motion.div>
         )}
 
-        {/* Details Underneath with Progressive Staggered Blur Float-Up */}
+        {/* Details Underneath with Progressive Staggered Float-Up */}
         <div className="mt-3 sm:mt-4 flex flex-col min-h-0 lg:min-h-[140px]">
           {/* Slot 1: Role */}
           <motion.div
-            initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
+            initial={{ opacity: 0, y: 20 }}
             animate={
               isInView
-                ? { opacity: 1, y: 0, filter: "blur(0px)" }
-                : { opacity: 0, y: 24, filter: "blur(8px)" }
+                ? { opacity: 1, y: 0 }
+                : { opacity: 0, y: 20 }
             }
             transition={{
               type: "spring",
@@ -126,11 +139,11 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
 
           {/* Slot 2: Company & Dates */}
           <motion.div
-            initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
+            initial={{ opacity: 0, y: 16 }}
             animate={
               isInView
-                ? { opacity: 1, y: 0, filter: "blur(0px)" }
-                : { opacity: 0, y: 20, filter: "blur(6px)" }
+                ? { opacity: 1, y: 0 }
+                : { opacity: 0, y: 16 }
             }
             transition={{
               type: "spring",
@@ -157,11 +170,11 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
 
           {/* Slot 3: Description */}
           <motion.div
-            initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
+            initial={{ opacity: 0, y: 16 }}
             animate={
               isInView
-                ? { opacity: 1, y: 0, filter: "blur(0px)" }
-                : { opacity: 0, y: 20, filter: "blur(6px)" }
+                ? { opacity: 1, y: 0 }
+                : { opacity: 0, y: 16 }
             }
             transition={{
               type: "spring",
@@ -189,4 +202,4 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
       </div>
     </div>
   );
-}
+});
