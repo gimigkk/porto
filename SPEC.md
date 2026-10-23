@@ -106,3 +106,4 @@ B19|2026-08-30|Duplicate popstate/hash effects in ClientProjectModal + onTransit
 B20|2026-09-21|WDYR trackHooks monkeypatches React.useState to call useRef; Router useActionQueue shifts hook 2 from useOptimistic to useRef → crash|remove WDYR provider & package; fix React 19 hook lint errors
 B21|2026-10-19|Hero parallax anchored to legacy Experience bottom (absoluteBottom - innerHeight); desynced from first folder sticky dock|dockAnchor section-about top minus stackTop|V11,V31
 B22|2026-10-19|Uncapped quadratic curve had 2.5x initial speed (outran scroll, ripped gap, died out at end)|switch to linear parallax (speed: 0.5) docked cleanly at About arrival|V11,V31
+B23|2026-10-23|Scroll unlocked on `introComplete` before folders popped up (400ms delay + 700ms slide)|gate scroll unlock on `foldersPoppedUp` via `onPopComplete` and timeout fallback

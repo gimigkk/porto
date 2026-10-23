@@ -25,9 +25,10 @@ interface StackedSectionsProps {
 	isReady?: boolean;
 	githubGraph: GithubGraphDay[][];
 	isRevisit?: boolean;
+	onPopComplete?: () => void;
 }
 
-export default function StackedSections({ projects, isReady = true, githubGraph, isRevisit = false }: StackedSectionsProps) {
+export default function StackedSections({ projects, isReady = true, githubGraph, isRevisit = false, onPopComplete }: StackedSectionsProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const aboutAnchorRef = useRef<HTMLDivElement>(null);
 	const aboutRootRef = useRef<HTMLDivElement>(null);
@@ -57,6 +58,11 @@ export default function StackedSections({ projects, isReady = true, githubGraph,
 			initial={isRevisit ? false : { y: 200 }}
 			animate={isReady ? { y: 0 } : { y: 200 }}
 			transition={isRevisit ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0 }}
+			onAnimationComplete={() => {
+				if (isReady) {
+					onPopComplete?.();
+				}
+			}}
 		>
 			<div ref={viewportProbeRef} className="absolute h-svh w-0 invisible pointer-events-none" aria-hidden="true" />
 			<FolderSection

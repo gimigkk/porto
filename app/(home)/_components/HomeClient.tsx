@@ -37,6 +37,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
   const [loadingComplete, setLoadingComplete] = useState(() => hasCompletedHomeIntroSession);
   const [introComplete, setIntroComplete] = useState(() => hasCompletedHomeIntroSession);
   const [foldersReady, setFoldersReady] = useState(() => hasCompletedHomeIntroSession);
+  const [foldersPoppedUp, setFoldersPoppedUp] = useState(() => hasCompletedHomeIntroSession);
   const [ctaReady, setCtaReady] = useState(() => hasCompletedHomeIntroSession);
   const [firstFrameRendered, setFirstFrameRendered] = useState(() => hasCompletedHomeIntroSession);
   const [isRevisit] = useState(() => hasCompletedHomeIntroSession);
@@ -81,12 +82,17 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
       setHeroHeight(isMobile ? "70svh" : "95svh");
     }, 400);
 
+    const tFoldersPop = setTimeout(() => {
+      setFoldersPoppedUp(true);
+    }, 1100);
+
     const tCta = setTimeout(() => {
       setCtaReady(true);
     }, 850);
 
     return () => {
       clearTimeout(tFolders);
+      clearTimeout(tFoldersPop);
       clearTimeout(tCta);
     };
   }, [introComplete, isRevisit, isMobile]);
@@ -109,10 +115,10 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
     }
   }, []);
 
-  // Disable scrolling until intro is completely finished
+  // Disable scrolling until intro is completely finished and folders have popped up
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!introComplete) {
+    if (!foldersPoppedUp) {
       lenis?.stop();
       document.body.style.overflow = "hidden";
       document.documentElement.style.overflow = "hidden";
@@ -126,7 +132,7 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
     };
-  }, [introComplete, lenis]);
+  }, [foldersPoppedUp, lenis]);
 
   const handleLoadingComplete = useCallback(() => {
     setLoadingComplete(true);
@@ -214,7 +220,13 @@ export default function HomeClient({ projects, githubGraph }: HomeClientProps) {
           )}
 
           {/* Sections 2, 3, 4 (Stacked Folders with nested Footer inside Projects) */}
-          <StackedSections projects={projects} isReady={foldersReady} githubGraph={githubGraph} isRevisit={isRevisit} />
+          <StackedSections
+            projects={projects}
+            isReady={foldersReady}
+            githubGraph={githubGraph}
+            isRevisit={isRevisit}
+            onPopComplete={() => setFoldersPoppedUp(true)}
+          />
         </div>
 
         <ClientProjectModal projects={projects} />
