@@ -6,7 +6,19 @@ import { useInView } from "framer-motion";
 import { useTooltip } from "@/components/providers/TooltipProvider";
 import { GithubTooltipContent } from "./tooltips/GithubTooltipContent";
 
-export default React.memo(function GithubCommitGraph({ data, delayBase = 0, trigger }: { data: GithubGraphDay[][], delayBase?: number, trigger?: boolean }) {
+interface GithubCommitGraphProps {
+  data: GithubGraphDay[][];
+  delayBase?: number;
+  trigger?: boolean;
+  fullWidth?: boolean;
+}
+
+export default React.memo(function GithubCommitGraph({
+  data,
+  delayBase = 0,
+  trigger,
+  fullWidth = false,
+}: GithubCommitGraphProps) {
   const ref = useRef<HTMLDivElement>(null);
   const internalInView = useInView(ref, { once: true, amount: 0.2 });
   const isInView = trigger !== undefined ? trigger : internalInView;
@@ -76,34 +88,48 @@ export default React.memo(function GithubCommitGraph({ data, delayBase = 0, trig
   };
 
   return (
-    <div className="flex flex-col items-end w-max" ref={ref}>
+    <div className={`flex flex-col ${fullWidth ? "w-full" : "items-center md:items-end w-max"}`} ref={ref}>
       <div className="relative w-full h-3 md:h-4 text-zinc-400 text-[9px] md:text-[11px] mb-1 px-1">
-        {monthLabels.map((m, i) => (
-          <span
-            key={i}
-            className="absolute top-0"
-            style={{
-              left: `calc(${(m.colIndex / data.length) * 100}%)`,
-              opacity: isInView ? 1 : 0,
-              transition: isInView ? `opacity 0.5s ease-out ${delayBase + 0.4}s` : "none"
-            }}
-          >
-            {m.name}
-          </span>
-        ))}
+        {monthLabels.map((m, i) => {
+          const isNearEnd = m.colIndex / data.length > 0.88;
+          return (
+            <span
+              key={i}
+              className="absolute top-0 whitespace-nowrap"
+              style={{
+                left: isNearEnd ? undefined : `calc(${(m.colIndex / data.length) * 100}%)`,
+                right: isNearEnd ? "0px" : undefined,
+                opacity: isInView ? 1 : 0,
+                transition: isInView ? `opacity 0.5s ease-out ${delayBase + 0.4}s` : "none",
+              }}
+            >
+              {m.name}
+            </span>
+          );
+        })}
       </div>
-      <div className="flex gap-[2px] md:gap-[3px]">
+      <div className={fullWidth ? "w-full flex justify-between gap-[1.5px] sm:gap-[2px]" : "flex gap-[2px] md:gap-[3px]"}>
         {data.map((week, wIndex) => (
-          <div key={wIndex} className="flex flex-col gap-[2px] md:gap-[3px]">
+          <div
+            key={wIndex}
+            className={fullWidth ? "flex-1 flex flex-col gap-[1.5px] sm:gap-[2px]" : "flex flex-col gap-[2px] md:gap-[3px]"}
+          >
             {week.map((day, dIndex) => (
               <div
                 key={dIndex}
-                className="w-[8px] h-[8px] md:w-[12px] md:h-[12px] rounded-[1px] md:rounded-[2px] cursor-default pointer-events-auto"
+                className={
+                  fullWidth
+                    ? "w-full aspect-square rounded-[1px] md:rounded-[2px] cursor-default pointer-events-auto"
+                    : "w-[8.5px] h-[8.5px] min-[390px]:w-[9.5px] min-[390px]:h-[9.5px] md:w-[12px] md:h-[12px] rounded-[1px] md:rounded-[2px] cursor-default pointer-events-auto"
+                }
                 style={{
                   ...getDayStyle(day.count),
                   transform: isInView ? "scale(1)" : "scale(0)",
-                  transition: isInView ? `transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${delayBase + ((data.length - 1 - wIndex) * 0.015) + ((6 - dIndex) * 0.015)}s` : "none"
+                  transition: isInView
+                    ? `transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${delayBase + ((data.length - 1 - wIndex) * 0.015) + ((6 - dIndex) * 0.015)}s`
+                    : "none",
                 }}
+                onClick={() => showTooltip(<GithubTooltipContent text={day.text} />)}
                 onMouseEnter={() => showTooltip(<GithubTooltipContent text={day.text} />)}
                 onMouseLeave={hideTooltip}
               />

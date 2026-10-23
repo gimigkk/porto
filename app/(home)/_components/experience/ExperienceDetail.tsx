@@ -50,7 +50,7 @@ export function ExperienceDetail({ item, isInView = true }: ExperienceDetailProp
               mass: 0.85,
               delay: 0.10,
             }}
-            className="relative w-full h-[135px] sm:h-[160px] md:h-[185px]"
+            className="relative w-full h-[clamp(135px,19vh,170px)] sm:h-[165px] md:h-[185px]"
           >
             <AnimatePresence initial={false}>
               <motion.div

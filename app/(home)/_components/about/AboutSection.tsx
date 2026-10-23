@@ -125,8 +125,8 @@ export default function AboutSection({ githubGraph }: { githubGraph: GithubGraph
 
         {/* Sub-section 2: GitHub Graph */}
         <div className="flex md:hidden flex-col gap-2 w-full overflow-hidden">
-          <div className="flex justify-end w-full">
-            <GithubCommitGraph data={githubGraph} delayBase={0.8} trigger={isInView} />
+          <div className="w-full">
+            <GithubCommitGraph data={githubGraph} delayBase={0.8} trigger={isInView} fullWidth />
           </div>
         </div>
 

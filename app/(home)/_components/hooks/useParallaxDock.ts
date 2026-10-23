@@ -120,6 +120,14 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
 
   // ── Parallax: linear or quadratic ease-out ──────────────────
   const update = useCallback((scroll: number) => {
+    if (disabled) {
+      if (parallaxRef.current && currentY.current !== 0) {
+        currentY.current = 0;
+        parallaxRef.current.style.transform = "translate3d(0, 0px, 0)";
+      }
+      return;
+    }
+
     const dock = dockScrollRef.current;
     const maxShift = maxShiftRef.current;
     if (dock === Infinity || dock <= 0 || maxShift <= 0) return;
@@ -133,11 +141,19 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
       currentY.current = y;
       applyTransform(y);
     }
-  }, [easing]);
+  }, [disabled, easing]);
 
   const lenis = useLenis();
 
   useEffect(() => {
+    if (disabled) {
+      currentY.current = 0;
+      if (parallaxRef.current) {
+        parallaxRef.current.style.transform = "translate3d(0, 0px, 0)";
+      }
+      return;
+    }
+
     let frameId = 0;
     let disposed = false;
     const scheduleMeasure = () => {
@@ -174,7 +190,7 @@ export function useParallaxDock(options: ParallaxDockOptions): ParallaxDockResul
       resizeObserver.disconnect();
       window.removeEventListener("resize", scheduleMeasure);
     };
-  }, [dockAnchor, lenis, measure, observeSelectors, target, update]);
+  }, [disabled, dockAnchor, lenis, measure, observeSelectors, target, update]);
 
   useEffect(() => {
     if (disabled) {

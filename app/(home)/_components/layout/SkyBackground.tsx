@@ -43,14 +43,17 @@ export default function SkyBackground({
     >
       {/* Parallax container — gradient + clouds move together */}
       <div
-        ref={parallaxRef}
+        ref={isMobile ? undefined : parallaxRef}
         className="absolute inset-0"
-        style={{ willChange: "transform", transform: "translateZ(0)" }}
+        style={{
+          willChange: isMobile ? "auto" : "transform",
+          transform: isMobile ? "none" : "translateZ(0)",
+        }}
       >
         {/* Sky gradient */}
         <div className="absolute inset-0 bg-linear-to-b from-[#1F2484] to-[#50aaff]" />
-        {/* Overscroll bleed cover to prevent black flash on low FPS */}
-        <div className="absolute top-full left-0 right-0 h-[100vh] bg-black" />
+        {/* Overscroll bleed cover to prevent black flash on low FPS - desktop only */}
+        {!isMobile && <div className="absolute top-full left-0 right-0 h-[100vh] bg-black" />}
 
         {/* ASCII Clouds */}
         <div

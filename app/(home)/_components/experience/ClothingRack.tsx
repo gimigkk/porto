@@ -55,8 +55,13 @@ export function ClothingRack({
       return;
     }
 
-    const isMobile = window.innerWidth < 640;
-    const scale = isMobile ? 0.62 : 0.85;
+    const w = window.innerWidth;
+    const scale =
+      w >= 1024 ? 1.0 :
+      w >= 640 ? 0.92 :
+      w >= 410 ? 0.90 :
+      w >= 380 ? 0.85 :
+      0.62;
 
     const targetX = targets[selectedIndex] ?? 0;
     const visualX = targetX * scale;
@@ -71,15 +76,17 @@ export function ClothingRack({
   return (
     <div
       ref={scrollContainerRef}
-      className="relative w-full overflow-x-auto lg:overflow-visible pt-5 lg:pt-0 pb-6 lg:pb-0 scrollbar-none [touch-action:pan-x_pan-y] overscroll-x-contain"
+      className="relative w-full overflow-x-auto lg:overflow-visible pt-7 lg:pt-0 pb-6 lg:pb-0 scrollbar-none [touch-action:pan-x_pan-y] overscroll-x-contain"
     >
       {/* Outer wrapper sized precisely to scaled footprint:
-          Mobile (0.62x): 720 * 0.62 = 446px wide, 350 * 0.62 = 217px high
-          Tablet (0.85x): 720 * 0.85 = 612px wide, 350 * 0.85 = 298px high
+          Mobile min (<380px, 0.62x): 720 * 0.62 = 446px wide, 350 * 0.62 = 217px high
+          Mobile mid (>=380px, 0.85x): 720 * 0.85 = 612px wide, 350 * 0.85 = 298px high
+          Mobile max (>=410px, 0.90x): 720 * 0.90 = 648px wide, 350 * 0.90 = 315px high
+          Tablet (0.92x): 720 * 0.92 = 662px wide, 350 * 0.92 = 322px high
           Desktop (1.0x): 100% wide, 410px high (accommodates 1.20x scaled garments & labels) */}
-      <div className="relative mx-auto w-[446px] sm:w-[612px] lg:w-full h-[220px] sm:h-[298px] lg:h-[410px] shrink-0 overflow-visible">
+      <div className="relative mx-auto w-[446px] min-[380px]:w-[612px] min-[410px]:w-[648px] sm:w-[662px] lg:w-full h-[220px] min-[380px]:h-[300px] min-[410px]:h-[318px] sm:h-[325px] lg:h-[410px] shrink-0 overflow-visible">
         <div
-          className="relative origin-top-left scale-[0.62] sm:scale-85 lg:scale-100 overflow-visible"
+          className="relative origin-top-left scale-[0.62] min-[380px]:scale-[0.85] min-[410px]:scale-[0.90] sm:scale-[0.92] lg:scale-100 overflow-visible"
           style={{ width: `${railWidth}px`, height: "100%" }}
         >
           {/* Photorealistic Chrome Rail with Gradient-Faded Ends: Top aligned with left image (Y = 0px) */}

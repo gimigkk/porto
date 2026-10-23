@@ -50,7 +50,7 @@ export default function ExperienceSection() {
         </motion.div>
 
         {/* Main Interactive Stage with 2:3 Column Ratio */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 sm:gap-6 lg:gap-12 items-start w-full overflow-visible">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-[clamp(1rem,3.5vh,2.5rem)] sm:gap-6 lg:gap-12 items-start w-full overflow-visible">
           {/* Column 1 (2 parts): Staggered detail column */}
           <div className="lg:col-span-2 w-full overflow-visible">
             <ExperienceDetail item={selectedItem} isInView={isInView} />
