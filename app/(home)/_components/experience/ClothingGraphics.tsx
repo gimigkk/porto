@@ -33,16 +33,52 @@ export function ClothingFrontView({ item, className = "" }: GraphicProps) {
  * Dimensions match source aspect ratio (288x1382 -> 58x278)
  * Scale is 1:1 identical to front view.
  */
-export function ClothingSideView({ item, className = "" }: GraphicProps) {
+interface SideGraphicProps {
+  item: ExperienceItem;
+  className?: string;
+  isFirst?: boolean;
+  isLast?: boolean;
+}
+
+export function ClothingSideView({
+  item,
+  className = "",
+  isFirst = false,
+  isLast = false,
+}: SideGraphicProps) {
   const sideSrc = item.sideImage || "/experience/shirt-side.png";
 
+  const horizontalOcclusionGradient =
+    !isFirst && !isLast
+      ? "linear-gradient(90deg, rgba(0, 0, 0, 0.54) 0%, rgba(0, 0, 0, 0.22) 18%, transparent 35%, transparent 65%, rgba(0, 0, 0, 0.22) 82%, rgba(0, 0, 0, 0.54) 100%)"
+      : isFirst
+      ? "linear-gradient(90deg, transparent 0%, transparent 65%, rgba(0, 0, 0, 0.22) 82%, rgba(0, 0, 0, 0.54) 100%)"
+      : "linear-gradient(90deg, rgba(0, 0, 0, 0.54) 0%, rgba(0, 0, 0, 0.22) 18%, transparent 35%, transparent 100%)";
+
   return (
-    <div className={`relative w-full h-[278px] flex flex-col items-center select-none pointer-events-none ${className}`}>
+    <div
+      className={`relative w-full h-[278px] flex flex-col items-center select-none pointer-events-none group/side ${className}`}
+    >
       <img
         src={sideSrc}
         alt={`${item.role} side view`}
         className="w-full h-full object-contain object-top block drop-shadow-[0_8px_16px_rgba(0,0,0,0.45)] pointer-events-none"
         draggable={false}
+      />
+      {/* Inter-Garment Cavity Occlusion: natural flank shadowing between neighbors */}
+      <div
+        className="absolute inset-0 pointer-events-none transition-opacity duration-300 group-hover/side:opacity-40"
+        style={{
+          background: horizontalOcclusionGradient,
+          WebkitMaskImage: `url(${sideSrc})`,
+          maskImage: `url(${sideSrc})`,
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+          WebkitMaskPosition: "top center",
+          maskPosition: "top center",
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+        }}
       />
     </div>
   );

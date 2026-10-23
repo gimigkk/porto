@@ -121,6 +121,8 @@ export function ClothingRack({
                 key={item.id}
                 item={item}
                 index={index}
+                isFirst={index === 0}
+                isLast={index === items.length - 1}
                 isSelected={index === selectedIndex}
                 targetX={targets[index] ?? 0}
                 onSelect={onSelect}

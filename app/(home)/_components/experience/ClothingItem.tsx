@@ -8,6 +8,8 @@ import { ClothingFrontView, ClothingSideView } from "./ClothingGraphics";
 interface ClothingItemProps {
   item: ExperienceItem;
   index: number;
+  isFirst?: boolean;
+  isLast?: boolean;
   isSelected: boolean;
   targetX: number;
   onSelect: (item: ExperienceItem, index: number) => void;
@@ -27,6 +29,8 @@ function formatStartDateTag(dateStr: string): string {
 export function ClothingItem({
   item,
   index,
+  isFirst = false,
+  isLast = false,
   isSelected,
   targetX,
   onSelect,
@@ -218,7 +222,7 @@ export function ClothingItem({
 
                 {/* SIDE VIEW (profile drape on rail, symmetric crossfade) */}
                 <div style={sideStyle} onClick={() => onSelect(item, index)}>
-                  <ClothingSideView item={item} />
+                  <ClothingSideView item={item} isFirst={isFirst} isLast={isLast} />
                 </div>
               </div>
             </motion.div>
